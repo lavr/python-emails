@@ -1,0 +1,87 @@
+# encoding: utf-8
+
+# tag-with-link wrapper
+
+import logging
+
+from emails.compat import OrderedSet
+
+
+class ElementWithLink(object):
+
+    LINK_ATTR_NAME = None
+
+    def __init__(self, el):
+        self.el = el
+        self._link_history = OrderedSet()
+
+    def get_link(self):
+        return self.el.get(self.LINK_ATTR_NAME)
+
+    def set_link(self, new):
+        _old = self.get_link()
+        if _old != new:
+            logging.debug('Update link %s => %s ', _old, new)
+            self.el.set(self.LINK_ATTR_NAME, new)
+            self._link_history.add(_old)
+
+    link = property(get_link, set_link)
+
+    @classmethod
+    def make(cls, attr):
+        def wrapper(el):
+            r = cls(el)
+            r.LINK_ATTR_NAME = attr
+            return r
+        return wrapper
+
+    @property
+    def link_history(self):
+        return self._link_history
+
+
+class A_link(ElementWithLink):
+    # el is lxml.Element
+    LINK_ATTR_NAME = 'href'
+
+
+class Link_link(ElementWithLink):
+    # el is lxml.Element
+    LINK_ATTR_NAME = 'href'
+
+
+class IMG_link(ElementWithLink):
+    # el is lxml.Element
+    LINK_ATTR_NAME = 'src'
+
+
+class Background_link(ElementWithLink):
+    LINK_ATTR_NAME = 'background'
+
+
+class CSS_link(ElementWithLink):
+
+    # el is cssutils style property
+
+    def __init__(self, el, updateme=None):
+        ElementWithLink.__init__(self, el)
+        self.updateme = updateme
+
+    def get_link(self):
+        return self.el.uri
+
+    def set_link(self, new):
+        _old = self.el.uri
+        if _old != new:
+            logging.debug('Update link %s => %s ', _old, new)
+            self.el.uri = new
+            self._links_history.add(_old)
+            if updateme:
+                updateme.update()
+
+
+def TAG_WRAPPER(attr):
+    return ElementWithLink.make(attr)
+
+
+CSS_WRAPPER = CSS_link

@@ -1,0 +1,83 @@
+# encoding: utf-8
+
+__all__ = ['guess_charset', 'fix_content_type']
+
+import re
+import cgi
+import chardet
+
+import logging
+
+# HTML page charset stuff
+
+RE_CHARSET = re.compile("charset=\"?'?(.+)\"?'?", re.I + re.S + re.M)
+RE_META = re.compile("<meta.*?http-equiv=\"?'?content-type\"?'?.*?>", re.I + re.S + re.M)
+RE_INSIDE_META = re.compile("content=\"?'?([^\"'>]+)", re.I + re.S + re.M)
+
+
+def fix_content_type(content_type, t='image'):
+    if (not content_type):
+        return "%s/unknown" % t
+    else:
+        return content_type
+
+
+def guess_charset(headers, html):
+
+    # guess by http headers
+    if headers:
+        content_type = headers['content-type']
+        if content_type:
+            _, params = cgi.parse_header(content_type)
+            return params.get('charset', None)
+
+    # guess by html meta
+    for s in RE_META.findall(html):
+        for x in RE_INSIDE_META.findall(s):
+            for charset in RE_CHARSET.findall(x):
+                return charset
+
+    # guess by chardet
+    return chardet.detect(html)
+
+
+def set_content_type_meta(document, element_cls, content_type="text/html", charset="utf-8"):
+
+    html = document.find('html')
+    if html is None:
+        html = element_cls('html')
+        html.insert(0, document)
+        document = html
+
+    head = document.find('head')
+    if head is None:
+        head = element_cls('head')
+        html.insert(0, head)
+
+    content_type_meta = None
+
+    for meta in head.find('meta') or []:
+        http_equiv = meta.get('http-equiv', None)
+        if http_equiv and (http_equiv.lower() == 'content_type'):
+            content_type_meta = meta
+            break
+
+    if content_type_meta is None:
+        content_type_meta = element_cls('meta')
+
+    content_type_meta.set('content', '%s; charset=%s' % (content_type, charset))
+    content_type_meta.set('http-equiv', "Content-Type")
+
+    return document
+
+
+def add_body_stylesheet(document, element_cls, cssText, tag="body"):
+
+    style = element_cls('style')
+    style.text = cssText
+
+    body = document.find(tag)
+    if body is None:
+        body = document
+
+    body.insert(0, style)
