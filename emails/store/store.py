@@ -32,6 +32,12 @@ class MemoryFileStore(FileStore):
         else:
             return False
 
+    def keys(self):
+        return self._files.keys()
+
+    def __len__(self):
+        return len(self._files)
+
     def as_dict(self):
         for d in self._files.itervalues():
             yield d.as_dict()

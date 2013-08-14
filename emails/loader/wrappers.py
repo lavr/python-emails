@@ -66,6 +66,7 @@ class CSS_link(ElementWithLink):
     def __init__(self, el, updateme=None):
         ElementWithLink.__init__(self, el)
         self.updateme = updateme
+        #print __name__, "CSS_link", el.uri
 
     def get_link(self):
         return self.el.uri

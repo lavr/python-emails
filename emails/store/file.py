@@ -46,6 +46,7 @@ class BaseFile(object):
         self._headers = kwargs.get('headers', None)
         self._content_disposition = kwargs.get('content_disposition', None)
         self.subtype = kwargs.get('subtype', None)
+        self.local_loader = kwargs.get('local_loader', None)
         self.id = id
 
     def as_dict(self, fields=None):
@@ -153,6 +154,12 @@ class LazyHTTPFile(BaseFile):
 
     def fetch(self):
         if (not self._fetched) and self.uri:
+            if self.local_loader:
+                data = self.local_loader[self.uri]
+                if data:
+                    self._fetched = True
+                    self._data = data
+
             r = requests.get(self.absolute_url or self.uri, **self.fetch_params)
             if r.status_code == 200:
                 self._data = r.content

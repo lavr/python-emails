@@ -18,11 +18,11 @@ class PageStylesheets:
         self.sheets = []
         self.dirty = True
 
-    def append(self, url=None, text=None, absolute_url=None):
+    def append(self, url=None, text=None, absolute_url=None, local_loader=None):
         if (url is not None) and (url in self.urls):
             logging.debug('stylesheet url duplicate: %s', url)
             return
-        self.sheets.append({'url': url, 'text': text, 'absolute_url': absolute_url or url})
+        self.sheets.append({'url': url, 'text': text, 'absolute_url': absolute_url or url, 'local_loader': local_loader})
         self.dirty = True
 
     def _concatenate_sheets(self):
@@ -32,8 +32,14 @@ class PageStylesheets:
             uri_properties = []
 
             for d in self.sheets:
+                local_loader = d.get('local_loader', None)
                 text = d.get('text', None)
+                uri = d.get('uri', None)
                 absolute_url = d.get('absolute_url', None)
+
+                if (text is None) and local_loader and uri:
+                    text = local_loader[uri]
+
                 if text:
                     sheet = CSSParser().parseString(text, href=absolute_url)
                 else:

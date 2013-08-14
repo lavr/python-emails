@@ -74,17 +74,33 @@ Features
 
 -  Internationalization & Unicode bodies
 -  DKIM signatures
--  CSS inliner
+-  HTML page loader & CSS inliner
 -  Body and attachments http import
 -  Body & headers preprocessors
--  (TODO) ESP integration: amazon ses, sendgrid
+
+TODO
+-----
+- Fix all bugs
+- More genius css inliner
+- (may be) ESP integration: amazon ses, sendgrid, ...
 
 
-Thanks
-------
 
-Library is mush based on mailcube.ru experience.
-Inspired by python-requests and werkzeug.
+How to Help
+-----------
+
+Module is under development and contributions are welcome!
+
+1. Open an issue to start a discussion around a bug or a feature.
+2. Fork the repository on GitHub and start making your changes to a new branch.
+3. Write a test which shows that the bug was fixed.
+4. Send a pull request. Make sure to add yourself to AUTHORS.
+
+
+Background
+----------
+
+Library inspired by python-requests and werkzeug. Much based on mailcube.ru experience.
 
 
 .. image:: https://travis-ci.org/lavr/python-emails.png?branch=master   :target: https://travis-ci.org/lavr/python-emails

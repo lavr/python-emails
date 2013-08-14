@@ -1,7 +1,8 @@
 # encoding: utf-8
 
 # This module use pydkim for DKIM signature
-# For python2.4 users:
+
+# Special note for python2.4 users:
 #  - use dkimpy v0.3 from http://hewgill.com/pydkim/
 #  - install hashlib (https://pypi.python.org/pypi/hashlib/20081119) and dnspython
 
@@ -9,8 +10,9 @@ import logging
 
 try:
     import dkim
-except ImportError:
-    dkim = None
+except ImportError as e:
+    # Do not throw ImportError here, but save it for later.
+    _DKIM_IMPORT_ERROR = e
 
 
 class DKIMSigner:
@@ -18,10 +20,12 @@ class DKIMSigner:
     def __init__(self, selector, domain, privkey, ignore_sign_errors=True, **kwargs):
 
         if dkim is None:
-            raise ImportError("Module 'dkim' required for DKIMSigner, but not found")
+            # Just want to raise "natural" ImportError here.
+            # Looks strange, but seems it works.
+            raise _DKIM_IMPORT_ERROR
+
 
         self.ignore_sign_errors = ignore_sign_errors
-
         self._sign_params = kwargs
 
         if privkey and hasattr(privkey, 'read'):

@@ -16,6 +16,8 @@ from .helpers import guess_charset
 
 from .wrappers import TAG_WRAPPER, CSS_WRAPPER
 
+from .localloaders import FileSystemLoader
+
 import helpers
 
 
@@ -52,14 +54,16 @@ class HTTPLoader:
     css_link_cls = CSS_WRAPPER
 
     attached_image_cls = LazyHTTPFile
+    filestore_cls = MemoryFileStore
 
-    def __init__(self, filestore, encoding='utf-8', fetch_params=None):
-        self.filestore = filestore
+    def __init__(self, filestore=None, encoding='utf-8', fetch_params=None):
+        self.filestore = filestore or self.filestore_cls()
         self.encoding = encoding
         self.fetch_params = fetch_params
         self.stylesheets = PageStylesheets()
         self.base_url = None
         self._attachments = None
+        self.local_loader = None
 
     def _fetch(self, url, valid_http_codes=(200, ), fetch_params = None):
         _params = dict(allow_redirects=True, verify=False,
@@ -84,16 +88,13 @@ class HTTPLoader:
     def tag_has_link(self, tag):
         return tag in self.tag_link_cls
 
-    def load_start(self, url, base_url=None, encoding=None, fetch_params=None):
+    def start_load_url(self, url, base_url=None):
         """
         Set some params and load start page
         """
 
-        if encoding:
-            self.encoding = encoding
-
         # Load start page
-        response = self._fetch(url, valid_http_codes=(200, ), fetch_params=fetch_params)
+        response = self._fetch(url, valid_http_codes=(200, ), fetch_params=self.fetch_params)
         self.start_url = url
         self.base_url = base_url or url  # Fixme: split base_url carefully
         self.headers = response.headers
@@ -101,6 +102,21 @@ class HTTPLoader:
         content = content.replace('\r\n', '\n')  # Remove \r, or we'll get much &#13;
         self.html_encoding = guess_charset(response.headers, content)
         self.html_content = content
+
+    def start_load_file(self, html):
+        """
+        Set some params and load start page
+        """
+        if hasattr(html, 'read'):
+            html = html.read()
+
+        html = html.replace('\r\n', '\n') # Remove \r, or we'll get much &#13;
+        self.html_content = html
+        self.html_encoding = 'utf-8' # ?
+        self.start_url = None
+        self.base_url = None
+        self.headers = None
+
 
     def make_html_tree(self):
 
@@ -150,9 +166,20 @@ class HTTPLoader:
         for prop in self.stylesheets.uri_properties:
             self.process_stylesheet_uri_property(prop)
 
-    def load_url(self,
-                 url,
-                 base_url=None,
+        self.attach_all_images()
+
+    def load_url(self, url, base_url=None, **kwargs):
+        self.start_load_url(url=url, base_url=base_url)
+        return self._load(**kwargs)
+
+    def load_file(self, file, local_loader=None, **kwargs):
+        self.local_store=local_loader
+        self.start_load_file(html=file)
+        #print kwargs
+        return self._load(**kwargs)
+
+
+    def _load(self,
                  css_inline=True,
                  remove_unsafe_tags=True,
                  make_links_absolute=False,
@@ -160,7 +187,6 @@ class HTTPLoader:
                  update_stylesheet=False
                  ):
 
-        self.load_start(url=url, base_url=base_url)
         self.make_html_tree()
         self.parse_html_tree(remove_unsafe_tags=remove_unsafe_tags)
 
@@ -189,7 +215,7 @@ class HTTPLoader:
             #logging.debug('Found link %s, rel=%s, media=%s', el, el.get('rel',''), el.get('media',''))
             url = el.get('href', '')
             if url:
-                self.stylesheets.append(url=url, absolute_url=self.absolute_url(url))
+                self.stylesheets.append(url=url, absolute_url=self.absolute_url(url), local_loader=self.local_loader)
 
     def process_style_tag(self, el):
         """
@@ -215,14 +241,23 @@ class HTTPLoader:
             if lnk is not None:
                 self._tags_with_images.append(obj)
                 # print __name__, "process_tag_with_link", obj.el.attrib, obj.el.tag , obj.link
-                self.attach_image(uri=lnk, absolute_url=self.absolute_url(lnk))
         elif el.tag == 'a':
             self._a_links.append(obj)
+
+    def attach_all_images(self):
+        for obj in self.iter_image_links():
+            lnk = obj.link
+            if lnk:
+                self.attach_image(uri=lnk, absolute_url=self.absolute_url(lnk))
 
     def attach_image(self, uri, absolute_url, subtype=None):
         if uri not in self.filestore:
             self.filestore.add(self.attached_image_cls(
-                uri=uri, absolute_url=absolute_url, subtype=subtype, fetch_params=self.fetch_params))
+                uri=uri,
+                absolute_url=absolute_url,
+                local_loader=self.local_loader,
+                subtype=subtype,
+                fetch_params=self.fetch_params))
 
     def process_tag_with_style(self, el):
         t = StyledTagWrapper(el)
@@ -231,6 +266,7 @@ class HTTPLoader:
             self._tags_with_links.append(obj)
 
     def process_stylesheet_uri_property(self, prop):
+        #print __name__, "uri=", prop.uri
         self._tags_with_links.append(self.css_link_cls(prop))
 
     def make_link_absolute(self, obj):
@@ -258,6 +294,9 @@ class HTTPLoader:
 
         if base_url is None:
             base_url = self.base_url
+
+        if base_url is None:
+            return url
 
         parsed_url = urlparse.urlsplit(url)
         if parsed_url.scheme:
@@ -292,6 +331,10 @@ class HTTPLoader:
         return list(self.filestore.as_dict())
 
     def save_to_file(self, filename):
+        #
+        # Not very good example of link walking and file rename
+        #
+
         path = os.path.abspath(filename)
         # Save images locally and replace all links to images in html
         files_dir = '_files'
@@ -326,3 +369,27 @@ class HTTPLoader:
                 open(new_uri, 'wb').write(attach.data)
 
         open(filename, 'w').write(self.html)
+
+
+def from_url(url, **kwargs):
+    loader = HTTPLoader()
+    loader.load_url(url=url, **kwargs)
+    return loader
+
+load_url = from_url
+
+def from_directory(directory, index_file=None, **kwargs):
+    loader = HTTPLoader()
+    local_loader = FileSystemLoader(searchpath=directory)
+    index_file_name = local_loader.find_index_file(index_file)
+    loader.load_file(local_loader[index_file_name], local_loader=local_loader,  **kwargs)
+    return loader
+
+def from_file(filename):
+    return from_directory(directory=os.path.dirname(filename), index_file=os.path.basename(filename))
+
+def from_zip(zip_file):
+    loader = HTTPLoader()
+    local_store = ZipLoader(zip_file=zip_file)
+    index_file_name = local_store.find_index_file(index_file=index_file)
+    loader.load_file(index_file_name, local_store=local_store,  **kwargs)
