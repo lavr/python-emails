@@ -22,7 +22,9 @@ def _email_data(**kwargs):
     data['text'] = T(u'Привет, {{name}}!\nВ первых строках...')
     data['headers'] = {'X-Mailer': 'python-emails'}
     data['attachments'] = [
-        {'data': 'aaa', 'filename': 'Event.ics'}, {'data': 'bbb', 'filename': 'map.png'}]
+        {'data': 'aaa', 'filename': 'Event.ics'},
+        {'data': 'bbb', 'filename': 'map.png'}
+    ]
     if kwargs:
         data.update(kwargs)
     return data
@@ -57,7 +59,7 @@ def test_send2():
     m.render(name=u'Полина')
     try:
         m.send( smtp=SMTP_DATA )
-        m.send( mail_to='s.lavrinenko@gmail.com', smtp=SMTP_DATA )
+        m.send( to='s.lavrinenko@gmail.com', smtp=SMTP_DATA )
     except IOError as e:
         print "Error sending emails via %s (%s)" % (SMTP_DATA, e)
 
@@ -82,8 +84,8 @@ def test_send_inline_images():
 
     try:
         m.send( smtp=SMTP_DATA )
-        m.send( mail_to='s.lavrinenko@gmail.com', smtp=SMTP_DATA )
-        m.send( mail_to='sergey.lavrinenko@yahoo.com', smtp=SMTP_DATA )
+        m.send( to='s.lavrinenko@gmail.com', smtp=SMTP_DATA )
+        m.send( to='sergey.lavrinenko@yahoo.com', smtp=SMTP_DATA )
     except IOError as e:
         print "Error sending emails via %s (%s)" % (SMTP_DATA, e)
 

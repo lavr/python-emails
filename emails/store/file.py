@@ -17,6 +17,7 @@ from email.encoders import encode_base64
 # class FileNotFound(Exception):
 #    pass
 
+MIMETYPE_UNKNOWN = 'application/unknown'
 
 def fix_content_type(content_type, t='image'):
     if (not content_type):
@@ -100,8 +101,12 @@ class BaseFile(object):
         _ = getattr(self, '_mime_type', None)
         if (_ is None):
             filename = self.filename
-            _ = self._mime_type = guess_type(filename)[0]
-            # print __name__, "get_mime_type calculated=", _
+            if filename:
+                _ = self._mime_type = guess_type(filename)[0]
+                # print __name__, "get_mime_type calculated=", _
+        if not _:
+            _ = MIMETYPE_UNKNOWN
+        self._mime_type = _
         return _
 
     mime_type = property(get_mime_type)

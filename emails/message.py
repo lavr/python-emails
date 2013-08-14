@@ -132,6 +132,8 @@ class Message(BaseEmail):
         self._text_url = url
 
     def attach(self, **kwargs):
+        if 'content_disposition' not in kwargs:
+            kwargs['content_disposition'] = 'attachment'
         self.attachments.add(kwargs)
 
     @property
@@ -142,17 +144,13 @@ class Message(BaseEmail):
     @property
     @renderable
     def text_body(self):
-        #assert isinstance(self._text, basestring), "self._text must be string, not %s" % type(self._text)
         return self._text
 
-
     def set_subject(self, value):
-        #print __name__, "set_subject=", value
         self._subject = value
 
     @renderable
     def get_subject(self):
-        #print __name__, "get_subject=", self._subject
         return self._subject
 
     subject = property(get_subject, set_subject)
@@ -187,16 +185,11 @@ class Message(BaseEmail):
     message_date = property(get_date, set_date)
 
     def message_id(self):
-
-        m_id = self._message_id
-
-        if m_id is False:
+        mid = self._message_id
+        if mid is False:
             return None
+        return callable(mid) and mid() or mid
 
-        if callable(m_id):
-            m_id = m_id()
-
-        return m_id
 
     def encode_header(self, value):
         if isinstance(value, unicode):
@@ -257,7 +250,6 @@ class Message(BaseEmail):
             msgtext.set_charset(self.charset)
             msgalt.attach(msgtext)
 
-
         if _html:
             msghtml = MIMEText(_html, 'html', _charset=self.charset)
             msghtml.set_charset(self.charset)
@@ -289,7 +281,8 @@ class Message(BaseEmail):
     def dkim(self, **kwargs):
         self._dkim_signer = self.dkim_cls(**kwargs)
 
-    def send(self, mail_to=None,
+    def send(self,
+             to=None,
              set_mail_to=True,
              mail_from=None,
              set_mail_from=False,
@@ -310,6 +303,7 @@ class Message(BaseEmail):
             raise ValueError(
                 "smtp must be a dict or an object with method 'sendmail'. got %s" % type(smtp))
 
+        mail_to = to
         if mail_to:
             if set_mail_to:
                 self.set_mail_to(mail_to)

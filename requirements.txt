@@ -7,3 +7,4 @@ requests
 jinja2
 mako
 pydkim
+dnspython
