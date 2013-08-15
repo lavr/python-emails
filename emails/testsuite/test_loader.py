@@ -118,10 +118,17 @@ def test_load_sites():
         'http://www.smashingmagazine.com/'
     ]
 
-    for url in URLs:
+    for url in URLs[:1]:
         emails.loader.from_url(url)
 
 
+def test_zip_load():
+    ROOT = os.path.dirname(__file__)
+    filename = os.path.join(ROOT, "data/html_import/oldornament.zip")
+    loader = emails.loader.from_zip( open(filename, 'rb') )
+    assert len(loader.filestore.keys())>=13
+    #print len(loader.html)
+    assert u"SET-3-old-ornament" in loader.html
 
 
 def _do_inline_css(html, css, save_to_file=None, pretty_print=False):
@@ -207,6 +214,7 @@ def test_commons_css_inline():
 if __name__ == '__main__':
     import logging
     logging.basicConfig(level=logging.DEBUG)
+    test_zip_load()
     test_insert_style()
     test_all_images()
     test_load_local_directory()

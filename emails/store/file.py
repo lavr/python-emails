@@ -154,11 +154,14 @@ class LazyHTTPFile(BaseFile):
 
     def fetch(self):
         if (not self._fetched) and self.uri:
+            #logging.debug('LazyHTTPFile local_loader is %s', local_loader)
             if self.local_loader:
                 data = self.local_loader[self.uri]
+
                 if data:
                     self._fetched = True
                     self._data = data
+                    return
 
             r = requests.get(self.absolute_url or self.uri, **self.fetch_params)
             if r.status_code == 200:

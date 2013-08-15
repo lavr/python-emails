@@ -1,6 +1,7 @@
 # encoding: utf-8
-
+import logging
 from os import path
+from zipfile import ZipFile
 
 # FileSystemLoader adapted from jinja2.loaders
 
@@ -42,17 +43,21 @@ class BaseLoader(object):
             return None
 
     def find_index_file(self, filename=None):
-
-        if filename and self[filename]:
-            return filename
-        else:
-            raise FileNotFound(filename)
+        #print __name__, "BaseLoader.find_index_file", filename
+        if filename:
+            if self[filename]:
+                return filename
+            else:
+                raise FileNotFound(filename)
 
         html_files = []
         index_html = None
 
         for filename in self.list_files():
-            f = os.path.basename(filename).lower()
+
+            f = path.basename(filename).lower()
+
+            #print __name__, "BaseLoader.find_index_file", filename, f
 
             if f.endswith('.htm') or f.endswith('.html'):
                 if f.startswith('index.'):
@@ -63,7 +68,7 @@ class BaseLoader(object):
         if html_files:
             return htmlfiles[0]
 
-        raise FileNotFound('index.htm')
+        raise FileNotFound('index html')
 
 
 class FileSystemLoader(BaseLoader):
@@ -81,13 +86,18 @@ class FileSystemLoader(BaseLoader):
     by setting the `encoding` parameter to something else.
     """
 
-    def __init__(self, searchpath, encoding='utf-8'):
+    def __init__(self, searchpath, encoding='utf-8', base_path=None):
         if isinstance(searchpath, basestring):
             searchpath = [searchpath]
         self.searchpath = list(searchpath)
         self.encoding = encoding
+        self.base_path = base_path
 
     def get_source(self, template):
+
+        if self.base_path:
+            name = path.join(self.base_path, template)
+
         pieces = split_template_path(template)
         for searchpath in self.searchpath:
             filename = path.join(searchpath, *pieces)
@@ -117,5 +127,67 @@ class FileSystemLoader(BaseLoader):
                         yield template
 
 
+
+class ZipLoader(BaseLoader):
+
+    def __init__(self, file, encoding='utf-8', base_path=None):
+        self.zipfile = ZipFile(file, 'r')
+        self.encoding = encoding
+        self.base_path = base_path
+        self.mapping = {}
+        self._filenames = None
+
+
+    def _decode_zip_filename(self, name):
+        for enc in ('cp866', 'cp1251', 'utf-8'):
+            try:
+                return unicode(name, 'cp866')
+            except UnicodeDecodeError:
+                pass
+        return name
+
+
+    def _unpack_zip(self):
+        if self._filenames is None:
+            self._filenames = {}
+            for name in self.zipfile.namelist():
+                decoded_name = self._decode_zip_filename(name)
+                self._filenames[decoded_name] = name
+
+
+    def get_source(self, name):
+
+        logging.debug('ZipLoader.get_source %s', name)
+
+        if self.base_path:
+            name = path.join(self.base_path, name)
+            logging.debug('ZipLoader.get_source has base_path, result name is %s', name)
+
+        self._unpack_zip()
+
+        if isinstance(name, str):
+            name = unicode(name, 'utf-8')
+
+        data = self.mapping.get(name, None)
+
+        if data is not None:
+            return data, name
+
+        original_name = self._filenames.get(name)
+
+        logging.debug('ZipLoader.get_source original_name=%s', original_name)
+
+        if original_name is None:
+            raise FileNotFound(name)
+
+        data = self.zipfile.read(original_name)
+
+        logging.debug('ZipLoader.get_source returns %s bytes', len(data))
+        return data, name
+
+
+    def list_files(self):
+        self._unpack_zip()
+        return sorted(self._filenames)
 
 
