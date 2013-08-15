@@ -31,7 +31,7 @@ settings.update(
     #requires=[ open('requirements.txt').read().strip().split('\n') ],
     install_requires = ['cssselect','cssutils','lxml','chardet','python-dateutil','requests','jinja2','mako', 'pydkim'],
     license=open('LICENSE').read(),
-    test_suite = "emails.testsuite.test_all",
+    #test_suite = "emails.testsuite.test_all",
     zip_safe=False,
     classifiers=(
         'Development Status :: 4 - Beta',

@@ -43,11 +43,15 @@ def guess_charset(headers, html):
 
 def set_content_type_meta(document, element_cls, content_type="text/html", charset="utf-8"):
 
-    html = document.find('html')
-    if html is None:
+    if document is None:
+        document = element_cls('html')
+
+    if document.tag!='html':
         html = element_cls('html')
         html.insert(0, document)
         document = html
+    else:
+        html = document
 
     head = document.find('head')
     if head is None:
@@ -64,6 +68,7 @@ def set_content_type_meta(document, element_cls, content_type="text/html", chars
 
     if content_type_meta is None:
         content_type_meta = element_cls('meta')
+        head.append(content_type_meta)
 
     content_type_meta.set('content', '%s; charset=%s' % (content_type, charset))
     content_type_meta.set('http-equiv', "Content-Type")
@@ -81,3 +86,5 @@ def add_body_stylesheet(document, element_cls, cssText, tag="body"):
         body = document
 
     body.insert(0, style)
+
+    return style

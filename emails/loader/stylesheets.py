@@ -14,9 +14,21 @@ class PageStylesheets:
 
     def __init__(self):
         self.urls = set()
-        self.uri_properties = []
+        self._uri_properties = []
         self.sheets = []
         self.dirty = True
+        self.element = None
+
+    def update_tag(self):
+        if self.element is not None:
+            self._concatenate_sheets()
+            cssText = self._cached_stylesheet.cssText
+            if isinstance(cssText, basestring):
+                cssText = unicode(cssText, 'utf-8')
+            self.element.text = cssText
+
+    def attach_tag(self, element):
+        self.element = element
 
     def append(self, url=None, text=None, absolute_url=None, local_loader=None):
         if (url is not None) and (url in self.urls):
@@ -26,7 +38,6 @@ class PageStylesheets:
         self.dirty = True
 
     def _concatenate_sheets(self):
-
         if self.dirty or (self._cached_stylesheet is None):
             r = CSSStyleSheet()
             uri_properties = []
@@ -47,11 +58,15 @@ class PageStylesheets:
 
                 for rule in sheet:
                     r.add(rule)
+                    #print __name__, "rule=", rule
                     for p in _get_rule_uri_properties(rule):
+                        #print __name__, "_get_rule_uri_properties:", p
                         uri_properties.append(p)
 
             self._uri_properties = uri_properties
+            #print __name__, "self._uri_properties=", self._uri_properties
             self._cached_stylesheet = r
+            self.dirty = False
 
     @property
     def stylesheet(self):
@@ -71,7 +86,10 @@ class StyledTagWrapper:
         self.style = CSSParser().parseStyle(el.get('style'))
 
     def update(self):
-        self.el.set('style', unicode(self.style.cssText, 'utf-8'))
+        cssText = self.style.cssText
+        if isinstance(cssText, str):
+            cssText = unicode(cssText, 'utf-8')
+        self.el.set('style', cssText)
 
     def uri_properties(self):
         for p in self.style.getProperties(all=True):

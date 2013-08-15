@@ -66,7 +66,7 @@ class CSS_link(ElementWithLink):
     def __init__(self, el, updateme=None):
         ElementWithLink.__init__(self, el)
         self.updateme = updateme
-        #print __name__, "CSS_link", el.uri
+        #print __name__, "CSS_link", el, el.uri
 
     def get_link(self):
         return self.el.uri
@@ -76,9 +76,11 @@ class CSS_link(ElementWithLink):
         if _old != new:
             logging.debug('Update link %s => %s ', _old, new)
             self.el.uri = new
-            self._links_history.add(_old)
-            if updateme:
-                updateme.update()
+            self._link_history.add(_old)
+            if self.updateme:
+                self.updateme.update()
+
+    link = property(get_link, set_link)
 
 
 def TAG_WRAPPER(attr):

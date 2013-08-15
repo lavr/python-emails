@@ -117,6 +117,15 @@ class HTTPLoader:
         self.base_url = None
         self.headers = None
 
+    def start_load_string(self, html, css):
+        self.html_content = html
+        if css:
+            self.stylesheets.append(text=css)
+        self.html_encoding = 'utf-8' # ?
+        self.start_url = None
+        self.base_url = None
+        self.headers = None
+
 
     def make_html_tree(self):
 
@@ -164,6 +173,7 @@ class HTTPLoader:
         stylesheet = self.stylesheets.stylesheet
 
         for prop in self.stylesheets.uri_properties:
+            #print __name__, "process css link: ", prop.uri
             self.process_stylesheet_uri_property(prop)
 
         self.attach_all_images()
@@ -178,13 +188,16 @@ class HTTPLoader:
         #print kwargs
         return self._load(**kwargs)
 
+    def load_string(self, html, css,  **kwargs):
+        self.start_load_string(html=html, css=css)
+        return self._load(**kwargs)
 
     def _load(self,
                  css_inline=True,
                  remove_unsafe_tags=True,
                  make_links_absolute=False,
                  set_content_type_meta=True,
-                 update_stylesheet=False
+                 update_stylesheet=True
                  ):
 
         self.make_html_tree()
@@ -195,7 +208,7 @@ class HTTPLoader:
             [self.make_link_absolute(obj) for obj in self.iter_a_links()]
 
         if remove_unsafe_tags and update_stylesheet:
-            self.insert_big_stylesheet()
+            self.stylesheets.attach_tag( self.insert_big_stylesheet() )
 
         # self.process_attaches()
 
@@ -235,6 +248,7 @@ class HTTPLoader:
         Process IMG SRC, TABLE BACKGROUND, ...
         """
         obj = self.tag_link_cls[el.tag](el)
+        #print __name__, "process_tag_with_link", el, obj.link, type(obj)
         self._tags_with_links.append(obj)
         if el.tag in self.TAGS_WITH_IMAGES:
             lnk = obj.link
@@ -260,14 +274,20 @@ class HTTPLoader:
                 fetch_params=self.fetch_params))
 
     def process_tag_with_style(self, el):
+        #print __name__, "process_tag_with_style", el
         t = StyledTagWrapper(el)
         for p in t.uri_properties():
+            #print "process_tag_with_style p=", p
             obj = self.css_link_cls(p, updateme=t)
             self._tags_with_links.append(obj)
+            self._tags_with_images.append(obj)
 
     def process_stylesheet_uri_property(self, prop):
-        #print __name__, "uri=", prop.uri
-        self._tags_with_links.append(self.css_link_cls(prop))
+        #print __name__, "process_stylesheet_uri_property uri=", prop.uri
+        obj = self.css_link_cls(prop)
+        self._tags_with_links.append(obj)
+        self._tags_with_images.append(obj)
+        #print __name__, "after:", [_.link for _ in self._tags_with_links]
 
     def make_link_absolute(self, obj):
         link = obj.link
@@ -282,10 +302,10 @@ class HTTPLoader:
             self.html_tree = new_document
 
     def insert_big_stylesheet(self):
-        helpers.add_body_stylesheet(self.html_tree,
+        return helpers.add_body_stylesheet(self.html_tree,
                                     element_cls=etree.Element,
                                     tag="body",
-                                    cssText=unicode(self.stylesheets.stylesheet.cssText, 'utf-8'))
+                                    cssText="")
 
     def absolute_url(self, url, base_url=None):
 
@@ -323,6 +343,7 @@ class HTTPLoader:
 
     @property
     def html(self):
+        self.stylesheets.update_tag()
         self._html = etree.tostring(self.html_tree, encoding=self.encoding, method='xml')
         return self._html
 
@@ -364,7 +385,7 @@ class HTTPLoader:
             attach.fetch()
             new_uri = _rename_map.get(attach.uri)
             if new_uri:
-                print __name__, "news uri: %s" % new_uri
+                #print __name__, "news uri: %s" % new_uri
                 attach.uri = new_uri
                 open(new_uri, 'wb').write(attach.data)
 
@@ -385,11 +406,18 @@ def from_directory(directory, index_file=None, **kwargs):
     loader.load_file(local_loader[index_file_name], local_loader=local_loader,  **kwargs)
     return loader
 
-def from_file(filename):
-    return from_directory(directory=os.path.dirname(filename), index_file=os.path.basename(filename))
+def from_file(filename, **kwargs):
+    return from_directory(directory=os.path.dirname(filename), index_file=os.path.basename(filename), **kwargs)
 
-def from_zip(zip_file):
+def from_zip(zip_file, **kwargs):
     loader = HTTPLoader()
     local_store = ZipLoader(zip_file=zip_file)
     index_file_name = local_store.find_index_file(index_file=index_file)
     loader.load_file(index_file_name, local_store=local_store,  **kwargs)
+    return loader
+
+def from_string(html, css=None, **kwargs):
+    loader = HTTPLoader()
+    loader.load_string(html=html, css=css,  **kwargs)
+    return loader
+
