@@ -1,6 +1,10 @@
 # encoding: utf-8
 import emails
 from emails.smtp import SMTPConnectionPool, SMTPResponse, SMTPSender
+import os
+
+TRAVIS_CI = os.environ.get('TRAVIS')
+HAS_INTERNET_CONNECTION = not TRAVIS_CI
 
 def test_exceptions():
 
@@ -13,7 +17,8 @@ def test_exceptions():
     assert response.error is not None
     assert isinstance(response.error, IOError)
     print "response.error.errno=", response.error.errno
-    # This will fail test in travis-ci: assert response.error.errno==8
+    if HAS_INTERNET_CONNECTION:
+        assert response.error.errno==8
 
 
     # Server disconnected
@@ -21,15 +26,17 @@ def test_exceptions():
                       'mail_from': 's@lavr.me',
                       'mail_to': 'sergei-nko@yandex.ru',
                       'subject': 'Test from python-emails'}
-    server_params = { 'host': 'mx.yandex.ru', 'port': 25, 'debug':1 }
-    sendmail_params = {'to_addrs': 'sergei-nko@yandex.ru',
+    server_params = { 'host': 'aspmx.l.google.com', 'port': 25, 'debug':1 }
+    sendmail_params = {'to_addrs': 's@lavr.me',
                        'from_addr': 's@lavr.me',
                        'msg': emails.html(**message_params).as_string()}
-    server = SMTPSender(**server_params)
-    server._connect()
-    server.smtpclient.sock.close()  # simulate disconnect
-    response = server.sendmail(**sendmail_params)
-    print response
+
+    if HAS_INTERNET_CONNECTION:
+        server = SMTPSender(**server_params)
+        server._connect()
+        server.smtpclient.sock.close()  # simulate disconnect
+        response = server.sendmail(**sendmail_params)
+        print response
 
 
 if __name__=="__main__":

@@ -3,11 +3,13 @@
 import logging
 from emails.loader import cssinliner
 from lxml import etree
-
+import os
 import emails
 
 from cStringIO import StringIO
 
+TRAVIS_CI = os.environ.get('TRAVIS')
+HAS_INTERNET_CONNECTION = not TRAVIS_CI
 
 try:
     from local_settings import SMTP_SERVER, SMTP_PORT, SMTP_SSL, SMTP_USER, SMTP_PASSWORD
@@ -94,10 +96,8 @@ def test_send1():
     assert m.subject==u'Hello, Полина'
     print m.as_string()
 
-    try:
-        m.send(smtp=SMTP_DATA)
-    except IOError as e:
-        print "Error sending emails via %s (%s)" % (SMTP_DATA, e)
+    if HAS_INTERNET_CONNECTION:
+        r = m.send(smtp=SMTP_DATA)
 
 
 def test_send2():
@@ -111,11 +111,11 @@ def test_send2():
     loader.save_to_file('test_send2.html')
     m = emails.html(**data)
     m.render(name=u'Полина')
-    try:
-        print m.send( smtp=SMTP_DATA )
-        print m.send( to='s.lavrinenko@gmail.com', smtp=SMTP_DATA )
-    except IOError as e:
-        print "Error sending emails via %s (%s)" % (SMTP_DATA, e)
+
+    if HAS_INTERNET_CONNECTION:
+        r = m.send( smtp=SMTP_DATA )
+        r = m.send( to='s.lavrinenko@gmail.com', smtp=SMTP_DATA )
+
 
 def test_send_inline_images():
     data = _email_data()
@@ -136,12 +136,10 @@ def test_send_inline_images():
     m.render(name=u'Полина')
 
 
-    try:
+    if HAS_INTERNET_CONNECTION:
         r = m.send( smtp=SMTP_DATA )
         if r.status_code != 250:
             logging.error("Error sending email, response=%s" % r)
-    except IOError as e:
-        print "Error sending emails via %s (%s)" % (SMTP_DATA, e)
 
 
 def _generate_privkey():
