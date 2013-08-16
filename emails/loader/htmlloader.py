@@ -224,6 +224,9 @@ class HTTPLoader:
         if images_inline:
             self.make_images_inline()
 
+        #logging.debug("HTTPLoader._load images_inline=%s", images_inline)
+
+
     def process_external_css_tag(self, el):
         """
         Process <link href="..." rel="stylesheet">
@@ -309,11 +312,16 @@ class HTTPLoader:
             file = self.filestore.by_uri(link, img.link_history)
             img.link = "cid:%s" % file.filename
 
-        for file in loader.filestore:
+        #logging.debug('make_images_inline found_links=%s', found_links)
+
+        for file in self.filestore:
             if file.uri in found_links:
+                #logging.debug('make_images_inline %s=inline', file.uri)
                 file.content_disposition = 'inline'
             else:
-                file.content_disposition = None
+                logging.debug('make_images_inline %s=none', file.uri)
+                #file.content_disposition = None
+
 
     def set_content_type_meta(self):
         _tree = self.html_tree

@@ -40,7 +40,7 @@ class SMTPSender:
     Differences are:
     a) it transparently uses SSL or no-SSL connection
     b) sendmail method sends only one message, but returns more information
-       about session (response code, session log, etc)
+       about server response (i.e. response code)
     """
 
     MAX_SENDMAIL_RETRY = 2
