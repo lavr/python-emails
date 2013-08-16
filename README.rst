@@ -14,7 +14,7 @@ Create message:
     import emails
     message = emails.html(html=open('letter.html'),
                           subject='Friday party',
-                          from=('Company Team', 'contact@mycompany.com'))
+                          mail_from=('Company Team', 'contact@mycompany.com'))
 
 
 Attach files or inline images:
@@ -40,16 +40,17 @@ Templating:
 
     message = emails.html(subject=T('Payment Receipt No.{{no}}'),
                           html=T('<p>Dear {{account}} owner! This is a receipt for your subscription...'),
-                          from=('ABC', 'robot@mycompany.com'))
+                          mail_from=('ABC', 'robot@mycompany.com'))
 
     message.send(to=('John Braun', 'jbraun@gmail.com'), render={'account': 'lavr', 'no':'141051906163'} )
 
-Send without pain:
+Send without pain and (even) get response:
 
 ::
 
     SMTP = { 'host':'smtp.mycompany.com', 'port': 465, 'ssl': True }
     r = messages.send(to=('John Braun', 'jbraun@gmail.com'), smtp=SMTP)
+    assert r.status_code == 250
 
 
 
@@ -57,7 +58,8 @@ Send without pain:
 One more thing
 --------------
 
-Module ships with email-from-html loader. Your designers will love for this:
+Library ships with fairy email-from-html loader.
+Design email with less pain or even let designers make design:
 
 ::
 
@@ -79,17 +81,22 @@ Features
 -  Body & headers preprocessors
 
 TODO
------
-- Fix all bugs
-- More genius css inliner
-- (may be) ESP integration: amazon ses, sendgrid, ...
+----
 
+- Python3
+- Documentation
+- More test coverage
+- More accurate smtp session handling
+- Some patches for pydkim performance (i.e. preload key once, not each time)
+- More genius css inliner
+- Catch all bugs
+- ESP integration: Amazon SES, SendGrid, ...
 
 
 How to Help
 -----------
 
-Module is under development and contributions are welcome!
+Library is under development and contributions are welcome!
 
 1. Open an issue to start a discussion around a bug or a feature.
 2. Fork the repository on GitHub and start making your changes to a new branch.
