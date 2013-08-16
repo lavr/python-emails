@@ -107,7 +107,8 @@ Library is under development and contributions are welcome!
 Background
 ----------
 
-Library inspired by python-requests and werkzeug. Much based on mailcube.ru experience.
+Library inspired by excellent python-requests and werkzeug library.
+Some code is from my mailcube.ru experience.
 
 
 .. image:: https://travis-ci.org/lavr/python-emails.png?branch=master
