@@ -25,7 +25,6 @@ def load_email_charsets():
                                       getattr(email.charset, body_enc))
 
 
-
 def parse_name_and_email(obj, encoding='utf-8'):
     # In:  'john@smith.me' or  '"John Smith" <john@smith.me>' or ('John Smith', 'john@smith.me')
     # Out: (u'John Smith', u'john@smith.me')
