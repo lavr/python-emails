@@ -8,22 +8,12 @@
 
 import logging
 
-try:
-    import dkim
-except ImportError as e:
-    # Do not throw ImportError here, but save it for later.
-    _DKIM_IMPORT_ERROR = e
-
-
 class DKIMSigner:
 
     def __init__(self, selector, domain, privkey, ignore_sign_errors=True, **kwargs):
 
-        if dkim is None:
-            # Just want to raise "natural" ImportError here.
-            # Looks strange, but seems it works.
-            raise _DKIM_IMPORT_ERROR
-
+        if 'dkim' not in globals():
+            globals()['dkim'] = __import__('dkim')
 
         self.ignore_sign_errors = ignore_sign_errors
         self._sign_params = kwargs

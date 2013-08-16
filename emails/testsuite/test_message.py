@@ -1,7 +1,6 @@
 # coding: utf-8
 
-import unittest
-
+import logging
 from emails.loader import cssinliner
 from lxml import etree
 
@@ -113,8 +112,8 @@ def test_send2():
     m = emails.html(**data)
     m.render(name=u'Полина')
     try:
-        m.send( smtp=SMTP_DATA )
-        m.send( to='s.lavrinenko@gmail.com', smtp=SMTP_DATA )
+        print m.send( smtp=SMTP_DATA )
+        print m.send( to='s.lavrinenko@gmail.com', smtp=SMTP_DATA )
     except IOError as e:
         print "Error sending emails via %s (%s)" % (SMTP_DATA, e)
 
@@ -138,9 +137,9 @@ def test_send_inline_images():
 
 
     try:
-        m.send( smtp=SMTP_DATA )
-        m.send( to='s.lavrinenko@gmail.com', smtp=SMTP_DATA )
-        m.send( to='sergey.lavrinenko@yahoo.com', smtp=SMTP_DATA )
+        r = m.send( smtp=SMTP_DATA )
+        if r.status_code != 250:
+            logging.error("Error sending email, response=%s" % r)
     except IOError as e:
         print "Error sending emails via %s (%s)" % (SMTP_DATA, e)
 

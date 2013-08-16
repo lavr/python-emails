@@ -1,10 +1,9 @@
 # encoding: utf-8
 
-__all__ = ['parse_name_and_email', 'SMTPConnectionPool', 'DomainKeySigner']
+__all__ = [ 'parse_name_and_email', 'load_email_charsets' ]
 
 from email.parser import HeaderParser
 from email.utils import parseaddr
-import smtplib
 import email.charset
 
 _charsets_loaded = False
@@ -45,63 +44,6 @@ def parse_name_and_email(obj, encoding='utf-8'):
     return unicode(_realname, encoding), unicode(_email, encoding)
 
 
-def GetSMTP(*args, **kwargs):
-    is_ssl = kwargs.pop('ssl', False)
-    user = kwargs.pop('user', None)
-    password = kwargs.pop('password', None)
-    debug = kwargs.pop('debug', False)
-    if is_ssl:
-        r = smtplib.SMTP_SSL(**kwargs)
-    else:
-        r = smtplib.SMTP(**kwargs)
-
-    if debug:
-        r.set_debuglevel(1)
-    if user:
-        r.login(user=user, password=password)
-
-    return r
-
-
-def serialize_dict(d):
-    # simple dict serializer
-    r = []
-    for (k, v) in d.iteritems():
-        r.append("%s=%s" % (k, v))
-    return ";".join(r)
-
-
-class SMTPConnectionPool:
-
-    smtp_cls = GetSMTP
-
-    def __init__(self):
-        self.pool = {}
-
-    def __getitem__(self, k):
-
-        if not isinstance(k, dict):
-            raise ValueError("item must be dict, not %s" % type(k))
-
-        kk = serialize_dict(k)
-
-        r = self.pool.get(kk, None)
-
-        if r is None:
-            r = self.smtp_cls(**k)
-            self.pool[kk] = r
-
-        return r
-
-    def reconnect(self, k):
-
-        kk = serialize_dict(k)
-
-        if kk in self.pool:
-            del self.pool[kk]
-
-        return self[k]
-
 
 def test_parse_name_and_email():
     assert parse_name_and_email('john@smith.me') == (u'', u'john@smith.me')
@@ -110,6 +52,3 @@ def test_parse_name_and_email():
     assert parse_name_and_email(['John Smith', 'john@smith.me']) == \
                                (u'John Smith', u'john@smith.me')
 
-
-if __name__ == '__main__':
-    test_parse_name_and_email()

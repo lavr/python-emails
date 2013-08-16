@@ -17,7 +17,7 @@ from email.encoders import encode_base64
 from dateutil.parser import parse as dateutil_parse
 
 from .utils import parse_name_and_email
-from .utils import SMTPConnectionPool
+from .smtp import SMTPConnectionPool
 from .store import MemoryFileStore, BaseFile
 from .signers import DKIMSigner
 
@@ -339,7 +339,7 @@ class Message(BaseEmail):
         if smtp_rcpt_options:
             params['rcpt_options'] = rcpt_options
 
-        smtp.sendmail(**params)
+        return smtp.sendmail(**params)
 
 
 def html(**kwargs):

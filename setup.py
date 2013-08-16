@@ -20,8 +20,8 @@ if sys.argv[-1] == 'publish':
 
 settings.update(
     name='emails',
-    version='0.1.7',
-    description='Email library for humans',
+    version='0.1.8',
+    description='Missed simple email library for python',
     long_description=open('README.rst').read(),
     author='Sergey Lavrinenko',
     author_email='s@lavr.me',

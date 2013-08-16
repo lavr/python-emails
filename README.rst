@@ -63,7 +63,7 @@ Module ships with email-from-html loader. Your designers will love for this:
 
     import emails
     URL = 'http://_youproject_.github.io/newsletter/2013-08-14/index.html'
-    page = emails.loader.load_url(URL, css_inline=True, make_links_absolute=True)
+    page = emails.loader.from_url(URL, css_inline=True, make_links_absolute=True)
     message = emails.html(html=page.html, ...)
     for mail_to in _get_maillist():
         message.send(to=mail_to)

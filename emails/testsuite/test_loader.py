@@ -18,29 +18,34 @@ def test_tagwithstyle():
     assert len(list(t.uri_properties())) == 1
 
 
+def normalize_html(s):
+    return " ".join(s.split())
+
 def test_insert_style():
 
     html = '<img src="1.png">'
     html =  """ <img src="1.png" style="background: url(2.png)"> <style>p {background: url(3.png)} </style> """
     tree = lxml.etree.HTML(html, parser=lxml.etree.HTMLParser())
-    print __name__, "test_insert_style step1: ", lxml.etree.tostring(tree, encoding='utf-8', method='html')
+    #print __name__, "test_insert_style step1: ", lxml.etree.tostring(tree, encoding='utf-8', method='html')
     emails.loader.helpers.add_body_stylesheet(tree,
                                     element_cls=lxml.etree.Element,
                                     tag="body",
                                     cssText="")
 
-    print __name__, "test_insert_style step2: ", lxml.etree.tostring(tree, encoding='utf-8', method='html')
+    #print __name__, "test_insert_style step2: ", lxml.etree.tostring(tree, encoding='utf-8', method='html')
 
     new_document = emails.loader.helpers.set_content_type_meta(tree, element_cls=lxml.etree.Element)
     if tree != new_document:
         # document may be updated here (i.e. html tag added)
-        html_tree = new_document
+        tree = new_document
 
-    html = lxml.etree.tostring(tree, encoding='utf-8', method='html')
-    print html
-    assert html=='<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"></head><body>' \
+    html = normalize_html(lxml.etree.tostring(tree, encoding='utf-8', method='html'))
+    RESULT_HTML = normalize_html(u'<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"></head><body>' \
                  '<style></style><img src="1.png" style="background: url(2.png)"> '\
-                 '<style>p {background: url(3.png)} </style> </body></html>'
+                 '<style>p {background: url(3.png)} </style> </body></html>')
+    assert html==RESULT_HTML, "Invalid html expected: %s, got: %s" % (RESULT_HTML.__repr__(), html.__repr__())
+
+
 
 def test_all_images():
 
@@ -60,19 +65,16 @@ def test_all_images():
     files = set(loader.filestore.keys())
     assert len(files) == 3
 
-
     # Check if changing links affects result html:
-
     for obj in loader.iter_image_links():
         obj.link = "prefix_" + obj.link
 
-    result_html = " ".join( loader.html.split() )
-
-    print result_html
-
-    assert result_html == """<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>"""\
+    result_html = normalize_html( loader.html )
+    VALID_RESULT = normalize_html("""<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>"""\
                           """</head><body><style>p { background: url(prefix_3.png) }</style>"""\
-                          """<img src="prefix_1.png" style="background: url(prefix_2.png)"/> </body></html>"""
+                          """<img src="prefix_1.png" style="background: url(prefix_2.png)"/> </body></html>""")
+
+    assert result_html == VALID_RESULT, "Invalid html expected: %s, got: %s" % (result_html.__repr__(), VALID_RESULT.__repr__())
 
 def test_load_local_directory():
     ROOT = os.path.dirname(__file__)
