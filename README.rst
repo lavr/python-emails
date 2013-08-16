@@ -103,4 +103,5 @@ Background
 Library inspired by python-requests and werkzeug. Much based on mailcube.ru experience.
 
 
-.. image:: https://travis-ci.org/lavr/python-emails.png?branch=master   :target: https://travis-ci.org/lavr/python-emails
+.. image:: https://travis-ci.org/lavr/python-emails.png?branch=master
+   :target: https://travis-ci.org/lavr/python-emails

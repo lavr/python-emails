@@ -22,9 +22,6 @@ More examples is at <https://github.com/lavr/python-emails/README.rst>.
 
 """
 
-
-__version__ = '0.1.8'
-
 __title__ = 'emails'
 __version__ = '0.1.8'
 __author__ = 'Sergey Lavrinenko'
@@ -35,3 +32,4 @@ __copyright__ = 'Copyright 2013 Sergey Lavrinenko'
 from .message import Message, html
 import loader
 import template
+import smtp
