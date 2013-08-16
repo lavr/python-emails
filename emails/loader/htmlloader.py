@@ -197,7 +197,8 @@ class HTTPLoader:
                  remove_unsafe_tags=True,
                  make_links_absolute=False,
                  set_content_type_meta=True,
-                 update_stylesheet=True
+                 update_stylesheet=True,
+                 images_inline=False
                  ):
 
         self.make_html_tree()
@@ -219,6 +220,9 @@ class HTTPLoader:
 
         if set_content_type_meta:
             self.set_content_type_meta()
+
+        if images_inline:
+            self.make_images_inline()
 
     def process_external_css_tag(self, el):
         """
@@ -293,6 +297,23 @@ class HTTPLoader:
         link = obj.link
         if link:
             obj.link = self.absolute_url(link)
+
+
+    def make_images_inline(self):
+
+        found_links = set()
+
+        for img in self.iter_image_links():
+            link = img.link
+            found_links.add(link)
+            file = self.filestore.by_uri(link, img.link_history)
+            img.link = "cid:%s" % file.filename
+
+        for file in loader.filestore:
+            if file.uri in found_links:
+                file.content_disposition = 'inline'
+            else:
+                file.content_disposition = None
 
     def set_content_type_meta(self):
         _tree = self.html_tree

@@ -43,6 +43,9 @@ def renderable(f):
 
 
 
+class IncompleteMessage(Exception):
+    pass
+
 class BaseEmail:
     pass
 
@@ -135,6 +138,16 @@ class Message(BaseEmail):
         if 'content_disposition' not in kwargs:
             kwargs['content_disposition'] = 'attachment'
         self.attachments.add(kwargs)
+
+    @classmethod
+    def from_loader(cls, loader, **kwargs):
+        """
+        Get html and attachments from HTTPLoader
+        """
+        message = cls(html=loader.html, **kwargs)
+        for att in loader.filestore:
+            message.attach( **att.as_dict() )
+        return message
 
     @property
     @renderable

@@ -3,6 +3,7 @@
 __all__ = [ 'SMTPConnectionPool', 'SMTPResponse', 'SMTPSender' ]
 
 import smtplib
+import logging
 
 class SMTPResponse(object):
 
@@ -62,6 +63,7 @@ class SMTPSender:
         self.smtpclient = None
 
     def _connect(self):
+        #logging.debug('SMTPSender _connect')
         if self.smtpclient is None:
             self.smtpclient = self.smtp_cls(**self.smtp_cls_kwargs)
             if self.debug:
@@ -132,6 +134,7 @@ class SMTPSender:
                     break
                 except smtplib.SMTPServerDisconnected as e:
                     # If server disconected, just connect again
+                    #logging.exception('Error connecting smtp')
                     self.smtpclient = None
                     self.response.error = e
                     continue

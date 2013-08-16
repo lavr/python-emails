@@ -12,7 +12,6 @@ except ImportError:
 
 settings = dict()
 
-
 # Publish Helper.
 if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist upload')
@@ -28,13 +27,14 @@ settings.update(
     url='https://github.com/lavr/python-emails',
     packages = ['emails', 'emails.compat', 'emails.loader', 'emails.store', 'emails.template'],
     scripts=[ ],
-    #requires=[ open('requirements.txt').read().strip().split('\n') ],
-    install_requires = ['cssselect','cssutils','lxml','chardet','python-dateutil','requests','jinja2','mako', 'pydkim'],
+    install_requires = [ open('requirements.txt').read().strip().split('\n') ],
+    #install_requires = ['cssselect','cssutils','lxml','chardet','python-dateutil','requests','jinja2','mako', 'pydkim'],
     license=open('LICENSE').read(),
     #test_suite = "emails.testsuite.test_all",
     zip_safe=False,
     classifiers=(
-        'Development Status :: 4 - Beta',
+        #'Development Status :: 4 - Beta',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'Natural Language :: English',
         'License :: OSI Approved :: BSD License',

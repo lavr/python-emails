@@ -1,10 +1,12 @@
 # encoding: utf-8
 
-__all__ = [ 'parse_name_and_email', 'load_email_charsets' ]
+__all__ = [ 'parse_name_and_email', 'load_email_charsets', 'MessageID' ]
 
 from email.parser import HeaderParser
 from email.utils import parseaddr
 import email.charset
+
+import uuid
 
 _charsets_loaded = False
 
@@ -22,6 +24,14 @@ def load_email_charsets():
             email.charset.add_charset(charset,
                                       getattr(email.charset, header_enc),
                                       getattr(email.charset, body_enc))
+
+class MessageID:
+
+    def __init__(self, domain):
+        self.domain = domain
+
+    def __call__(self):
+        return "<%s@%s>" % (uuid.uuid4(), self.domain)
 
 
 def parse_name_and_email(obj, encoding='utf-8'):
@@ -41,7 +51,8 @@ def parse_name_and_email(obj, encoding='utf-8'):
     else:
         raise ValueError("Can not parse_name_and_email from %s" % obj)
 
-    return unicode(_realname, encoding), unicode(_email, encoding)
+    return _realname and unicode(_realname, encoding) or None, \
+           _email and unicode(_email, encoding) or None
 
 
 
