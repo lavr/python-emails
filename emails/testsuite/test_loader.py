@@ -19,7 +19,7 @@ def test_tagwithstyle():
 
 
 def normalize_html(s):
-    return " ".join(s.split())
+    return "".join(s.split())
 
 def test_insert_style():
 
