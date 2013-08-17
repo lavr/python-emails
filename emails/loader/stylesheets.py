@@ -23,8 +23,8 @@ class PageStylesheets:
         if self.element is not None:
             self._concatenate_sheets()
             cssText = self._cached_stylesheet.cssText
-            if isinstance(cssText, basestring):
-                cssText = unicode(cssText, 'utf-8')
+            if isinstance(cssText, string_types):
+                cssText = str(cssText, 'utf-8')
             self.element.text = cssText
 
     def attach_tag(self, element):
@@ -88,13 +88,13 @@ class StyledTagWrapper:
     def update(self):
         cssText = self.style.cssText
         if isinstance(cssText, str):
-            cssText = unicode(cssText, 'utf-8')
+            cssText = to_unicode(cssText, 'utf-8')
         self.el.set('style', cssText)
 
     def uri_properties(self):
         for p in self.style.getProperties(all=True):
             for v in p.propertyValue:
-                if v.type == u'URI':
+                if v.type == 'URI':
                     yield v
 
 
@@ -116,7 +116,7 @@ def _get_rule_uri_properties(rule):
     for style in _style_declarations(rule):
         for p in style.getProperties(all=True):
             for v in p.propertyValue:
-                if v.type == u'URI':
+                if v.type == 'URI':
                     yield v
 
 

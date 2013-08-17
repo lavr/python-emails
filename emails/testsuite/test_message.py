@@ -1,4 +1,5 @@
 # coding: utf-8
+from __future__ import unicode_literals
 
 import logging
 from emails.loader import cssinliner
@@ -6,7 +7,7 @@ from lxml import etree
 import os
 import emails
 
-from cStringIO import StringIO
+from emails.compat import StringIO
 
 TRAVIS_CI = os.environ.get('TRAVIS')
 HAS_INTERNET_CONNECTION = not TRAVIS_CI
@@ -45,11 +46,11 @@ def test_renderables():
 def common_email_data(**kwargs):
     data = {}
     data['charset'] = 'utf-8'
-    data['subject'] = u'Что-то по-русски'
+    data['subject'] = 'Что-то по-русски'
     data['mail_from'] = ('Максим Иванов', 'ivanov@ya.ru')
     data['mail_to'] = ('Полина Сергеева', 'polina@mail.ru')
-    data['html'] = u'<h1>Привет!</h1><p>В первых строках...'
-    data['text'] = u'Привет!\nВ первых строках...'
+    data['html'] = '<h1>Привет!</h1><p>В первых строках...'
+    data['text'] = 'Привет!\nВ первых строках...'
     data['headers'] = {'X-Mailer': 'python-emails'}
     data['attachments'] = [{'data': 'aaa', 'filename': 'Event.ics'},
                            {'data': StringIO('bbb'), 'filename': 'map.png'}]
@@ -63,7 +64,7 @@ def common_email_data(**kwargs):
 def test_common_mail_build():
     kwargs = common_email_data()
     m = emails.Message(**kwargs)
-    print(m.as_string())
+    print((m.as_string()))
 
 
 
@@ -71,11 +72,11 @@ def _email_data(**kwargs):
     T = emails.template.JinjaTemplate
     data = {}
     data['charset'] = 'utf-8'
-    data['subject'] = T(u'Hello, {{name}}')
+    data['subject'] = T('Hello, {{name}}')
     data['mail_from'] = ('Максим Иванов', 'sergei-nko@mail.ru')
     data['mail_to'] = ('Полина Сергеева', 'sergei-nko@mail.ru')
-    data['html'] = T(u'<h1>Привет, {{name}}!</h1><p>В первых строках...')
-    data['text'] = T(u'Привет, {{name}}!\nВ первых строках...')
+    data['html'] = T('<h1>Привет, {{name}}!</h1><p>В первых строках...')
+    data['text'] = T('Привет, {{name}}!\nВ первых строках...')
     data['headers'] = {'X-Mailer': 'python-emails'}
     data['attachments'] = [
         {'data': 'aaa', 'filename': 'Event.ics'},
@@ -91,10 +92,10 @@ def test_send1():
     data = _email_data()
     data['attachments'] = [emails.store.LazyHTTPFile(uri=URL), ]
     m = emails.html(**data)
-    m.render(name=u'Полина')
-    print "m.subject=", m.subject
-    assert m.subject==u'Hello, Полина'
-    print m.as_string()
+    m.render(name='Полина')
+    print("m.subject=", m.subject)
+    assert m.subject=='Hello, Полина'
+    print(m.as_string())
 
     if HAS_INTERNET_CONNECTION:
         r = m.send(smtp=SMTP_DATA)
@@ -110,7 +111,7 @@ def test_send2():
     data['attachments'] = loader.attachments_dict
     loader.save_to_file('test_send2.html')
     m = emails.html(**data)
-    m.render(name=u'Полина')
+    m.render(name='Полина')
 
     if HAS_INTERNET_CONNECTION:
         r = m.send( smtp=SMTP_DATA )
@@ -133,7 +134,7 @@ def test_send_inline_images():
     #loader.save_to_file('test_send_inline_images.html')
     #print loader.html
     m = emails.html(**data)
-    m.render(name=u'Полина')
+    m.render(name='Полина')
 
 
     if HAS_INTERNET_CONNECTION:

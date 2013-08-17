@@ -6,6 +6,8 @@ from email.parser import HeaderParser
 from email.utils import parseaddr
 import email.charset
 
+from emails.compat import string_types, to_unicode
+
 import uuid
 
 _charsets_loaded = False
@@ -45,21 +47,26 @@ def parse_name_and_email(obj, encoding='utf-8'):
         if len(obj) == 2:
             _realname, _email = obj
 
-    elif isinstance(obj, basestring):
+    elif isinstance(obj, string_types):
         _realname, _email = parseaddr(obj)
 
     else:
         raise ValueError("Can not parse_name_and_email from %s" % obj)
 
-    return _realname and unicode(_realname, encoding) or None, \
-           _email and unicode(_email, encoding) or None
+    if isinstance(_realname, bytes):
+        _realname = str(_realname, encoding)
+
+    if isinstance(_email, bytes):
+        _email = str(_email, encoding)
+
+    return _realname or None, _email or None
 
 
 
 def test_parse_name_and_email():
-    assert parse_name_and_email('john@smith.me') == (u'', u'john@smith.me')
+    assert parse_name_and_email('john@smith.me') == ('', 'john@smith.me')
     assert parse_name_and_email('"John Smith" <john@smith.me>') == \
-                               (u'John Smith', u'john@smith.me')
+                               ('John Smith', 'john@smith.me')
     assert parse_name_and_email(['John Smith', 'john@smith.me']) == \
-                               (u'John Smith', u'john@smith.me')
+                               ('John Smith', 'john@smith.me')
 

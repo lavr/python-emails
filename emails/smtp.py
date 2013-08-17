@@ -29,7 +29,7 @@ class SMTPResponse(object):
         self.last_command = command
 
     def __repr__(self):
-        return u"<emails.smtp.SMTPResponse status_code=%s status_text=%s>" % (self.status_code.__repr__(),
+        return "<emails.smtp.SMTPResponse status_code=%s status_text=%s>" % (self.status_code.__repr__(),
                                                                               self.status_text.__repr__())
 
 
@@ -74,7 +74,7 @@ class SMTPSender:
 
     def _sendmail(self, from_addr, to_addrs, msg, mail_options=[], rcpt_options=[]):
 
-        if not isinstance(to_addrs, basestring):
+        if not isinstance(to_addrs, string_types):
             raise NotImplemented('SMTPSender.sendmail can send email to one address only, got to_addrs=%s', to_addrs)
 
         response = self.response
@@ -154,7 +154,7 @@ class SMTPSender:
 def _serialize_dict(d):
     # simple dict serializer
     r = []
-    for (k, v) in d.iteritems():
+    for (k, v) in d.items():
         r.append("%s=%s" % (k, v))
     return ";".join(r)
 

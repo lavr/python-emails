@@ -44,7 +44,7 @@ def real_main(options):
                         )
 
     if options.send_test_email_to:
-        print __name__, "options.send_test_email_to YES"
+        print(__name__, "options.send_test_email_to YES")
 
         smtp_params = {}
         for k in ('host', 'port', 'ssl', 'user', 'password', 'debug'):
@@ -52,14 +52,14 @@ def real_main(options):
 
         for mail_to in options.send_test_email_to.split(','):
             r = message.send(to=mail_to, smtp=smtp_params)
-            print __name__, "mail_to=", mail_to, "result=", r, r.error
+            print(__name__, "mail_to=", mail_to, "result=", r, r.error)
             if r.error:
                 raise r.error
 
     if options.output_format=='eml':
-        print message.as_string()
+        print(message.as_string())
     else:
-        print message.html_body
+        print(message.html_body)
 
 if __name__=="__main__":
 

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # adapted from https://github.com/kgn/cssutils/blob/master/examples/style.py
 
-#import cssutils
-
 from cssutils.css import CSSStyleSheet, CSSStyleDeclaration, CSSStyleRule
 from cssutils import CSSParser
 
@@ -12,6 +10,7 @@ from lxml.builder import E
 
 import logging
 
+from emails.compat import to_unicode, string_types
 
 class CSSInliner:
 
@@ -27,7 +26,7 @@ class CSSInliner:
 
     def add_css(self, css, href=None):
 
-        if isinstance(css, basestring):
+        if isinstance(css, string_types):
             css = CSSParser().parseString(css, href=href)  # Распарсим файл
 
         for rule in css:
@@ -43,7 +42,7 @@ class CSSInliner:
 
     def log(self, level, *msg):
         if self.DEBUG:
-            print('%s- %s' % (level * '\t ', ' '.join((str(m) for m in msg))))
+            print(('%s- %s' % (level * '\t ', ' '.join((to_unicode(m) for m in msg)))))
 
     def styleattribute(self, element):
             "returns css.CSSStyleDeclaration of inline styles, for html: @style"
@@ -145,7 +144,7 @@ class CSSInliner:
         if _unmergable_css:
             e = etree.Element('style')
             # print __name__, _unmergable_css.__repr__()
-            e.text = unicode(_unmergable_css, 'utf-8')
+            e.text = to_unicode(_unmergable_css, 'utf-8')
             body = document.find('body') or document
             body.insert(0, e)  # add <style> right into body
 
@@ -153,14 +152,14 @@ class CSSInliner:
 
     def transform(self, html):
 
-        if isinstance(html, basestring):
+        if isinstance(html, string_types):
             html = etree.HTML(html, parser=etree.HTMLParser())
 
         view = self.getView(html, self.stylesheet)
 
         # - add style into @style attribute
-        for element, style in view.items():
-            v = style.getCssText(separator=u'')
+        for element, style in list(view.items()):
+            v = style.getCssText(separator='')
             element.set('style', v)
 
         return html

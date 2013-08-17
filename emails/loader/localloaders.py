@@ -3,6 +3,8 @@ import logging
 from os import path
 from zipfile import ZipFile
 
+from emails.compat import to_unicode, string_types
+
 # FileSystemLoader adapted from jinja2.loaders
 
 class FileNotFound(Exception):
@@ -28,7 +30,7 @@ def open_if_exists(filename, mode='rb'):
     """
     try:
         return open(filename, mode)
-    except IOError, e:
+    except IOError as e:
         if e.errno not in (errno.ENOENT, errno.EISDIR):
             raise
 
@@ -87,7 +89,7 @@ class FileSystemLoader(BaseLoader):
     """
 
     def __init__(self, searchpath, encoding='utf-8', base_path=None):
-        if isinstance(searchpath, basestring):
+        if isinstance(searchpath, string_types):
             searchpath = [searchpath]
         self.searchpath = list(searchpath)
         self.encoding = encoding
@@ -141,7 +143,7 @@ class ZipLoader(BaseLoader):
     def _decode_zip_filename(self, name):
         for enc in ('cp866', 'cp1251', 'utf-8'):
             try:
-                return unicode(name, 'cp866')
+                return to_unicode(name, enc)
             except UnicodeDecodeError:
                 pass
         return name
@@ -166,7 +168,7 @@ class ZipLoader(BaseLoader):
         self._unpack_zip()
 
         if isinstance(name, str):
-            name = unicode(name, 'utf-8')
+            name = to_unicode(name, 'utf-8')
 
         data = self.mapping.get(name, None)
 

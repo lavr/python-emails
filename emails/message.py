@@ -178,7 +178,7 @@ class Message(BaseEmail):
         return self._attachments
 
     def set_date(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, string_types):
             _d = dateutil_parse(value)
             value = time.mktime(_d.timetuple())
             value = formatdate(value, True)
@@ -189,7 +189,7 @@ class Message(BaseEmail):
             return None
         timeval = self._date
         if timeval:
-            if callable(timeval):
+            if is_callable(timeval):
                 timeval = timeval()
         elif timeval is None:
             timeval = formatdate(None, True)
@@ -201,11 +201,11 @@ class Message(BaseEmail):
         mid = self._message_id
         if mid is False:
             return None
-        return callable(mid) and mid() or mid
+        return is_callable(mid) and mid() or mid
 
 
     def encode_header(self, value):
-        if isinstance(value, unicode):
+        if isinstance(value, string_types):
             value = value.rstrip()
             _r = Header(value, self.charset)
             return str(_r)

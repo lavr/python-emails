@@ -6,7 +6,7 @@ from lxml import etree
 import requests
 import logging
 
-from emails.compat import urlparse  # import urljoin, urlparse, urlsplit, urlunparse
+from emails.compat import urlparse, to_native, string_types, to_unicode, to_bytes, text_type
 
 from emails.store import MemoryFileStore, LazyHTTPFile
 from .stylesheets import PageStylesheets, get_stylesheets_uri_properties, StyledTagWrapper
@@ -18,7 +18,7 @@ from .wrappers import TAG_WRAPPER, CSS_WRAPPER
 
 from .localloaders import FileSystemLoader, ZipLoader
 
-import helpers
+from . import helpers
 
 
 class HTTPLoaderError(Exception):
@@ -103,16 +103,20 @@ class HTTPLoader:
         self.html_encoding = guess_charset(response.headers, content)
         self.html_content = content
 
-    def start_load_file(self, html):
+    def start_load_file(self, html, encoding="utf-8"):
         """
         Set some params and load start page
         """
         if hasattr(html, 'read'):
             html = html.read()
 
+        if not isinstance(html, text_type):
+            html = to_unicode(html, encoding)
+
+        print(type(html))
         html = html.replace('\r\n', '\n') # Remove \r, or we'll get much &#13;
         self.html_content = html
-        self.html_encoding = 'utf-8' # ?
+        self.html_encoding = encoding # ?
         self.start_url = None
         self.base_url = None
         self.headers = None
@@ -366,7 +370,7 @@ class HTTPLoader:
         # pynliner is bit accurate with complex css, but not ideal and much slower
         # todo: make comparison pynliner vs cssinliner
         import pynliner
-        css_text = unicode(self.stylesheet.cssText, 'utf-8')
+        css_text = str(self.stylesheet.cssText, 'utf-8')
         html = pynliner.Pynliner().from_string(self.html).with_cssString(css_text).run()
         self.html_tree = etree.HTML(html, parser=etree.HTMLParser(encoding='utf-8'))
 

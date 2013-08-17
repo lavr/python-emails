@@ -56,7 +56,7 @@ class BaseFile(object):
 
     def get_data(self):
         _data = getattr(self, '_data', None)
-        if isinstance(_data, basestring):
+        if isinstance(_data, string_types):
             return _data
         elif hasattr(_data, 'read'):
             return _data.read()

@@ -27,19 +27,19 @@ class MemoryFileStore(FileStore):
     def __contains__(self, k):
         if isinstance(k, self.file_cls):
             return k.url in self._files
-        elif isinstance(k, basestring):
+        elif isinstance(k, str):
             return k in self._files
         else:
             return False
 
     def keys(self):
-        return self._files.keys()
+        return list(self._files.keys())
 
     def __len__(self):
         return len(self._files)
 
     def as_dict(self):
-        for d in self._files.itervalues():
+        for d in self._files.values():
             yield d.as_dict()
 
     def remove(self, uri):
@@ -47,7 +47,7 @@ class MemoryFileStore(FileStore):
         if isinstance(uri, self.file_cls):
             uri = uri.uri
 
-        assert isinstance(uri, basestring)
+        assert isinstance(uri, string_types)
 
         v = self[uri]
 

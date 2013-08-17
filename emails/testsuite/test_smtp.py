@@ -16,7 +16,7 @@ def test_exceptions():
     assert response.status_code is None
     assert response.error is not None
     assert isinstance(response.error, IOError)
-    print "response.error.errno=", response.error.errno
+    print("response.error.errno=", response.error.errno)
     if HAS_INTERNET_CONNECTION:
         assert response.error.errno==8
 
@@ -36,7 +36,7 @@ def test_exceptions():
         server._connect()
         server.smtpclient.sock.close()  # simulate disconnect
         response = server.sendmail(**sendmail_params)
-        print response
+        print(response)
 
 
 if __name__=="__main__":

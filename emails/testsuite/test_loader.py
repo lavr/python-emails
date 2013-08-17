@@ -40,7 +40,7 @@ def test_insert_style():
         tree = new_document
 
     html = normalize_html(lxml.etree.tostring(tree, encoding='utf-8', method='html'))
-    RESULT_HTML = normalize_html(u'<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"></head><body>' \
+    RESULT_HTML = normalize_html('<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"></head><body>' \
                  '<style></style><img src="1.png" style="background: url(2.png)"> '\
                  '<style>p {background: url(3.png)} </style> </body></html>')
     assert html==RESULT_HTML, "Invalid html expected: %s, got: %s" % (RESULT_HTML.__repr__(), html.__repr__())
@@ -84,7 +84,7 @@ def test_load_local_directory():
 
     ALL_FILES = "bg_divider_top.png,bullet.png,img.png,img_deco_bottom.png,img_email.png,"\
                 "bg_email.png,ico_lupa.png,img_deco.png".split(',')
-    ALL_FILES = set(map(lambda n: "images/"+n, ALL_FILES))
+    ALL_FILES = set(["images/"+n for n in ALL_FILES])
 
     files = set(colordirect_loader.filestore.keys())
 
@@ -99,9 +99,9 @@ def test_load_local_directory():
                 "data/html_import/oldornament/html/full_width.html"
             ):
         filename = os.path.join(ROOT, fn)
-        print fn
+        print(fn)
         loader = emails.loader.from_file(filename)
-        print loader.html
+        print(loader.html)
 
 
 def test_load_sites():
@@ -128,9 +128,9 @@ def test_zip_load():
     ROOT = os.path.dirname(__file__)
     filename = os.path.join(ROOT, "data/html_import/oldornament.zip")
     loader = emails.loader.from_zip( open(filename, 'rb') )
-    assert len(loader.filestore.keys())>=13
+    assert len(list(loader.filestore.keys()))>=13
     #print len(loader.html)
-    assert u"SET-3-old-ornament" in loader.html
+    assert "SET-3-old-ornament" in loader.html
 
 
 def _do_inline_css(html, css, save_to_file=None, pretty_print=False):

@@ -8,12 +8,11 @@
 
 import logging
 
+from emails.packages import dkim
+
 class DKIMSigner:
 
     def __init__(self, selector, domain, privkey, ignore_sign_errors=True, **kwargs):
-
-        if 'dkim' not in globals():
-            globals()['dkim'] = __import__('dkim')
 
         self.ignore_sign_errors = ignore_sign_errors
         self._sign_params = kwargs

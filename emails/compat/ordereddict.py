@@ -4,8 +4,8 @@ __all__ = ['OrderedDict', ]
 
 # Backport of OrderedDict() class that runs on Python 2.4, 2.5, 2.6, 2.7 and pypy.
 # Passes Python2.7's test suite and incorporates all the latest updates.
-
-import collections
+# Copyright 2009 Raymond Hettinger, released under the MIT License.
+# http://code.activestate.com/recipes/576693/
 
 try:
     from thread import get_ident as _get_ident
@@ -18,8 +18,7 @@ except ImportError:
     pass
 
 
-class CompatOrderedDict(dict):
-
+class OrderedDict(dict):
     'Dictionary that remembers insertion order'
     # An inherited dict maps keys to values.
     # The inherited dict provides __getitem__, __len__, __contains__, and get.
@@ -244,7 +243,7 @@ class CompatOrderedDict(dict):
 
         '''
         if isinstance(other, OrderedDict):
-            return len(self) == len(other) and self.items() == other.items()
+            return len(self)==len(other) and self.items() == other.items()
         return dict.__eq__(self, other)
 
     def __ne__(self, other):
@@ -263,10 +262,3 @@ class CompatOrderedDict(dict):
     def viewitems(self):
         "od.viewitems() -> a set-like object providing a view on od's items"
         return ItemsView(self)
-
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    # for python<2.7
-    OrderedDict = CompatOrderedDict
