@@ -15,6 +15,8 @@
 
 """DNS Messages"""
 
+from __future__ import print_function
+
 import io
 import random
 import struct

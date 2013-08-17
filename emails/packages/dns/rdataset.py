@@ -14,7 +14,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """DNS rdatasets (an rdataset is a set of rdatas of a given type and class)"""
-
+from __future__ import print_function
 import io
 import random
 import struct
