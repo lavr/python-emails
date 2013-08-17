@@ -1,5 +1,5 @@
 # encoding: utf-8
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import logging
 from cssutils.css import CSSStyleSheet
 from cssutils import CSSParser
@@ -25,8 +25,7 @@ class PageStylesheets:
         if self.element is not None:
             self._concatenate_sheets()
             cssText = self._cached_stylesheet.cssText
-            if isinstance(cssText, string_types):
-                cssText = str(cssText, 'utf-8')
+            cssText = cssText and to_unicode(cssText, 'utf-8') or ''
             self.element.text = cssText
 
     def attach_tag(self, element):

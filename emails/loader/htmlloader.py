@@ -98,9 +98,9 @@ class HTTPLoader:
         self.start_url = url
         self.base_url = base_url or url  # Fixme: split base_url carefully
         self.headers = response.headers
-        content = to_unicode(response.content)
-        content = content.replace('\r\n', '\n')  # Remove \r, or we'll get much &#13;
         self.html_encoding = guess_charset(response.headers, content)
+        content = to_unicode(response.content, self.html_encoding)
+        content = content.replace('\r\n', '\n')  # Remove \r, or we'll get much &#13;
         self.html_content = content
 
     def start_load_file(self, html, encoding="utf-8"):
