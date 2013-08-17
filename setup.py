@@ -19,8 +19,8 @@ if sys.argv[-1] == 'publish':
 
 settings.update(
     name='emails',
-    version='0.1.8',
-    description='Missed simple email library for python',
+    version='0.1.9',
+    description='Elegant and simple email library for python',
     long_description=open('README.rst').read(),
     author='Sergey Lavrinenko',
     author_email='s@lavr.me',
@@ -41,6 +41,7 @@ settings.update(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.2',
     )
 )
 
