@@ -26,12 +26,16 @@ def guess_charset(headers, html):
 
     # guess by http headers
     if headers:
+        #print(__name__, "guess_charset has headers", headers)
         content_type = headers['content-type']
         if content_type:
             _, params = cgi.parse_header(content_type)
-            return params.get('charset', None)
+            r = params.get('charset', None)
+            if r:
+                return r
 
     # guess by html meta
+    #print(__name__, "guess_charset html=", html[:1024])
     for s in RE_META.findall(html):
         for x in RE_INSIDE_META.findall(s):
             for charset in RE_CHARSET.findall(x):

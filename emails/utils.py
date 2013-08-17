@@ -54,10 +54,10 @@ def parse_name_and_email(obj, encoding='utf-8'):
         raise ValueError("Can not parse_name_and_email from %s" % obj)
 
     if isinstance(_realname, bytes):
-        _realname = str(_realname, encoding)
+        _realname = to_unicode(_realname, encoding)
 
     if isinstance(_email, bytes):
-        _email = str(_email, encoding)
+        _email = to_unicode(_email, encoding)
 
     return _realname or None, _email or None
 

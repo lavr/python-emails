@@ -98,8 +98,11 @@ class HTTPLoader:
         self.start_url = url
         self.base_url = base_url or url  # Fixme: split base_url carefully
         self.headers = response.headers
-        self.html_encoding = guess_charset(response.headers, content)
-        content = to_unicode(response.content, self.html_encoding)
+        content = response.text
+        self.html_encoding = None
+        #print(__name__, type(content))
+        #self.html_encoding = guess_charset(response.headers, content)
+        #print(__name__, "self.html_encoding=", self.html_encoding)
         content = content.replace('\r\n', '\n')  # Remove \r, or we'll get much &#13;
         self.html_content = content
 
@@ -113,7 +116,7 @@ class HTTPLoader:
         if not isinstance(html, text_type):
             html = to_unicode(html, encoding)
 
-        print(type(html))
+        #print(__name__, type(html))
         html = html.replace('\r\n', '\n') # Remove \r, or we'll get much &#13;
         self.html_content = html
         self.html_encoding = encoding # ?
@@ -132,8 +135,8 @@ class HTTPLoader:
 
 
     def make_html_tree(self):
-
-        self.html_tree = etree.HTML(self.html_content, parser=etree.HTMLParser(encoding=self.html_encoding))
+        #assert isinstance(self.html_content, unicode)
+        self.html_tree = etree.HTML(self.html_content, parser=etree.HTMLParser()) #encoding=self.html_encoding))
         # TODO: try another load methods, i.e. etree.fromstring(xml,
         # base_url="http://where.it/is/from.xml") ?
 
@@ -239,7 +242,9 @@ class HTTPLoader:
             #logging.debug('Found link %s, rel=%s, media=%s', el, el.get('rel',''), el.get('media',''))
             url = el.get('href', '')
             if url:
-                self.stylesheets.append(url=url, absolute_url=self.absolute_url(url), local_loader=self.local_loader)
+                self.stylesheets.append(url=url,
+                                        absolute_url=self.absolute_url(url),
+                                        local_loader=self.local_loader)
 
     def process_style_tag(self, el):
         """
@@ -258,8 +263,12 @@ class HTTPLoader:
         """
         Process IMG SRC, TABLE BACKGROUND, ...
         """
-        obj = self.tag_link_cls[el.tag](el)
+        obj = self.tag_link_cls[el.tag](el, encoding=self.html_encoding)
+        if obj.link is None:
+            return
+
         #print __name__, "process_tag_with_link", el, obj.link, type(obj)
+        #assert isinstance(obj.link, unicode), "%s.link should be unicode" % type(obj)
         self._tags_with_links.append(obj)
         if el.tag in self.TAGS_WITH_IMAGES:
             lnk = obj.link
@@ -273,6 +282,7 @@ class HTTPLoader:
         for obj in self.iter_image_links():
             lnk = obj.link
             if lnk:
+                #print(__name__, "attach_all_images", lnk.__repr__())
                 self.attach_image(uri=lnk, absolute_url=self.absolute_url(lnk))
 
     def attach_image(self, uri, absolute_url, subtype=None):

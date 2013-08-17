@@ -3,19 +3,21 @@
 # tag-with-link wrapper
 from __future__ import unicode_literals
 import logging
-from emails.compat import OrderedSet
+from emails.compat import OrderedSet, to_unicode
 
 
 class ElementWithLink(object):
 
     LINK_ATTR_NAME = None
 
-    def __init__(self, el):
+    def __init__(self, el, encoding=None):
         self.el = el
         self._link_history = OrderedSet()
+        self.encoding = encoding
 
     def get_link(self):
-        return self.el.get(self.LINK_ATTR_NAME)
+        #print(__name__, "ElementWithLink encoding=", self.encoding)
+        return to_unicode(self.el.get(self.LINK_ATTR_NAME), self.encoding)
 
     def set_link(self, new):
         _old = self.get_link()
@@ -28,8 +30,8 @@ class ElementWithLink(object):
 
     @classmethod
     def make(cls, attr):
-        def wrapper(el):
-            r = cls(el)
+        def wrapper(el, encoding):
+            r = cls(el, encoding=encoding)
             r.LINK_ATTR_NAME = attr
             return r
         return wrapper
@@ -62,13 +64,14 @@ class CSS_link(ElementWithLink):
 
     # el is cssutils style property
 
-    def __init__(self, el, updateme=None):
+    def __init__(self, el, updateme=None, encoding=None):
         ElementWithLink.__init__(self, el)
         self.updateme = updateme
+        self.encoding = encoding
         #print __name__, "CSS_link", el, el.uri
 
     def get_link(self):
-        return self.el.uri
+        return to_unicode(self.el.uri, self.encoding)
 
     def set_link(self, new):
         _old = self.el.uri

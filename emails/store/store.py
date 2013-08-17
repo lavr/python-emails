@@ -49,10 +49,10 @@ class MemoryFileStore(FileStore):
         assert isinstance(uri, string_types)
 
         v = self[uri]
-
+        #print(__name__, "Store remove uri=", uri.__repr__(), 'filenames=', self._filenames)
         if v:
             filename = v.filename
-            if filename:
+            if filename and (filename in self._filenames):
                 self._filenames.remove(filename)
             del self._files[uri]
 
@@ -80,8 +80,11 @@ class MemoryFileStore(FileStore):
         else:
             raise ValueError("Unknown file type: %s" % type(value))
 
+        #if not isinstance(uri, unicode):
+        #    raise
         self.remove(uri)
         value.filename = self.unique_filename(value.filename)
+        self._filenames.add(value.filename)
         self._files[uri] = value
 
     def by_uri(self, uri, synonims=None):
