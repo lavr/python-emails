@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 # adapted from https://github.com/kgn/cssutils/blob/master/examples/style.py
-
+from __future__ import unicode_literals
 from cssutils.css import CSSStyleSheet, CSSStyleDeclaration, CSSStyleRule
 from cssutils import CSSParser
-
 from lxml.cssselect import CSSSelector, ExpressionError
 from lxml import etree
 from lxml.builder import E
@@ -42,7 +41,7 @@ class CSSInliner:
 
     def log(self, level, *msg):
         if self.DEBUG:
-            print(('%s- %s' % (level * '\t ', ' '.join((to_unicode(m) for m in msg)))))
+            print(('%s- %s' % (level * '\t ', ' '.join((to_unicode(m or '') for m in msg)))))
 
     def styleattribute(self, element):
             "returns css.CSSStyleDeclaration of inline styles, for html: @style"

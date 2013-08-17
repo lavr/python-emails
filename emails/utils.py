@@ -1,5 +1,5 @@
 # encoding: utf-8
-
+from __future__ import unicode_literals
 __all__ = [ 'parse_name_and_email', 'load_email_charsets', 'MessageID' ]
 
 from email.parser import HeaderParser

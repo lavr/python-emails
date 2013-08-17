@@ -1,9 +1,5 @@
 # encoding: utf-8
-
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
+from __future__ import unicode_literals
 
 import uuid
 
@@ -13,6 +9,8 @@ import requests
 from mimetypes import guess_type
 from email.mime.base import MIMEBase
 from email.encoders import encode_base64
+from emails.compat import urlparse
+from emails.compat import string_types, to_unicode, to_bytes
 
 # class FileNotFound(Exception):
 #    pass
@@ -86,7 +84,7 @@ class BaseFile(object):
         if (_filename is None):
             _uri = getattr(self, '_uri', None)
             if _uri:
-                parsed_path = urlparse(_uri)
+                parsed_path = urlparse.urlparse(_uri)
                 _filename = basename(parsed_path.path)
                 if not _filename:
                     _filename = str(uuid.uuid4())
@@ -127,7 +125,7 @@ class BaseFile(object):
         _mime = getattr(self, '_cached_mime', None)
         if _mime is None:
             self._cached_mime = _mime = MIMEBase(*self.mime_type.split('/', 1))
-            _mime.set_payload(self.data)
+            _mime.set_payload(to_bytes(self.data))
             encode_base64(_mime)
             _mime.add_header('Content-Disposition',
                              self.content_disposition,

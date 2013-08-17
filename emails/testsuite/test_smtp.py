@@ -1,4 +1,6 @@
 # encoding: utf-8
+from __future__ import unicode_literals
+
 import emails
 from emails.smtp import SMTPConnectionPool, SMTPResponse, SMTPSender
 import os
@@ -26,7 +28,7 @@ def test_exceptions():
                       'mail_from': 's@lavr.me',
                       'mail_to': 'sergei-nko@yandex.ru',
                       'subject': 'Test from python-emails'}
-    server_params = { 'host': 'aspmx.l.google.com', 'port': 25, 'debug':1 }
+    server_params = { 'host': 'alt1.aspmx.l.google.com', 'port': 25, 'debug':1 }
     sendmail_params = {'to_addrs': 's@lavr.me',
                        'from_addr': 's@lavr.me',
                        'msg': emails.html(**message_params).as_string()}

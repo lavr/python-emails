@@ -1,5 +1,5 @@
 # coding: utf-8
-
+from __future__ import unicode_literals
 import uuid
 import time
 
@@ -13,6 +13,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email.encoders import encode_base64
+
+from emails.compat import string_types, to_unicode, is_callable
 
 from dateutil.parser import parse as dateutil_parse
 

@@ -1,7 +1,8 @@
 # encoding: utf-8
-
+from __future__ import unicode_literals
 import emails
 from emails.loader.stylesheets import StyledTagWrapper
+from emails.compat import to_unicode
 import lxml
 
 import os.path
@@ -19,7 +20,7 @@ def test_tagwithstyle():
 
 
 def normalize_html(s):
-    return "".join(s.split())
+    return "".join(to_unicode(s).split())
 
 def test_insert_style():
 
@@ -130,7 +131,7 @@ def test_zip_load():
     loader = emails.loader.from_zip( open(filename, 'rb') )
     assert len(list(loader.filestore.keys()))>=13
     #print len(loader.html)
-    assert "SET-3-old-ornament" in loader.html
+    assert b"SET-3-old-ornament" in loader.html
 
 
 def _do_inline_css(html, css, save_to_file=None, pretty_print=False):
@@ -140,7 +141,7 @@ def _do_inline_css(html, css, save_to_file=None, pretty_print=False):
     document = inliner.transform_html(html)
     r = lxml.etree.tostring(document, pretty_print=pretty_print)
     if save_to_file:
-        open(save_to_file, 'w').write(r)
+        open(save_to_file, 'wb').write(r)
     return r
 
 
@@ -194,7 +195,7 @@ def test_commons_css_inline():
         }
     '''
 
-    VALID_RESULT = """<html>
+    VALID_RESULT = normalize_html("""<html>
   <head>
     <title>style test</title>
   </head>
@@ -206,10 +207,10 @@ def test_commons_css_inline():
             <div style="margin: 0;color: green;font-size: 1.5em">a &lt;div&gt; green?</div>
             <div id="y" style="margin: 0;color: #f0f;font-size: 1.5em">#y pink?</div>
         </body>
-</html>"""
+</html>""")
 
-    result = _do_inline_css(HTML, CSS, pretty_print=True)  # , save_to_file='_result.html')
-    assert VALID_RESULT.strip() == result.strip()
+    result = normalize_html(_do_inline_css(HTML, CSS, pretty_print=True))  # , save_to_file='_result.html')
+    assert VALID_RESULT.strip() == result.strip(), "Invalid html got: %s, expected: %s" % (result.__repr__(), VALID_RESULT.__repr__())
 
 
 

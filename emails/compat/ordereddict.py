@@ -1,5 +1,5 @@
 # encoding: utf-8
-
+from __future__ import unicode_literals
 __all__ = ['OrderedDict', ]
 
 # Backport of OrderedDict() class that runs on Python 2.4, 2.5, 2.6, 2.7 and pypy.

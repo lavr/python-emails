@@ -1,3 +1,5 @@
+# encode: utfp8
+from __future__ import unicode_literals
 from emails.template import JinjaTemplate, StringTemplate, MakoTemplate
 
 def test_jinja_template_1():

@@ -1,9 +1,11 @@
 # encoding: utf-8
-
+from __future__ import unicode_literals
 __all__ = [ 'SMTPConnectionPool', 'SMTPResponse', 'SMTPSender' ]
 
 import smtplib
 import logging
+
+from emails.compat import urlparse, to_native, string_types, to_unicode, to_bytes, text_type
 
 class SMTPResponse(object):
 

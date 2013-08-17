@@ -1,9 +1,11 @@
 # encoding: utf-8
-
+from __future__ import unicode_literals
 import logging
 from cssutils.css import CSSStyleSheet
 from cssutils import CSSParser
 import cssutils
+
+from emails.compat import urlparse, to_native, string_types, to_unicode, to_bytes, text_type
 
 
 class PageStylesheets:

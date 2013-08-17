@@ -1,9 +1,8 @@
 # encoding: utf-8
 
 # tag-with-link wrapper
-
+from __future__ import unicode_literals
 import logging
-
 from emails.compat import OrderedSet
 
 

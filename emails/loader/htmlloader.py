@@ -1,5 +1,5 @@
 # encoding: utf-8
-
+from __future__ import unicode_literals
 import posixpath
 import os.path
 from lxml import etree
@@ -98,7 +98,7 @@ class HTTPLoader:
         self.start_url = url
         self.base_url = base_url or url  # Fixme: split base_url carefully
         self.headers = response.headers
-        content = response.content
+        content = to_unicode(response.content)
         content = content.replace('\r\n', '\n')  # Remove \r, or we'll get much &#13;
         self.html_encoding = guess_charset(response.headers, content)
         self.html_content = content
@@ -422,7 +422,9 @@ class HTTPLoader:
                 attach.uri = new_uri
                 open(new_uri, 'wb').write(attach.data)
 
-        open(filename, 'w').write(self.html)
+        f = open(filename, 'wb')
+        f.write(self.html)
+        f.close()
 
 
 def from_url(url, **kwargs):

@@ -1,5 +1,5 @@
 # encoding: utf-8
-
+from __future__ import unicode_literals
 __all__ = ['guess_charset', 'fix_content_type']
 
 import re
