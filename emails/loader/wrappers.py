@@ -17,7 +17,10 @@ class ElementWithLink(object):
 
     def get_link(self):
         #print(__name__, "ElementWithLink encoding=", self.encoding)
-        return to_unicode(self.el.get(self.LINK_ATTR_NAME), self.encoding)
+        r = self.el.get(self.LINK_ATTR_NAME)
+        if self.encoding:
+            r = to_unicode(r, self.encoding)
+        return r
 
     def set_link(self, new):
         _old = self.get_link()
@@ -71,7 +74,10 @@ class CSS_link(ElementWithLink):
         #print __name__, "CSS_link", el, el.uri
 
     def get_link(self):
-        return to_unicode(self.el.uri, self.encoding)
+        r = self.el.uri
+        if self.encoding:
+            r = to_unicode(self.el.uri, self.encoding)
+        return r
 
     def set_link(self, new):
         _old = self.el.uri
