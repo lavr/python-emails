@@ -23,7 +23,7 @@ More examples is at <https://github.com/lavr/python-emails/README.rst>.
 """
 
 __title__ = 'emails'
-__version__ = '0.1.9'
+__version__ = '0.1.10'
 __author__ = 'Sergey Lavrinenko'
 __license__ = 'Apache 2.0'
 __copyright__ = 'Copyright 2013 Sergey Lavrinenko'
