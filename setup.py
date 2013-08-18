@@ -31,7 +31,7 @@ settings.update(
                 'emails.store',
                 'emails.template',
                 'emails.packages',
-               ]
+               ],
     scripts=[ 'emails/scripts/make_rfc822.py' ],
     #install_requires = [ open('requirements.txt').read().strip().split('\n') ],
     install_requires = [ 'cssselect', 'cssutils', 'lxml', 'chardet', 'python-dateutil', 'requests' ],
