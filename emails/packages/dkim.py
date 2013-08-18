@@ -22,8 +22,14 @@ import re
 import time
 
 import sys, os.path
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__))) # minihack for dnspython module
-from dns import resolver as dns_resolver
+
+# was:
+#  import dns.resolver
+# Patched by s@lavr.me:
+#  pypi 'dnspython' package is broken in python3
+#  python-emails doesn't use verify function
+#  we just move dns.resolver dependency to dnstxt function and forget it
+
 
 __all__ = [
     "Simple",
@@ -270,7 +276,8 @@ def rfc822_parse(message):
 
 def dnstxt(name):
     """Return a TXT record associated with a DNS name."""
-    a = dns_resolver.query(name, dns.rdatatype.TXT)
+    import dns.resolver
+    a = dns.resolver.query(name, dns.rdatatype.TXT)
     for r in a.response.answer:
         if r.rdtype == dns.rdatatype.TXT:
             return "".join(r.items[0].strings)
