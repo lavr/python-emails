@@ -20,7 +20,7 @@ except ImportError:
     sys.path.insert(0, my_packages)
     import cssselect
 
-
+from lxml.cssselect import CSSSelector, ExpressionError
 
 class CSSInliner:
 
