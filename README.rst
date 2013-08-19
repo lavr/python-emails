@@ -70,6 +70,23 @@ Design email with less pain or even let designers make design:
     for mail_to in _get_maillist():
         message.send(to=mail_to)
 
+Install
+-------
+
+Install from pypi:
+
+::
+
+    $ [sudo] pip install emails
+
+Install on Ubuntu from PPA:
+
+::
+
+    $ [sudo] add-apt-repository ppa:lavrme/python-emails-ppa
+    $ [sudo] apt-get update
+    $ [sudo] apt-get install python-emails
+
 
 Features
 --------
@@ -82,8 +99,7 @@ Features
 
 TODO
 ----
-
-- Python3
+- Python3 (almost done)
 - Documentation
 - More test coverage
 - More accurate smtp session handling
@@ -91,7 +107,8 @@ TODO
 - More genius css inliner
 - Catch all bugs
 - ESP integration: Amazon SES, SendGrid, ...
-
+- deb package (ubuntu package done)
+- rpm package
 
 How to Help
 -----------
