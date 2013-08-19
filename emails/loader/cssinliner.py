@@ -1,15 +1,26 @@
 # -*- coding: utf-8 -*-
 # adapted from https://github.com/kgn/cssutils/blob/master/examples/style.py
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 from cssutils.css import CSSStyleSheet, CSSStyleDeclaration, CSSStyleRule
 from cssutils import CSSParser
-from lxml.cssselect import CSSSelector, ExpressionError
 from lxml import etree
 from lxml.builder import E
-
 import logging
 
 from emails.compat import to_unicode, string_types
+import emails
+
+# Workaround the missing python3-cssselect package
+# If no system-installed cssselect library found, use one from our distribution
+try:
+    import cssselect
+except ImportError:
+    import sys, os.path
+    my_packages = os.path.dirname(emails.packages.__file__)
+    sys.path.insert(0, my_packages)
+    import cssselect
+
+
 
 class CSSInliner:
 
@@ -18,6 +29,7 @@ class CSSInliner:
     DEBUG = False
 
     def __init__(self, base_url=None, css=None):
+
         self.stylesheet = CSSStyleSheet(href=base_url)
         self.base_url = base_url
         if css:

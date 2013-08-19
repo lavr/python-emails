@@ -31,10 +31,10 @@ settings.update(
                 'emails.store',
                 'emails.template',
                 'emails.packages',
+                'emails.packages.cssselect'
                ],
     scripts=[ 'emails/scripts/make_rfc822.py' ],
-    #install_requires = [ open('requirements.txt').read().strip().split('\n') ],
-    install_requires = [ 'cssselect', 'cssutils', 'lxml', 'chardet', 'python-dateutil', 'requests' ],
+    install_requires = [ 'cssutils', 'lxml', 'chardet', 'python-dateutil', 'requests', 'cssselect' ],
     license=open('LICENSE').read(),
     #test_suite = "emails.testsuite.test_all",
     zip_safe=False,
@@ -47,7 +47,7 @@ settings.update(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
     )
 )
 

@@ -1,4 +1,3 @@
-cssselect
 cssutils
 lxml
 chardet

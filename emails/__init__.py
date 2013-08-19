@@ -28,9 +28,6 @@ __author__ = 'Sergey Lavrinenko'
 __license__ = 'Apache 2.0'
 __copyright__ = 'Copyright 2013 Sergey Lavrinenko'
 
-
 from .message import Message, html
-from . import loader
-from . import template
-from . import smtp
-from . import packages
+
+
