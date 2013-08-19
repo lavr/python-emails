@@ -8,6 +8,7 @@ import os
 import emails
 
 from emails.compat import StringIO
+from emails.template import JinjaTemplate
 
 TRAVIS_CI = os.environ.get('TRAVIS')
 HAS_INTERNET_CONNECTION = not TRAVIS_CI
@@ -23,7 +24,7 @@ except ImportError:
 
 def test_renderables():
 
-    TEMPLATE = emails.template.JinjaTemplate('Hello, {{name}}!')
+    TEMPLATE = JinjaTemplate('Hello, {{name}}!')
     V = dict(name='world')
     RESULT = TEMPLATE.render(**V)
     assert RESULT=='Hello, world!'
@@ -69,7 +70,7 @@ def test_common_mail_build():
 
 
 def _email_data(**kwargs):
-    T = emails.template.JinjaTemplate
+    T = JinjaTemplate
     data = {}
     data['charset'] = 'utf-8'
     data['subject'] = T('Hello, {{name}}')
