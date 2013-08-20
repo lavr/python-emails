@@ -184,14 +184,26 @@ def test_dkim():
     message = emails.html(html='<p>This is the end, beautiful friend<br>'\
                                'This is the end, my only friend',
                           subject='Hello, world!',
+                          message_id=False,
                           mail_from=('Jim', 'jim@somewhere.net'),
                           mail_to=('Anyone <anyone@here.net>'))
 
-    message.attach( data=NativeStringIO('x'*1024), filename='Data.dat' )
+    message.attach( data=NativeStringIO('x'*10), filename='Data.dat' )
 
     message.dkim( privkey=to_bytes(_generate_privkey()), selector='_dkim', domain='somewhere.net', ignore_sign_errors=False   )
 
-    return message.as_string()
+    message.as_string()
+
+
+    msg = message.message()
+
+    m1 = msg.as_string()
+    m2 = msg.as_string()
+    #print( "iter1={}".format(m1) )
+    #print( "iter2={}".format( m2 ) )
+    #from difflib import context_diff
+    assert m1 == m2
+
 
 
 

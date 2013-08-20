@@ -212,14 +212,14 @@ class Message(BaseEmail):
         if value is not None:
             msg[key] = encode and self.encode_header(value) or value
 
-    def _build(self):
+    def _build_message(self):
 
         msg = SafeMIMEMultipart()
 
         msg.preamble = ROOT_PREAMBLE
 
-        self.set_header(msg, 'Date',  self.message_date )
-        self.set_header(msg, 'Message-ID',  self.message_id())
+        self.set_header(msg, 'Date',  self.message_date, encode=False )
+        self.set_header(msg, 'Message-ID',  self.message_id(), encode=False)
 
         if self._headers:
             for (name, value) in self._headers.items():
@@ -265,17 +265,23 @@ class Message(BaseEmail):
         return msg
 
     def message(self):
-        msg = self._build()
-        # TODO: add DKIM header here
+        msg = self._build_message()
+        if self._dkim_signer:
+            msg_str = msg.as_string()
+            dkim_header = self._dkim_signer.get_sign_header(to_bytes(msg_str))
+            if dkim_header:
+                msg._headers.insert(0, dkim_header)
         return msg
 
     def as_string(self):
-        msg = self._build()
+        # self.as_string() is not equialent self.message().as_string()
+        # self.as_string() gets one less message-to-string conversions for dkim
+        msg = self._build_message()
         r = msg.as_string()
         if self._dkim_signer:
-            dkim_header = self._dkim_signer.sign(to_bytes(r))
+            dkim_header = self._dkim_signer.get_sign(to_bytes(r))
             if dkim_header:
-                r = to_native(dkim_header) + r
+                r = dkim_header + r
         return r
 
     @property

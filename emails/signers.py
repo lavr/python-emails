@@ -9,7 +9,7 @@ from __future__ import unicode_literals
 import logging
 
 from emails.packages import dkim
-from emails.compat import to_bytes
+from emails.compat import to_bytes, to_native
 
 class DKIMSigner:
 
@@ -24,7 +24,7 @@ class DKIMSigner:
         self._sign_params.update({'privkey':to_bytes(privkey), 'domain': to_bytes(domain), 'selector':to_bytes(selector)})
 
 
-    def sign(self, message):
+    def get_sign(self, message):
 
         dkim_header = None
 
@@ -32,13 +32,27 @@ class DKIMSigner:
             # TODO:
             #  pydkim module parses message and privkey on each signing
             #  this is not optimal for our purposes
-            #  we need patch for pydkim or just another signing module
+            #  we need patch for pydkim or some another signing module
             dkim_header = dkim.sign(message=message, **self._sign_params)
         except:
             if self.ignore_sign_errors:
                 logging.exception('Error signing message')
-                dkim_header = "X-DKIM-Signature-Failed: yes\r\n"
+                #dkim_header = "X-DKIM-Signature-Failed: yes\r\n"
             else:
                 raise
 
-        return dkim_header
+        return to_native(dkim_header)
+
+    def get_sign_header(self, message):
+
+        dkim_header_str = self.get_sign(message)
+
+        if dkim_header_str:
+            # pdkim returns string
+            # let's
+            (header, value) = dkim_header_str.split(': ', 1)
+            if value.endswith("\r\n"):
+                value = value[:-2]
+            return (header, value)
+
+        return None
