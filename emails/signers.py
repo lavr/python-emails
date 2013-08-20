@@ -9,6 +9,7 @@ from __future__ import unicode_literals
 import logging
 
 from emails.packages import dkim
+from emails.compat import to_bytes
 
 class DKIMSigner:
 
@@ -20,7 +21,7 @@ class DKIMSigner:
         if privkey and hasattr(privkey, 'read'):
             privkey = privkey.read()
 
-        self._sign_params.update({'privkey':privkey, 'domain': domain, 'selector':selector})
+        self._sign_params.update({'privkey':to_bytes(privkey), 'domain': to_bytes(domain), 'selector':to_bytes(selector)})
 
 
     def sign(self, message):

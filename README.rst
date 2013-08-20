@@ -100,8 +100,11 @@ Features
 TODO
 ----
 - Python3 (almost done)
+- Add "safety stuff" from django (done)
+- Django integration (django.core.mail.backends.smtp.EmailBackend subclass)
+- Flask extension
 - Documentation
-- More test coverage
+- 100% test coverage
 - More accurate smtp session handling
 - Some patches for pydkim performance (i.e. preload key once, not each time)
 - More genius css inliner

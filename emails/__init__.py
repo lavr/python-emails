@@ -29,5 +29,6 @@ __license__ = 'Apache 2.0'
 __copyright__ = 'Copyright 2013 Sergey Lavrinenko'
 
 from .message import Message, html
+from .utils import MessageID
 
 

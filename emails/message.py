@@ -1,22 +1,18 @@
 # coding: utf-8
 from __future__ import unicode_literals
-import uuid
-import time
 
+import time
 from functools import wraps
 
+from dateutil.parser import parse as dateutil_parse
 from email.header import Header
 from email.utils import formatdate
-import email.charset
-
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
 from email.encoders import encode_base64
+from email.mime.base import MIMEBase
+from .utils import SafeMIMEText
+from .utils import SafeMIMEMultipart
 
-from emails.compat import string_types, to_unicode, is_callable
-
-from dateutil.parser import parse as dateutil_parse
+from emails.compat import string_types, to_unicode, is_callable, NativeStringIO, to_bytes, to_native
 
 from .utils import parse_name_and_email
 from .smtp import SMTPConnectionPool
@@ -28,7 +24,6 @@ load_email_charsets()  # sic!
 
 
 ROOT_PREAMBLE = 'This is a multi-part message in MIME format.\n'
-
 
 def renderable(f):
     @wraps(f)
@@ -60,7 +55,7 @@ class Message(BaseEmail):
         message = HtmlEmail()
 
     Message parts:
-        * html: may be a "text with tags" or url; when get url, load
+        * html
         * text
         * attachments
 
@@ -88,25 +83,17 @@ class Message(BaseEmail):
                  dkim_selector=None):
 
         self._attachments = None
-
         self.charset = charset or 'utf-8'  # utf-8 is standard de-facto, yeah
-
         self._message_id = message_id
-
         self.set_subject(subject)
-
         self.set_date(date)
-
         self.set_mail_from(mail_from)
         self.set_mail_to(mail_to)
         self.set_headers(headers)
-
         self.set_html(html=html)  # , url=self.html_from_url)
-
         self.set_text(text=text)  # , url=self.text_from_url)
         self.render_data = {}
         self._dkim_signer = None
-
         if attachments:
             for a in attachments:
                 self.attachments.add(a)
@@ -227,7 +214,7 @@ class Message(BaseEmail):
 
     def _build(self):
 
-        msg = MIMEMultipart()
+        msg = SafeMIMEMultipart()
 
         msg.preamble = ROOT_PREAMBLE
 
@@ -251,7 +238,7 @@ class Message(BaseEmail):
         mail_to = self._mail_to and self.encode_name_header(*self._mail_to[0]) or None
         self.set_header(msg, 'To', mail_to, encode=False)
 
-        msgalt = MIMEMultipart('alternative')
+        msgalt = SafeMIMEMultipart('alternative')
         msg.attach(msgalt)
 
         _text = self.text_body
@@ -261,12 +248,12 @@ class Message(BaseEmail):
             raise ValueError("Message must contain 'html' or 'text' part")
 
         if _text:
-            msgtext = MIMEText(_text, 'plain', self.charset)
+            msgtext = SafeMIMEText(_text, 'plain', charset=self.charset)
             msgtext.set_charset(self.charset)
             msgalt.attach(msgtext)
 
         if _html:
-            msghtml = MIMEText(_html, 'html', _charset=self.charset)
+            msghtml = SafeMIMEText(_html, 'html', charset=self.charset)
             msghtml.set_charset(self.charset)
             msgalt.attach(msghtml)
 
@@ -277,13 +264,18 @@ class Message(BaseEmail):
 
         return msg
 
+    def message(self):
+        msg = self._build()
+        # TODO: add DKIM header here
+        return msg
+
     def as_string(self):
         msg = self._build()
         r = msg.as_string()
         if self._dkim_signer:
-            dkim_header = self._dkim_signer.sign(r)
+            dkim_header = self._dkim_signer.sign(to_bytes(r))
             if dkim_header:
-                r = dkim_header + r
+                r = to_native(dkim_header) + r
         return r
 
     @property

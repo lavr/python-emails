@@ -10,6 +10,8 @@ import emails
 from emails.compat import StringIO
 from emails.template import JinjaTemplate
 
+from emails.compat import NativeStringIO, to_bytes
+
 TRAVIS_CI = os.environ.get('TRAVIS')
 HAS_INTERNET_CONNECTION = not TRAVIS_CI
 
@@ -55,6 +57,7 @@ def common_email_data(**kwargs):
     data['headers'] = {'X-Mailer': 'python-emails'}
     data['attachments'] = [{'data': 'aaa', 'filename': 'Event.ics'},
                            {'data': StringIO('bbb'), 'filename': 'map.png'}]
+    data['message_id'] = emails.MessageID()
 
     if kwargs:
         data.update(kwargs)
@@ -184,9 +187,9 @@ def test_dkim():
                           mail_from=('Jim', 'jim@somewhere.net'),
                           mail_to=('Anyone <anyone@here.net>'))
 
-    message.attach( data=StringIO('x'*1024), filename='Data.dat' )
+    message.attach( data=NativeStringIO('x'*1024), filename='Data.dat' )
 
-    message.dkim( privkey=_generate_privkey(), selector='_dkim', domain='somewhere.net'   )
+    message.dkim( privkey=to_bytes(_generate_privkey()), selector='_dkim', domain='somewhere.net', ignore_sign_errors=False   )
 
     return message.as_string()
 
