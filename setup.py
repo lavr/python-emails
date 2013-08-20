@@ -19,7 +19,7 @@ if sys.argv[-1] == 'publish':
 
 settings.update(
     name='emails',
-    version='0.1.10',
+    version='0.1.11',
     description='Elegant and simple email library for python',
     long_description=open('README.rst').read(),
     author='Sergey Lavrinenko',
@@ -31,7 +31,8 @@ settings.update(
                 'emails.store',
                 'emails.template',
                 'emails.packages',
-                'emails.packages.cssselect'
+                'emails.packages.cssselect',
+                'emails.packages.dkim'
                ],
     scripts=[ 'emails/scripts/make_rfc822.py' ],
     install_requires = [ 'cssutils', 'lxml', 'chardet', 'python-dateutil', 'requests'  ],
