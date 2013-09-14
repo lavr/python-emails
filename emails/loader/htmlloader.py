@@ -394,7 +394,7 @@ class HTTPLoader:
     def html(self):
         self.stylesheets.update_tag()
         self._html = etree.tostring(self.html_tree, encoding=self.encoding, method='xml')
-        return self._html
+        return to_unicode(self._html, self.encoding)
 
     @property
     def attachments_dict(self):

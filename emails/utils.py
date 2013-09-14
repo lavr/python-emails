@@ -183,7 +183,7 @@ class SafeMIMEText(MIMEText):
         MIMEText.__init__(self, text, subtype, charset)
 
     def __setitem__(self, name, val):
-        name, val = forbid_multi_line_headers(name, val, self.encoding)
+        #name, val = forbid_multi_line_headers(name, val, self.encoding)
         MIMEText.__setitem__(self, name, val)
 
     def as_string(self, unixfrom=False):
@@ -207,7 +207,7 @@ class SafeMIMEMultipart(MIMEMultipart):
         MIMEMultipart.__init__(self, _subtype, boundary, _subparts, **_params)
 
     def __setitem__(self, name, val):
-        name, val = forbid_multi_line_headers(name, val, self.encoding)
+        #name, val = forbid_multi_line_headers(name, val, self.encoding)
         MIMEMultipart.__setitem__(self, name, val)
 
     def as_string(self, unixfrom=False):

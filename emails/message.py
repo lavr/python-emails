@@ -16,7 +16,7 @@ from .utils import SafeMIMEMultipart
 from emails.compat import string_types, to_unicode, is_callable, NativeStringIO, to_bytes, to_native
 
 from .utils import parse_name_and_email
-from .smtp import SMTPConnectionPool
+from .smtp import SMTPConnectionFactory
 from .store import MemoryFileStore, BaseFile
 from .signers import DKIMSigner
 
@@ -33,10 +33,9 @@ def renderable(f):
         r = f(self, *args, **kwargs)
         render = getattr(r, 'render', None)
         if render:
-            #print __name__, "renderable has render"
-            return render(**(self.render_data or {}))
+            d = render(**(self.render_data or {}))
+            return d
         else:
-            #print __name__, "renderable no render"
             return r
     return wrapper
 
@@ -65,7 +64,7 @@ class Message(BaseEmail):
 
     attachment_cls = BaseFile
     dkim_cls = DKIMSigner
-    smtp_pool_cls = SMTPConnectionPool
+    smtp_pool_cls = SMTPConnectionFactory
     filestore_cls = MemoryFileStore
 
     def __init__(self,
@@ -110,6 +109,11 @@ class Message(BaseEmail):
         mail_to = mail_to and parse_name_and_email(mail_to)
         self._mail_to = mail_to and [mail_to, ] or []
 
+    def get_mail_to(self):
+        return self._mail_to
+
+    mail_to = property(get_mail_to, set_mail_to)
+
     def set_headers(self, headers):
         self._headers = headers
 
@@ -131,11 +135,11 @@ class Message(BaseEmail):
         self.attachments.add(kwargs)
 
     @classmethod
-    def from_loader(cls, loader, **kwargs):
+    def from_loader(cls, loader, template_cls=None, **kwargs):
         """
         Get html and attachments from HTTPLoader
         """
-        message = cls(html=loader.html, **kwargs)
+        message = cls(html=template_cls and template_cls(loader.html) or loader.html, **kwargs)
         for att in loader.filestore:
             message.attach( **att.as_dict() )
         return message
@@ -196,6 +200,9 @@ class Message(BaseEmail):
 
 
     def encode_header(self, value):
+        value = to_unicode(value, charset=self.charset)
+        if '\n' in value or '\r' in value:
+            raise BadHeaderError("Header values can't contain newlines (got %r for header %r)" % (value, 'unknown'))
         if isinstance(value, string_types):
             value = value.rstrip()
             _r = Header(value, self.charset)

@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-from emails.compat import urlparse
-
 
 """
 
@@ -26,43 +24,105 @@ import os
 import argparse
 import sys
 import logging
+import json
 
 import emails
 import emails.loader
+from emails.template import JinjaTemplate as T
 
-def real_main(options):
+class MakeRFC822:
 
-    if options.message_id_domain:
-        message_id = emails.utils.MessageID(domain=options.message_id_domain)
-    else:
-        message_id = None
+    def __init__(self, options):
+        self.options = options
 
-    loader = emails.loader.from_url(url=options.url, images_inline=options.inline_images)
+    def _get_message(self):
 
-    message = emails.Message.from_loader(loader=loader,
-                          #headers={'X-Imported-From-URL': options.url },
-                          mail_from = (options.from_name, options.from_email),
-                          subject=options.subject,
-                          message_id=message_id
-                        )
+        options = self.options
 
-    if options.send_test_email_to:
-        print(__name__, "options.send_test_email_to YES")
+        if options.message_id_domain:
+            message_id = emails.utils.MessageID(domain=options.message_id_domain)
+        else:
+            message_id = None
 
-        smtp_params = {}
-        for k in ('host', 'port', 'ssl', 'user', 'password', 'debug'):
-            smtp_params[k] = getattr(options, 'smtp_%s' % k, None)
+        loader = emails.loader.from_url(url=options.url, images_inline=options.inline_images)
 
-        for mail_to in options.send_test_email_to.split(','):
-            r = message.send(to=mail_to, smtp=smtp_params)
-            print(__name__, "mail_to=", mail_to, "result=", r, r.error)
-            if r.error:
-                raise r.error
+        message = emails.Message.from_loader(loader=loader,
+                              #headers={'X-Imported-From-URL': options.url },
+                              template_cls=T,
+                              mail_from=(options.from_name, options.from_email),
+                              subject=T(unicode(options.subject, 'utf-8')),
+                              message_id=message_id
+                            )
+        return message
 
-    if options.output_format=='eml':
-        print(message.as_string())
-    else:
-        print(message.html_body)
+
+    def _send_test_email(self, message):
+
+        options = self.options
+
+        if options.send_test_email_to:
+            logging.debug("options.send_test_email_to YES")
+
+            smtp_params = {}
+            for k in ('host', 'port', 'ssl', 'user', 'password', 'debug'):
+                smtp_params[k] = getattr(options, 'smtp_%s' % k, None)
+
+            for mail_to in options.send_test_email_to.split(','):
+                r = message.send(to=mail_to, smtp=smtp_params)
+                logging.debug("mail_to=%s result=%s error=%s", mail_to, r, r.error)
+                if r.error:
+                    raise r.error
+
+    def _start_batch(self):
+
+        fn = self.options.batch
+        if not fn: return None
+        if fn=='-':
+            f = sys.stdin
+        else:
+            f = open(fn, 'rb')
+
+        def wrapper():
+            for l in f.readlines():
+                if l:
+                    yield json.loads(l.strip())
+
+        return wrapper()
+
+    def _generate_batch(self, batch, message):
+        n = 0
+        for values in batch:
+            message.set_mail_to( values['to'] )
+            message.render(**values.get('data', {}))
+            s = message.as_string()
+            n += 1
+            logging.debug('Render email to %s', '%s.eml' % n)
+            open('%s.eml' % n, 'wb').write(s)
+
+    def main(self):
+
+        options = self.options
+
+        message = self._get_message()
+
+        self._send_test_email(message)
+
+        if self.options.batch:
+            batch = self._start_batch()
+            self._generate_batch(batch, message)
+        else:
+            batch = None
+            if self.options.output_format=='eml':
+                print(message.as_string())
+            elif self.options.output_format=='html':
+                print(message.html_body)
+
+
+
+
+
+
+
 
 if __name__=="__main__":
 
@@ -77,11 +137,11 @@ if __name__=="__main__":
     parser.add_argument("--message-id-domain", dest="message_id_domain", default=None, required=True)
 
     parser.add_argument("--inline-images", action="store_true", dest="inline_images", default=False)
-    parser.add_argument("--send-test-email-to", dest="send_test_email_to", default=None)
 
     parser.add_argument("--output-format", dest="output_format", default='eml', choices=['eml', ])
     parser.add_argument("--log-level", dest="log_level", default="debug")
 
+    parser.add_argument("--send-test-email-to", dest="send_test_email_to", default=None)
     parser.add_argument("--smtp-host", dest="smtp_host", default="localhost")
     parser.add_argument("--smtp-port", dest="smtp_port", default="25")
     parser.add_argument("--smtp-ssl", dest="smtp_ssl", action="store_true")
@@ -89,7 +149,12 @@ if __name__=="__main__":
     parser.add_argument("--smtp-password", dest="smtp_password", default=None)
     parser.add_argument("--smtp-debug", dest="smtp_debug", action="store_true")
 
+    parser.add_argument("--batch",       dest="batch",       default=None)
+    parser.add_argument("--batch-start", dest="batch_start", default=None)
+    parser.add_argument("--batch-limit", dest="batch_limit", default=None)
+
     options = parser.parse_args()
 
     logging.basicConfig( level=logging.getLevelName(options.log_level.upper()) )
-    real_main(options)
+
+    MakeRFC822(options=options).main()
