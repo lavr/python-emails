@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-from email.compat import urlparse
+from emails.compat import urlparse
 
 
 """
@@ -23,11 +23,12 @@ Copyright 2013  Sergey Lavrinenko <s@lavr.me>
 """
 
 import os
-from optparse import OptionParser
+import argparse
 import sys
 import logging
 
 import emails
+import emails.loader
 
 def real_main(options):
 
@@ -39,7 +40,7 @@ def real_main(options):
     loader = emails.loader.from_url(url=options.url, images_inline=options.inline_images)
 
     message = emails.Message.from_loader(loader=loader,
-                          headers={'X-Imported-From-URL': options.url },
+                          #headers={'X-Imported-From-URL': options.url },
                           mail_from = (options.from_name, options.from_email),
                           subject=options.subject,
                           message_id=message_id
@@ -50,7 +51,7 @@ def real_main(options):
 
         smtp_params = {}
         for k in ('host', 'port', 'ssl', 'user', 'password', 'debug'):
-            smtp_params[k] = getattr(options, 'smtp-%s' % k, None)
+            smtp_params[k] = getattr(options, 'smtp_%s' % k, None)
 
         for mail_to in options.send_test_email_to.split(','):
             r = message.send(to=mail_to, smtp=smtp_params)
@@ -65,28 +66,30 @@ def real_main(options):
 
 if __name__=="__main__":
 
-    usage = "usage: %prog [options]"
 
-    parser = OptionParser(usage=usage)
+    parser = argparse.ArgumentParser(description='Simple utility that imports html from url ang print generated rfc822 message to console.')
 
-    parser.add_option("-u", "--url", dest="url", default=None)
-    parser.add_option("-f", "--from-email", dest="from_email", default=None)
-    parser.add_option("-n", "--from-name", dest="from_name", default=None)
-    parser.add_option("-s", "--subject", dest="subject", default=None)
-    parser.add_option("", "--message-id-domain", dest="message_id_domain", default=None)
-    parser.add_option("", "--inline-images", action="store_true", dest="inline_images", default=False)
-    parser.add_option("", "--log-level", dest="log_level", default="debug")
-    parser.add_option("", "--send-test-email-to", dest="send_test_email_to", default=None)
-    parser.add_option("", "--output-format", dest="output_format", default='eml')
+    parser.add_argument("-u", "--url", metavar="URL", dest="url", action="store", default=None, required=True)
 
-    parser.add_option("", "--smtp-host", dest="smtp_host", default="localhost")
-    parser.add_option("", "--smtp-port", dest="smtp_port", default="25")
-    parser.add_option("", "--smtp-ssl", dest="smtp_ssl", action="store_true")
-    parser.add_option("", "--smtp-user", dest="smtp_user", default=None)
-    parser.add_option("", "--smtp-password", dest="smtp_password", default=None)
-    parser.add_option("", "--smtp-debug", dest="smtp_debug", action="store_true")
+    parser.add_argument("-f", "--from-email", metavar="EMAIL", dest="from_email", default=None, required=True)
+    parser.add_argument("-n", "--from-name", metavar="NAME", dest="from_name", default=None, required=True)
+    parser.add_argument("-s", "--subject", metavar="SUBJECT", dest="subject", default=None, required=True)
+    parser.add_argument("--message-id-domain", dest="message_id_domain", default=None, required=True)
 
-    (options, args) = parser.parse_args()
+    parser.add_argument("--inline-images", action="store_true", dest="inline_images", default=False)
+    parser.add_argument("--send-test-email-to", dest="send_test_email_to", default=None)
+
+    parser.add_argument("--output-format", dest="output_format", default='eml', choices=['eml', ])
+    parser.add_argument("--log-level", dest="log_level", default="debug")
+
+    parser.add_argument("--smtp-host", dest="smtp_host", default="localhost")
+    parser.add_argument("--smtp-port", dest="smtp_port", default="25")
+    parser.add_argument("--smtp-ssl", dest="smtp_ssl", action="store_true")
+    parser.add_argument("--smtp-user", dest="smtp_user", default=None)
+    parser.add_argument("--smtp-password", dest="smtp_password", default=None)
+    parser.add_argument("--smtp-debug", dest="smtp_debug", action="store_true")
+
+    options = parser.parse_args()
 
     logging.basicConfig( level=logging.getLevelName(options.log_level.upper()) )
     real_main(options)

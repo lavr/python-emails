@@ -5,6 +5,8 @@ __all__ = [ 'SMTPResponse', 'ResponsibleSMTP' ]
 from smtplib import _have_ssl, SMTP
 import smtplib
 
+from emails.compat import to_unicode, string_types
+
 class SMTPResponse(object):
 
     def __init__(self, host=None, port=None, ssl=None):
@@ -50,7 +52,7 @@ class ResponsibleSMTP(SMTP):
             host, port = None, None
         return self.response_cls(host=host, port=port)
 
-    def sendmail(self, from_addr, to_addrs, msg, mail_options=[], rcpt_options=[]):
+    def __example_sendmail(self, from_addr, to_addrs, msg, mail_options=[], rcpt_options=[]):
 
         if not to_addrs:
             return False
@@ -79,7 +81,7 @@ class ResponsibleSMTP(SMTP):
                         'to each recipients (got %d recipients)')
 
 
-        smtpclient = self.connection
+        smtpclient = self
         smtpclient.ehlo_or_helo_if_needed()
 
         esmtp_opts = []

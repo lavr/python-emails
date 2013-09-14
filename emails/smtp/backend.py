@@ -103,6 +103,15 @@ class SMTPBackend:
 
     def sendmail(self, **kwargs):
 
+        self.open()
+        return list(self.connection._sendmail(**kwargs))[0]
+
+
+
+    def _old_sendmail(self, **kwargs):
+
+        #print __name__, 'sendmail', kwargs
+
         response = None
 
         try:
