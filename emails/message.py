@@ -15,7 +15,7 @@ from .utils import SafeMIMEMultipart
 from emails.compat import string_types, to_unicode, is_callable, NativeStringIO, to_bytes, to_native
 
 from .utils import parse_name_and_email
-from .smtp import SMTPConnectionPool
+from .smtp import SMTPConnectionFactory
 from .store import MemoryFileStore, BaseFile
 from .signers import DKIMSigner
 
@@ -63,7 +63,7 @@ class Message(BaseEmail):
 
     attachment_cls = BaseFile
     dkim_cls = DKIMSigner
-    smtp_pool_cls = SMTPConnectionPool
+    smtp_pool_cls = SMTPConnectionFactory
     filestore_cls = MemoryFileStore
 
     def __init__(self,

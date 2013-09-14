@@ -29,6 +29,7 @@ settings.update(
                 'emails.compat',
                 'emails.loader',
                 'emails.store',
+                'emails.smtp',
                 'emails.template',
                 'emails.packages',
                 'emails.packages.cssselect',
