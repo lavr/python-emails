@@ -26,7 +26,7 @@ CHARSETS_FIX = [
              ['windows-1251', 'QP', 'QP'],
              # koi8 should by send as Quoted Printable because of bad SpamAssassin reaction on base64 (2008)
              ['koi8-r', 'QP', 'QP'],
-             ['utf-8', 'SHORTEST', 'BASE64']
+             ['utf-8', 'BASE64', 'BASE64']
             ]
 
 def load_email_charsets():
@@ -35,7 +35,8 @@ def load_email_charsets():
         for (charset, header_enc, body_enc) in CHARSETS_FIX:
             email.charset.add_charset(charset,
                                       getattr(email.charset, header_enc),
-                                      getattr(email.charset, body_enc))
+                                      getattr(email.charset, body_enc),
+                                      charset)
 
 
 # Django's CachedDnsName:

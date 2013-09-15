@@ -98,13 +98,19 @@ class HTTPLoader:
         self.start_url = url
         self.base_url = base_url or url  # Fixme: split base_url carefully
         self.headers = response.headers
-        content = response.text
+        content = response.content
         self.html_encoding = None
         #print(__name__, type(content))
-        #self.html_encoding = guess_charset(response.headers, content)
+        self.html_encoding = guess_charset(response.headers, content)
+        if self.html_encoding:
+            content = unicode(content, self.html_encoding)
+        else:
+            content = unicode(content)
         #print(__name__, "self.html_encoding=", self.html_encoding)
         content = content.replace('\r\n', '\n')  # Remove \r, or we'll get much &#13;
         self.html_content = content
+        #print __name__, "start_load_url:", type(content)
+        #assert 0
 
     def start_load_file(self, html, encoding="utf-8"):
         """
@@ -136,7 +142,7 @@ class HTTPLoader:
 
     def make_html_tree(self):
         #assert isinstance(self.html_content, unicode)
-        self.html_tree = etree.HTML(self.html_content, parser=etree.HTMLParser()) #encoding=self.html_encoding))
+        self.html_tree = etree.HTML(self.html_content, parser=etree.HTMLParser()) #, encoding=self.html_encoding)
         # TODO: try another load methods, i.e. etree.fromstring(xml,
         # base_url="http://where.it/is/from.xml") ?
 
