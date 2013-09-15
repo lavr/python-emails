@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import time
 from functools import wraps
+import logging
 
 from dateutil.parser import parse as dateutil_parse
 from email.header import Header
@@ -18,6 +19,7 @@ from .utils import parse_name_and_email
 from .smtp import SMTPConnectionFactory
 from .store import MemoryFileStore, BaseFile
 from .signers import DKIMSigner
+
 
 from .utils import load_email_charsets
 load_email_charsets()  # sic!
