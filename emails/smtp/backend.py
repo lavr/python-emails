@@ -72,6 +72,7 @@ class SMTPBackend:
                 self.connection.ehlo()
             if self.user:
                 self.connection.login(user=self.user, password=self.password)
+            self.connection.ehlo_or_helo_if_needed()
         return self.connection
 
     def close(self):
@@ -101,7 +102,30 @@ class SMTPBackend:
         return r
 
 
-    def sendmail(self, **kwargs):
+    def sendmail(self, from_addr, to_addrs, msg, mail_options=[], rcpt_options=[]):
+
+        raise NotImplemented
+
+        if not to_addrs:
+            return False
+
+        from_addr = sanitize_address(from_addr, email_message.encoding)
+        to_addrs = [sanitize_address(addr, email_message.encoding) for addr in to_addrs]
+        message = email_message.message()
+        charset = message.get_charset().get_output_charset() if message.get_charset() else 'utf-8'
+
+
+        try:
+            self.connection.sendmail(from_email, recipients,
+                    force_bytes(message.as_string(), charset))
+        except:
+            if not self.fail_silently:
+                raise
+            return False
+        return True
+
+
+    def _sendmail(self, **kwargs):
 
         self.open()
         return list(self.connection._sendmail(**kwargs))[0]
