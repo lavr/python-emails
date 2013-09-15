@@ -1,15 +1,26 @@
-import requests
-print requests.__file__
-from requests.packages import charade
+# encoding: utf-8
 
-def test_charade_encoding():
-    url = 'https://github.yandex-team.ru/pages/lavrinenko/letters/yandex-mail/MAILPROTO-847/admin_letter.html'
+import requests
+
+def test_encoding_detection():
+
+    """
+    Broken encoding detection in requests 1.2.3. 
+    """
+ 
+    url = 'http://lavr.github.io/python-emails/tests/requests/some-utf8-text.html'
+    expected_content = u'我需要单间。' # Chinese is for example only. Any other encodings broken too.
+
     r =	requests.get(url)
-    assert (r.encoding is None) or r.encoding=='utf-8'
+
+    # Response.apparent_encoding is good
     assert r.apparent_encoding == 'utf-8'
-    raw = r.content
-    assert charade.detect(raw)['encoding']=='utf-8'
-    print r.text
+    real_text = unicode(r.content, r.apparent_encoding)
+    assert expected_content in real_text
+
+    # but Response.text is broken
+    # (the reason is: commit a0ae2e6)
+    assert expected_content in r.text 
 
 if __name__=="__main__":
-   test_charade_encoding()
+   test_encoding_detection()
