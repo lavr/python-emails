@@ -110,6 +110,11 @@ class Message(BaseEmail):
         mail_to = mail_to and parse_name_and_email(mail_to)
         self._mail_to = mail_to and [mail_to, ] or []
 
+    def get_mail_to(self):
+        return self._mail_to
+
+    mail_to = property(get_mail_to, set_mail_to)
+
     def set_headers(self, headers):
         self._headers = headers
 
@@ -131,11 +136,11 @@ class Message(BaseEmail):
         self.attachments.add(kwargs)
 
     @classmethod
-    def from_loader(cls, loader, **kwargs):
+    def from_loader(cls, loader, template_cls=None, **kwargs):
         """
         Get html and attachments from HTTPLoader
         """
-        message = cls(html=loader.html, **kwargs)
+        message = cls(html=template_cls and template_cls(loader.html) or loader.html, **kwargs)
         for att in loader.filestore:
             message.attach( **att.as_dict() )
         return message
@@ -196,6 +201,9 @@ class Message(BaseEmail):
 
 
     def encode_header(self, value):
+        value = to_unicode(value, charset=self.charset)
+        if '\n' in value or '\r' in value:
+            raise BadHeaderError("Header values can't contain newlines (got %r for header %r)" % (value, 'unknown'))
         if isinstance(value, string_types):
             value = value.rstrip()
             _r = Header(value, self.charset)

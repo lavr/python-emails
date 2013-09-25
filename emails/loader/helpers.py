@@ -42,7 +42,7 @@ def guess_charset(headers, html):
                 return charset
 
     # guess by chardet
-    return chardet.detect(html)
+    return chardet.detect(html)['encoding']
 
 
 def set_content_type_meta(document, element_cls, content_type="text/html", charset="utf-8"):
