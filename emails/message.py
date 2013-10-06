@@ -33,10 +33,9 @@ def renderable(f):
         r = f(self, *args, **kwargs)
         render = getattr(r, 'render', None)
         if render:
-            #print __name__, "renderable has render"
-            return render(**(self.render_data or {}))
+            d = render(**(self.render_data or {}))
+            return d
         else:
-            #print __name__, "renderable no render"
             return r
     return wrapper
 

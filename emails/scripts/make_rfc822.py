@@ -61,7 +61,7 @@ class MakeRFC822:
         options = self.options
 
         if options.send_test_email_to:
-            print(__name__, "options.send_test_email_to YES")
+            logging.debug("options.send_test_email_to YES")
 
             smtp_params = {}
             for k in ('host', 'port', 'ssl', 'user', 'password', 'debug'):
@@ -69,7 +69,7 @@ class MakeRFC822:
 
             for mail_to in options.send_test_email_to.split(','):
                 r = message.send(to=mail_to, smtp=smtp_params)
-                print(__name__, "mail_to=", mail_to, "result=", r, r.error)
+                logging.debug("mail_to=%s result=%s error=%s", mail_to, r, r.error)
                 if r.error:
                     raise r.error
 
@@ -92,10 +92,11 @@ class MakeRFC822:
     def _generate_batch(self, batch, message):
         n = 0
         for values in batch:
-            message.mail_to = values['to']
+            message.set_mail_to( values['to'] )
             message.render(**values.get('data', {}))
             s = message.as_string()
             n += 1
+            logging.debug('Render email to %s', '%s.eml' % n)
             open('%s.eml' % n, 'wb').write(s)
 
     def main(self):
