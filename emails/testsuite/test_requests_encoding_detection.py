@@ -1,11 +1,14 @@
 # encoding: utf-8
-
+import pytest
 import requests
 
+@pytest.mark.xfail
 def test_encoding_detection():
 
     """
     Broken encoding detection in requests 1.2.3. 
+    I'm failed to explain this bug importance to requests's team: 
+    https://github.com/kennethreitz/requests/issues/1604 
     """
  
     url = 'http://lavr.github.io/python-emails/tests/requests/some-utf8-text.html'
