@@ -1,42 +1,33 @@
 # encoding: utf-8
 
-from .backend import SMTPBackend
+def simple_dict2str(d):
+    # Simple dict serializer
+    return ";".join( [ "%s=%s" % (k, v) for (k, v) in d.items() ] )
 
-def _serialize_dict(d):
-    # simple dict serializer
-    r = []
-    for (k, v) in d.items():
-        r.append("%s=%s" % (k, v))
-    return ";".join(r)
+_serializer = simple_dict2str
 
+class ObjectFactory:
 
-class SMTPConnectionFactory:
+    """
+    Get object from cache or create new object.
+    """
 
-    smtp_cls = SMTPBackend
-
-    def __init__(self):
+    def __init__(self, cls):
+        self.cls = cls
         self.pool = {}
 
     def __getitem__(self, k):
-
         if not isinstance(k, dict):
             raise ValueError("item must be dict, not %s" % type(k))
+        cache_key = _serializer(k)
+        obj = self.pool.get(cache_key, None)
+        if obj is None:
+            obj = self.cls(**k)
+            self.pool[cache_key] = obj
+        return obj
 
-        kk = _serialize_dict(k)
-
-        r = self.pool.get(kk, None)
-
-        if r is None:
-            r = self.smtp_cls(**k)
-            self.pool[kk] = r
-
-        return r
-
-    def reconnect(self, k):
-
-        kk = _serialize_dict(k)
-
-        if kk in self.pool:
-            del self.pool[kk]
-
-        return self[k]
+    def invalidate(self, k):
+        cache_key = _serializer(k)
+        if cache_key in self.pool:
+            del self.pool[cache_key]
+        return self[cache_key]

@@ -7,7 +7,7 @@ import smtplib
 import logging
 import threading
 
-from .smtp import SMTPResponse, ResponsibleSMTP, ResponsibleSMTP_SSL
+from .client import SMTPResponse, SMTPClientWithResponse, SMTPClientWithResponse_SSL
 from emails.compat import urlparse, to_native, string_types, to_unicode, to_bytes, text_type
 from emails.utils import sanitize_address
 
@@ -25,8 +25,8 @@ class SMTPBackend:
     MAX_SENDMAIL_RETRY = 2
     DEFAULT_SOCKET_TIMEOUT = 5
 
-    connection_cls = ResponsibleSMTP
-    connection_ssl_cls = ResponsibleSMTP_SSL
+    connection_cls = SMTPClientWithResponse
+    connection_ssl_cls = SMTPClientWithResponse_SSL
 
 
     def __init__(self,
@@ -63,7 +63,7 @@ class SMTPBackend:
     def open(self):
         #logging.debug('SMTPSender _connect')
         if self.connection is None:
-            self.connection = self.smtp_cls(**self.smtp_cls_kwargs)
+            self.connection = self.smtp_cls(parent=self, **self.smtp_cls_kwargs)
             if self.debug:
                 self.connection.set_debuglevel(1)
             if self.tls:

@@ -40,21 +40,20 @@ class SMTPResponse(object):
                                                                               self.status_text.__repr__())
 
 
+class SMTPClientWithResponse(SMTP):
 
+    def __init__(self, parent, **kwargs):
+        self.parent = parent
+        self.make_response = parent.make_response
+        self._last_smtp_response = (None, None)
+        SMTP.__init__(self, **kwargs)
 
-class ResponsibleSMTP(SMTP):
+    def data(self, msg):
+        (code, msg) = SMTP.data(self, msg)
+        self._last_smtp_response = (code, msg)
+        return (code, msg)
 
-    response_cls = SMTPResponse
-
-    def make_response(self):
-        if self.sock:
-            host, port = self.sock.getpeername()
-        else:
-            host, port = None, None
-        return self.response_cls(host=host, port=port)
-
-
-    def sendmail(self, from_addr, to_addrs, msg, mail_options=[], rcpt_options=[], to_addr=None):
+    def sendmail(self, from_addr, to_addrs, msg, mail_options=[], rcpt_options=[]):
 
         # Send one email and returns one response
         if to_addrs:
@@ -116,12 +115,12 @@ if _have_ssl:
 
     from smtplib import SMTP_SSL
 
-    class ResponsibleSMTP_SSL(ResponsibleSMTP, SMTP_SSL):
+    class SMTPClientWithResponse_SSL(SMTPClientWithResponse, SMTP_SSL):
         pass
 
 else:
 
-    class ResponsibleSMTP_SSL:
+    class SMTPClientWithResponse_SSL:
         def __init__(self, *args, **kwargs):
             # should raise import error here
             import ssl

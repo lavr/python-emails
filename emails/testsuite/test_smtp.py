@@ -2,21 +2,36 @@
 from __future__ import unicode_literals
 
 import emails
-from emails.smtp import SMTPConnectionFactory, SMTPResponse, SMTPBackend
+from emails.smtp import SMTPResponse, SMTPBackend
+from emails.smtp.factory import ObjectFactory
 import os
 
 TRAVIS_CI = os.environ.get('TRAVIS')
 HAS_INTERNET_CONNECTION = not TRAVIS_CI
 
 
-
 def test_factory():
-    factory = SMTPConnectionFactory()
-    server_params = { 'host': 'invalid-server.invalid-domain.xxx', 'port': 25 }
-    server1 = factory[server_params]
-    assert isinstance(server1, SMTPBackend)
-    server2 = factory[server_params]
-    assert server1==server2
+
+    class A:
+        """ Sample class for testing """
+        def __init__(self, a, b=None):
+            self.a = a
+            self.b = b
+
+    factory = ObjectFactory(cls=A)
+
+    obj1 = factory[{'a':1, 'b':2}]
+    assert isinstance(obj1, A)
+    assert obj1.a==1
+    assert obj1.b==2
+
+    obj2 = factory[{'a':1, 'b':2}]
+    assert obj2 is obj1
+
+    obj3 = factory[{'a':100 }]
+    assert obj3 is not obj1
+
+
 
 def test_exception_1():
 
