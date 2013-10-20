@@ -54,13 +54,6 @@ def test_exception_2(smtp_server):
     print(response)
 
 
-def test_send_via_django_backend(django_email_backend):
-
-    message_params = {'html':'<p>Test from python-emails',
-                      'mail_from': 's@lavr.me',
-                      'mail_to': 'sergei-nko@yandex.ru',
-                      'subject': 'Test from python-emails'}
-    msg = emails.html(**message_params)
 
 if __name__=="__main__":
     import logging
