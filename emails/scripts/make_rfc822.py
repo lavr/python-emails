@@ -35,6 +35,16 @@ class MakeRFC822:
     def __init__(self, options):
         self.options = options
 
+    def _headers_from_command_line(self):
+        """
+        --add-header "X-Source: AAA"
+        """
+        r = {}
+        for s in self.options.add_headers:
+            (k, v) = s.split(':', 1)
+            r[k] = v
+        return r
+
     def _get_message(self):
 
         options = self.options
@@ -46,8 +56,9 @@ class MakeRFC822:
 
         loader = emails.loader.from_url(url=options.url, images_inline=options.inline_images)
 
+
         message = emails.Message.from_loader(loader=loader,
-                              #headers={'X-Imported-From-URL': options.url },
+                              headers= self._headers_from_command_line(), #{'X-Imported-From-URL': options.url },
                               template_cls=T,
                               mail_from=(options.from_name, options.from_email),
                               subject=T(unicode(options.subject, 'utf-8')),
@@ -77,6 +88,7 @@ class MakeRFC822:
 
         fn = self.options.batch
         if not fn: return None
+
         if fn=='-':
             f = sys.stdin
         else:
@@ -84,8 +96,18 @@ class MakeRFC822:
 
         def wrapper():
             for l in f.readlines():
-                if l:
-                    yield json.loads(l.strip())
+                l = l.strip()
+                if not l: continue
+                # Magic is here
+                try:
+                    # Try to parse line as json
+                    yield json.loads(l)
+                except ValueError:
+                    # If it is not json, we expect one word with '@' sign
+                    assert len(l.split())==1
+                    print l
+                    login, domain = l.split('@') # ensure there is something email-like
+                    yield {'to': l}
 
         return wrapper()
 
@@ -135,6 +157,8 @@ if __name__=="__main__":
     parser.add_argument("-n", "--from-name", metavar="NAME", dest="from_name", default=None, required=True)
     parser.add_argument("-s", "--subject", metavar="SUBJECT", dest="subject", default=None, required=True)
     parser.add_argument("--message-id-domain", dest="message_id_domain", default=None, required=True)
+
+    parser.add_argument("--add-header", dest="add_headers", action='append', default=None, required=False)
 
     parser.add_argument("--inline-images", action="store_true", dest="inline_images", default=False)
 
