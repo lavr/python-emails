@@ -24,27 +24,6 @@ except ImportError:
     SMTP_DATA = None
 
 
-def test_renderables():
-
-    TEMPLATE = JinjaTemplate('Hello, {{name}}!')
-    V = dict(name='world')
-    RESULT = TEMPLATE.render(**V)
-    assert RESULT=='Hello, world!'
-
-    msg = emails.html(subject=TEMPLATE)
-    msg.render(**V)
-    assert msg.subject == RESULT
-
-    msg = emails.html(html=TEMPLATE)
-    msg.render(**V)
-    assert msg.html_body == RESULT
-
-    msg = emails.html(text=TEMPLATE)
-    msg.render(**V)
-    assert msg.text_body == RESULT
-
-
-
 
 def common_email_data(**kwargs):
     data = {}

@@ -34,7 +34,6 @@ def test_factory():
 
 
 def test_exception_1():
-
     # IOError: [Errno 8] nodename nor servname provided, or not known
     server_params = { 'host': 'invalid-server.invalid-domain.xxx', 'port': 25 }
     sendmail_params = {'to_addrs': 's@lavr.me', 'from_addr': 's@lavr.me', 'msg': '...'}
@@ -60,7 +59,6 @@ def test_exception_2(smtp_server):
     sendmail_params = {'to_addrs': 's@lavr.me',
                        'from_addr': 's@lavr.me',
                        'msg': emails.html(**message_params).as_string()}
-
 
     server = SMTPBackend(**server_params)
     server.open()

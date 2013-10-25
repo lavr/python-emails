@@ -11,22 +11,12 @@ def test_lazy_http():
     assert len(f.data) == 2549
 
 
-def test_store():
-
+def test_store_commons():
     FILES = [{'data': 'aaa', 'filename': 'aaa.txt'}, {'data': 'bbb', 'filename': 'bbb.txt'}, ]
-
     store = emails.store.MemoryFileStore()
-
     [store.add(_) for _ in FILES]
-
     for i, stored_file in enumerate(store):
         orig_file = FILES[i]
         for (k, v) in orig_file.items():
             assert v == getattr(stored_file, k)
 
-
-if __name__ == '__main__':
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
-    test_lazy_http()
-    test_store()

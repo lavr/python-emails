@@ -105,32 +105,28 @@ def test_load_local_directory():
         print(loader.html)
 
 
-def test_load_sites():
-
-    # Just load some sites.
-    # Loader shouldn't thow exception
+def test_load_http():
 
     URLs = [
         'http://lavr.github.io/python-emails/tests/campaignmonitor-samples/sample-template/template-widgets.html',
         'https://github.com/lavr/python-emails',
         'http://cnn.com',
-        'http://design.ru',
-        'http://lenta.ru',
-        'http://news.yandex.ru',
+        'http://yandex.com',
         'http://yahoo.com',
         'http://www.smashingmagazine.com/'
     ]
 
     for url in URLs[:1]:
+        # Load some sites.
+        # Loader just shouldn't throw exception
         emails.loader.from_url(url)
 
 
-def test_zip_load():
+def test_load_zip():
     ROOT = os.path.dirname(__file__)
     filename = os.path.join(ROOT, "data/html_import/oldornament.zip")
     loader = emails.loader.from_zip( open(filename, 'rb') )
     assert len(list(loader.filestore.keys()))>=13
-    #print len(loader.html)
     assert b"SET-3-old-ornament" in loader.html
 
 
@@ -149,7 +145,7 @@ def test_unmergeable_css():
 
     HTML = "<a>b</a>"
     CSS = "a:visited {color: red;}"
-    r = _do_inline_css(HTML, CSS, save_to_file='_result.html')
+    r = _do_inline_css(HTML, CSS) #, save_to_file='_result.html')
     print(r)
 
 
