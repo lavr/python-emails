@@ -6,3 +6,4 @@ requests
 jinja2
 mako
 django
+lamson
