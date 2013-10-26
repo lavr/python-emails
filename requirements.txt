@@ -3,7 +3,3 @@ lxml
 chardet
 python-dateutil
 requests
-jinja2
-mako
-django
-lamson
