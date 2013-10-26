@@ -1,9 +1,18 @@
 language: python
+
 python:
   - "2.6"
   - "2.7"
   - "3.3"
+
 script: py.test
+
 install:
   - pip install -r requirements.txt --use-mirrors && pip install -r requirements-tests-$TRAVIS_PYTHON_VERSION.txt --use-mirrors
 
+env:
+  - PIP_DOWNLOAD_CACHE=$HOME/.pip-cache
+
+cache:
+  directories:
+    - $HOME/.pip-cache/
