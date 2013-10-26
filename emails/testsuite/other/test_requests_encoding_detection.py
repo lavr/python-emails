@@ -12,7 +12,7 @@ def test_encoding_detection():
     """
  
     url = 'http://lavr.github.io/python-emails/tests/requests/some-utf8-text.html'
-    expected_content = u'我需要单间。' # Chinese is for example only. Any other encodings broken too.
+    expected_content = u'我需要单间。' # Chinese is for example only. Any other non-european encodings broken too.
 
     r =	requests.get(url)
 

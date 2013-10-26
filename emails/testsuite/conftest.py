@@ -6,6 +6,8 @@ import shlex
 import time
 import logging
 import threading
+import sys
+import os, os.path
 
 TEST_SMTP_PORT = 25125
 
@@ -25,18 +27,58 @@ class TestSmtpServer:
             logging.error('Started test smtp server "%s", pid: %s', CMD, self._process.pid)
             #print('Started test smtp server "{0}", pid: {1}'.format(CMD, self._process.pid))
             time.sleep(1)
-        return (self.host, self.port)
+        return self
 
     def stop(self):
         if self._process:
             logging.error('kill process...')
             self._process.terminate()
 
+
+class TestLamsonSmtpServer:
+
+    def __init__(self):
+        import sys
+        sys.path.insert(0, os.path.dirname(__file__))
+        import lamsondebuggingsmtpinstance
+        import lamsondebuggingsmtpinstance.config.settings
+        self.lamsondir = os.path.dirname(lamsondebuggingsmtpinstance.__file__)
+        settings = lamsondebuggingsmtpinstance.config.settings
+        self.host = settings.receiver_config['host']
+        self.port = settings.receiver_config['port']
+        self.lock = threading.Lock()
+        self._started = False
+
+
+    def _lamson_command(self, lamson_params):
+        r = subprocess.call("lamson {0}".format( lamson_params ), shell=True, cwd=self.lamsondir)
+        print("_lamson_command '{0}' return code is {1}".format(lamson_params, r))
+        return r
+
+    def _start_lamson(self):
+        if not self._started:
+            self._stop_lamson() # just is case
+            logging.debug('stop lamson...')
+            return self._lamson_command('start')
+
+    def _stop_lamson(self):
+        return self._lamson_command('stop')
+
+    def get_server(self):
+        self._start_lamson()
+        time.sleep(1)
+        return self
+
+    def stop(self):
+        if self._started:
+            logging.debug('stop lamson...')
+            self._start_lamson()
+
+
 @pytest.fixture(scope="module")
 def smtp_server(request):
     logging.debug('smtp_server...')
-    ext_server = TestSmtpServer()
-    time.sleep(1)
+    ext_server = TestLamsonSmtpServer()
     def fin():
         print ("stopping ext_server")
         ext_server.stop()
@@ -47,9 +89,9 @@ def smtp_server(request):
 def django_email_backend(request):
     from django.conf import settings
     logging.debug('django_email_backend...')
-    host, port = smtp_server(request)
+    server = smtp_server(request)
     settings.configure(EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend',
-                        EMAIL_HOST=host, EMAIL_PORT=port)
+                        EMAIL_HOST=server.host, EMAIL_PORT=server.port)
     from django.core.mail import get_connection
     SETTINGS = {}
     return get_connection()
