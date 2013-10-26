@@ -4,5 +4,6 @@ python:
   - "2.7"
   - "3.3"
 script: py.test
-install: "pip install -r requirements-$TRAVIS_PYTHON_VERSION.txt --use-mirrors"
+install:
+  - pip install -r requirements-$TRAVIS_PYTHON_VERSION.txt --use-mirrors
 
