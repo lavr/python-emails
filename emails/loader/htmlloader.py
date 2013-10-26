@@ -439,7 +439,7 @@ class HTTPLoader:
                 open(new_uri, 'wb').write(attach.data)
 
         f = open(filename, 'wb')
-        f.write(self.html)
+        f.write(to_bytes(self.html, 'utf-8'))
         f.close()
 
 

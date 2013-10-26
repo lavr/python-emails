@@ -78,7 +78,11 @@ class TestLamsonSmtpServer:
 @pytest.fixture(scope="module")
 def smtp_server(request):
     logging.debug('smtp_server...')
-    ext_server = TestLamsonSmtpServer()
+    try:
+        import lamson
+        ext_server = TestLamsonSmtpServer()
+    except ImportError:
+        ext_server = TestSmtpServer()
     def fin():
         print ("stopping ext_server")
         ext_server.stop()
