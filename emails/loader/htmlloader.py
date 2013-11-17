@@ -101,9 +101,9 @@ class HTTPLoader:
         #print(__name__, type(content))
         self.html_encoding = guess_charset(response.headers, content)
         if self.html_encoding:
-            content = unicode(content, self.html_encoding)
+            content = to_unicode(content, self.html_encoding)
         else:
-            content = unicode(content)
+            content = to_unicode(content)
         #print(__name__, "self.html_encoding=", self.html_encoding)
         content = content.replace('\r\n', '\n')  # Remove \r, or we'll get much &#13;
         self.html_content = content
@@ -271,8 +271,6 @@ class HTTPLoader:
         if obj.link is None:
             return
 
-        #print __name__, "process_tag_with_link", el, obj.link, type(obj)
-        #assert isinstance(obj.link, unicode), "%s.link should be unicode" % type(obj)
         self._tags_with_links.append(obj)
         if el.tag in self.TAGS_WITH_IMAGES:
             lnk = obj.link

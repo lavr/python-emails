@@ -127,7 +127,7 @@ def test_load_zip():
     filename = os.path.join(ROOT, "data/html_import/oldornament.zip")
     loader = emails.loader.from_zip( open(filename, 'rb') )
     assert len(list(loader.filestore.keys()))>=13
-    assert b"SET-3-old-ornament" in loader.html
+    assert "SET-3-old-ornament" in loader.html
 
 
 def _do_inline_css(html, css, save_to_file=None, pretty_print=False):

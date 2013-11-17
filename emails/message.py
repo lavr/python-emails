@@ -16,7 +16,7 @@ from .utils import SafeMIMEMultipart
 from emails.compat import string_types, to_unicode, is_callable, NativeStringIO, to_bytes, to_native
 
 from .utils import parse_name_and_email
-from .smtp import SMTPConnectionFactory
+from .smtp import ObjectFactory, SMTPBackend
 from .store import MemoryFileStore, BaseFile
 from .signers import DKIMSigner
 
@@ -64,7 +64,8 @@ class Message(BaseEmail):
 
     attachment_cls = BaseFile
     dkim_cls = DKIMSigner
-    smtp_pool_cls = SMTPConnectionFactory
+    smtp_pool_factory = ObjectFactory
+    smtp_cls = SMTPBackend
     filestore_cls = MemoryFileStore
 
     def __init__(self,
@@ -297,7 +298,7 @@ class Message(BaseEmail):
     def smtp_pool(self):
         pool = getattr(self, '_smtp_pool', None)
         if pool is None:
-            pool = self._smtp_pool = self.smtp_pool_cls()
+            pool = self._smtp_pool = self.smtp_pool_factory(cls=self.smtp_cls)
         return pool
 
     def dkim(self, **kwargs):
@@ -313,7 +314,8 @@ class Message(BaseEmail):
              smtp_rcpt_options=None,
              smtp=None):
 
-        self.render_data = render or {}
+        if render is not None:
+            self.render(render)
 
         if smtp is None:
             smtp = {'host': 'localhost', 'port': 25, 'timeout': 5}
@@ -327,12 +329,11 @@ class Message(BaseEmail):
 
         mail_to = to
         if mail_to:
+            mail_to = parse_name_and_email(mail_to)
+            to_addr = mail_to[1]
             if set_mail_to:
                 self.set_mail_to(mail_to)
-                to_addr = self._mail_to[0][1]
-            else:
-                mail_to = parse_name_and_email(mail_to)
-                to_addr = mail_to[0][1]
+
         else:
             to_addr = self._mail_to[0][1]
 
@@ -353,15 +354,16 @@ class Message(BaseEmail):
             raise ValueError('No from-addr')
 
         params = dict(from_addr=from_addr,
-                      to_addrs=to_addr,
-                      msg=self.as_string())
+                      to_addrs=[ to_addr, ],
+                      msg=self)
         if smtp_mail_options:
             params['mail_options'] = smtp_mail_options
 
         if smtp_rcpt_options:
             params['rcpt_options'] = rcpt_options
 
-        return smtp.sendmail(**params)
+        response = smtp.sendmail(**params)
+        return response[0]
 
 
 def html(**kwargs):

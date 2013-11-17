@@ -6,11 +6,13 @@ __all__ = [ 'SMTPSender' ]
 import smtplib
 import logging
 import threading
+from functools import wraps
 
 from .client import SMTPResponse, SMTPClientWithResponse, SMTPClientWithResponse_SSL
 from emails.compat import urlparse, to_native, string_types, to_unicode, to_bytes, text_type
 from emails.utils import sanitize_address
 
+logger = logging.getLogger(__name__)
 
 class SMTPBackend:
 
@@ -22,11 +24,11 @@ class SMTPBackend:
        about server response (i.e. response code)
     """
 
-    MAX_SENDMAIL_RETRY = 2
     DEFAULT_SOCKET_TIMEOUT = 5
 
     connection_cls = SMTPClientWithResponse
     connection_ssl_cls = SMTPClientWithResponse_SSL
+    response_cls = SMTPResponse
 
 
     def __init__(self,
@@ -61,33 +63,21 @@ class SMTPBackend:
         self._lock = threading.RLock()
 
     def open(self):
-        #logging.debug('SMTPSender _connect')
+        #logger.debug('SMTPSender _connect')
         if self.connection is None:
             self.connection = self.smtp_cls(parent=self, **self.smtp_cls_kwargs)
-            if self.debug:
-                self.connection.set_debuglevel(1)
-            if self.tls:
-                self.connection.ehlo()
-                self.connection.starttls()
-                self.connection.ehlo()
-            if self.user:
-                self.connection.login(user=self.user, password=self.password)
-            self.connection.ehlo_or_helo_if_needed()
+            self.connection.initialize()
         return self.connection
 
     def close(self):
         """Closes the connection to the email server."""
+
         if self.connection is None:
             return
+
         try:
-            try:
-                self.connection.quit()
-            except (ssl.SSLError, smtplib.SMTPServerDisconnected):
-                # This happens when calling quit() on a TLS connection
-                # sometimes, or when the connection was already disconnected
-                # by the server.
-                self.connection.close()
-            except:
+            self.connection.close()
+        except:
                 if self.fail_silently:
                     return
                 raise
@@ -95,76 +85,56 @@ class SMTPBackend:
             self.connection = None
 
 
-    def make_response(self, error=None):
-        r = SMTPResponse(host=self.host, port=self.port)
-        if error:
-            r.error = error
-        return r
+    def make_response(self, exception=None):
+        return self.response_cls(host=self.host, port=self.port, exception=exception)
 
+    def retry_on_disconnect(self, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except smtplib.SMTPServerDisconnected as e:
+                # If server disconected, just connect again
+                logging.debug('SMTPServerDisconnected, retry once')
+                self.close()
+                self.open()
+                return func(*args, **kwargs)
+        return wrapper
+
+    def _sendmail_on_connection(self, *args, **kwargs):
+        return self.connection.sendmail(*args, **kwargs)
 
     def sendmail(self, from_addr, to_addrs, msg, mail_options=[], rcpt_options=[]):
 
-        raise NotImplemented
+        if not to_addrs: return False
 
-        if not to_addrs:
-            return False
+        if not isinstance(to_addrs, (list, tuple)):
+            to_addrs = [to_addrs, ]
 
-        from_addr = sanitize_address(from_addr, email_message.encoding)
-        to_addrs = [sanitize_address(addr, email_message.encoding) for addr in to_addrs]
-        message = email_message.message()
-        charset = message.get_charset().get_output_charset() if message.get_charset() else 'utf-8'
-
-
-        try:
-            self.connection.sendmail(from_email, recipients,
-                    force_bytes(message.as_string(), charset))
-        except:
-            if not self.fail_silently:
-                raise
-            return False
-        return True
-
-
-    def _sendmail(self, **kwargs):
-
-        self.open()
-        return list(self.connection._sendmail(**kwargs))[0]
-
-
-
-    def _old_sendmail(self, **kwargs):
-
-        #print __name__, 'sendmail', kwargs
-
-        response = None
+        #from_addr = sanitize_address(from_addr, email_message.encoding)
+        #to_addrs = [sanitize_address(addr, email_message.encoding) for addr in to_addrs]
+        #message = email_message.message()
+        #charset = message.get_charset().get_output_charset() if message.get_charset() else 'utf-8'
 
         try:
-            n = 0
-            while n<self.MAX_SENDMAIL_RETRY:
-                n += 1
-                try:
-                    smtpclient = self.open()
-                    response = smtpclient._sendmail(**kwargs)
-                    response.error = None
-                    break
-                except smtplib.SMTPServerDisconnected as e:
-                    # If server disconected, just connect again
-                    logging.exception('Error connecting smtp, step %s of %s', n+1, self.MAX_SENDMAIL_RETRY)
-                    self.connection = None
-                    if response is None:
-                        response = self.make_response(error = e)
-                    else:
-                        response.error = e
-                    continue
-
+            self.open()
         except (IOError, smtplib.SMTPException) as e:
-            logging.exception("Error sending mail")
-            if response is None:
-                response = self.make_response(error = e)
-            else:
-                response.error = e
+            logger.exception("Error connecting smtp server")
+            response = self.make_response(exception = e)
+            if not self.fail_silently:
+                response.raise_if_needed()
+            return [response, ]
 
-        if response.error and not self.fail_silently:
-                raise response.error
+        _sendmail = self.retry_on_disconnect(self._sendmail_on_connection)
+
+        response = _sendmail(from_addr=from_addr,
+                             to_addrs=to_addrs,
+                             msg=to_bytes(msg.as_string(), 'utf-8'),
+                             mail_options=mail_options,
+                             rcpt_options=rcpt_options)
+
+        if not self.fail_silently:
+            [ r.raise_if_needed() for r in response ]
 
         return response
+

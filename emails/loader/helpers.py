@@ -5,14 +5,15 @@ __all__ = ['guess_charset', 'fix_content_type']
 import re
 import cgi
 import chardet
+from emails.compat import to_unicode, to_bytes
 
 import logging
 
 # HTML page charset stuff
 
-RE_CHARSET = re.compile("charset=\"?'?(.+)\"?'?", re.I + re.S + re.M)
-RE_META = re.compile("<meta.*?http-equiv=\"?'?content-type\"?'?.*?>", re.I + re.S + re.M)
-RE_INSIDE_META = re.compile("content=\"?'?([^\"'>]+)", re.I + re.S + re.M)
+RE_CHARSET = re.compile(b"charset=\"?'?(.+)\"?'?", re.I + re.S + re.M)
+RE_META = re.compile(b"<meta.*?http-equiv=\"?'?content-type\"?'?.*?>", re.I + re.S + re.M)
+RE_INSIDE_META = re.compile(b"content=\"?'?([^\"'>]+)", re.I + re.S + re.M)
 
 
 def fix_content_type(content_type, t='image'):
@@ -39,7 +40,7 @@ def guess_charset(headers, html):
     for s in RE_META.findall(html):
         for x in RE_INSIDE_META.findall(s):
             for charset in RE_CHARSET.findall(x):
-                return charset
+                return to_unicode(charset)
 
     # guess by chardet
     return chardet.detect(html)['encoding']

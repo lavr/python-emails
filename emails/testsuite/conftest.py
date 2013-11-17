@@ -9,6 +9,9 @@ import threading
 import sys
 import os, os.path
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger()
+
 TEST_SMTP_PORT = 25125
 
 class TestSmtpServer:
@@ -24,14 +27,14 @@ class TestSmtpServer:
         if self._process is None:
             CMD = 'python -m smtpd -d -n -c DebuggingServer %s:%s' % (self.host, self.port)
             self._process = subprocess.Popen(shlex.split(CMD), shell=False, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-            logging.error('Started test smtp server "%s", pid: %s', CMD, self._process.pid)
+            logger.error('Started test smtp server "%s", pid: %s', CMD, self._process.pid)
             #print('Started test smtp server "{0}", pid: {1}'.format(CMD, self._process.pid))
             time.sleep(1)
         return self
 
     def stop(self):
         if self._process:
-            logging.error('kill process...')
+            logger.error('kill process...')
             self._process.terminate()
 
 
@@ -58,8 +61,8 @@ class TestLamsonSmtpServer:
     def _start_lamson(self):
         if not self._started:
             self._stop_lamson() # just is case
-            logging.debug('stop lamson...')
-            return self._lamson_command('start')
+            logger.debug('stop lamson...')
+            return self._lamson_command('start -FORCE')
 
     def _stop_lamson(self):
         return self._lamson_command('stop')
@@ -71,13 +74,13 @@ class TestLamsonSmtpServer:
 
     def stop(self):
         if self._started:
-            logging.debug('stop lamson...')
+            logger.debug('stop lamson...')
             self._start_lamson()
 
 
 @pytest.fixture(scope="module")
 def smtp_server(request):
-    logging.debug('smtp_server...')
+    logger.debug('smtp_server...')
     try:
         import lamson
         ext_server = TestLamsonSmtpServer()
@@ -92,7 +95,7 @@ def smtp_server(request):
 @pytest.fixture(scope='module')
 def django_email_backend(request):
     from django.conf import settings
-    logging.debug('django_email_backend...')
+    logger.debug('django_email_backend...')
     server = smtp_server(request)
     settings.configure(EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend',
                         EMAIL_HOST=server.host, EMAIL_PORT=server.port)

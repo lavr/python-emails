@@ -1,21 +1,24 @@
 # encoding: utf-8
 
-__all__ = [ 'SMTPResponse', 'ResponsibleSMTP' ]
+__all__ = [ 'SMTPResponse', 'SMTPClientWithResponse', 'SMTPClientWithResponse_SSL' ]
 
 from smtplib import _have_ssl, SMTP
 import smtplib
 
 from emails.compat import to_unicode, string_types
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 class SMTPResponse(object):
 
-    def __init__(self, host=None, port=None, ssl=None):
+    def __init__(self, host=None, port=None, ssl=None, exception=None):
         self.host = host
         self.port = port
         self.ssl = ssl
         self.responses = []
-        self.error = None
-        self.exception = None
+        self.exception = exception
         #self.complete = False
         self.success = None
         self.from_addr = None
@@ -35,9 +38,20 @@ class SMTPResponse(object):
     def set_exception(self, exc):
         self.exception = exc
 
+    def raise_if_needed():
+        if self.exception:
+            raise self.exception
+
+    @property
+    def error(self):
+        return self.exception
+
     def __repr__(self):
         return "<emails.smtp.SMTPResponse status_code=%s status_text=%s>" % (self.status_code.__repr__(),
                                                                               self.status_text.__repr__())
+
+
+#class SMTPCommandsLog:
 
 
 class SMTPClientWithResponse(SMTP):
@@ -46,25 +60,42 @@ class SMTPClientWithResponse(SMTP):
         self.parent = parent
         self.make_response = parent.make_response
         self._last_smtp_response = (None, None)
+        self.tls = kwargs.pop('tls', False)
+        self.debug = kwargs.pop('debug', False)
+        self.user = kwargs.pop('user', None)
+        self.password = kwargs.pop('password', None)
         SMTP.__init__(self, **kwargs)
+        self.initialize()
+
+    def initialize(self):
+        if self.debug:
+            self.set_debuglevel(1)
+        if self.tls:
+            self.ehlo()
+            self.starttls()
+            self.ehlo()
+        if self.user:
+            self.login(user=self.user, password=self.password)
+        self.ehlo_or_helo_if_needed()
+        return self
+
+    def quit(self):
+        """Closes the connection to the email server."""
+        try:
+            super(self, SMTPClientWithResponse).quit()
+        except (smtplib.SMTPServerDisconnected, ):
+            # This happens when calling quit() on a TLS connection
+            # sometimes, or when the connection was already disconnected
+            # by the server.
+            self.close()
 
     def data(self, msg):
         (code, msg) = SMTP.data(self, msg)
         self._last_smtp_response = (code, msg)
         return (code, msg)
 
-    def sendmail(self, from_addr, to_addrs, msg, mail_options=[], rcpt_options=[]):
 
-        # Send one email and returns one response
-        if to_addrs:
-            if isinstance(to_addrs, (list, tuple)):
-                log.warning('Beware: emails.smtp.ResponsibleSMTP.sendmail sends only one message at a time'\
-                            'got: to_addrs=%s', to_addrs)
-                if len(to_addrs)>1:
-                    raise RuntimeError('Can send only one email at a time')
-            if to_addr:
-                raise RuntimeError('Use "to_addr" or "to_addrs", not both')
-            to_addr = to_addrs[0]
+    def _send_one_mail(self, from_addr, to_addr, msg, mail_options=[], rcpt_options=[]):
 
         esmtp_opts = []
         if self.does_esmtp:
@@ -95,7 +126,7 @@ class SMTPClientWithResponse(SMTP):
 
         if (code != 250) and (code != 251):
             self.rset()
-            exc = smtplib.SMTPRecipientsRefused()
+            exc = smtplib.SMTPRecipientsRefused(to_addr)
             response.set_exception(exc)
             return response
 
@@ -110,13 +141,38 @@ class SMTPClientWithResponse(SMTP):
         response.success = True
         return response
 
+    def sendmail(self, from_addr, to_addrs, msg, mail_options=[], rcpt_options=[]):
+
+        # Send one email and returns one response
+        if not to_addrs:
+            raise StopIteration
+
+        assert isinstance(to_addrs, (list, tuple))
+
+        if len(to_addrs)>1:
+            logger.warning('Beware: emails.smtp.client.SMTPClientWithResponse.sendmail sends full message to each email')
+
+        return [ self._send_one_mail(from_addr, to_addr, msg, mail_options, rcpt_options) \
+                        for to_addr in to_addrs ]
+
+
 
 if _have_ssl:
 
     from smtplib import SMTP_SSL
+    import ssl
 
     class SMTPClientWithResponse_SSL(SMTPClientWithResponse, SMTP_SSL):
-        pass
+
+        def quit(self):
+            """Closes the connection to the email server."""
+            try:
+                super(self, SMTPClientWithResponse_SSL).quit()
+            except (ssl.SSLError, smtplib.SMTPServerDisconnected):
+                # This happens when calling quit() on a TLS connection
+                # sometimes, or when the connection was already disconnected
+                # by the server.
+                self.close()
 
 else:
 
@@ -126,4 +182,4 @@ else:
             import ssl
 
 
-__all__.append('ResponsibleSMTP_SSL')
+
