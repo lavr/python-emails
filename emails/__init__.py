@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 python emails library
 ~~~~~~~~~~~~~~~~~~~~~
 
-Emails is a python library for dealing with html-emails.
+emails is a python library for dealing with html-emails.
 
 Usage:
 
@@ -23,7 +23,7 @@ More examples is at <https://github.com/lavr/python-emails/README.rst>.
 """
 
 __title__ = 'emails'
-__version__ = '0.1.11'
+__version__ = '0.1.12'
 __author__ = 'Sergey Lavrinenko'
 __license__ = 'Apache 2.0'
 __copyright__ = 'Copyright 2013 Sergey Lavrinenko'

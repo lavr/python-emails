@@ -58,8 +58,8 @@ class run_audit(Command):
 
 settings.update(
     name='emails',
-    version='0.1.11',
-    description='Elegant and simple email library for python',
+    version='0.1.12',
+    description='Elegant and simple email library for python 2/3',
     long_description=open('README.rst').read(),
     author='Sergey Lavrinenko',
     author_email='s@lavr.me',
@@ -80,8 +80,7 @@ settings.update(
     #test_suite = "emails.testsuite.test_all",
     zip_safe=False,
     classifiers=(
-        #'Development Status :: 4 - Beta',
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Natural Language :: English',
         'License :: OSI Approved :: BSD License',
