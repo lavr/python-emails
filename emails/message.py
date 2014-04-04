@@ -337,7 +337,7 @@ class Message(BaseEmail):
              smtp=None):
 
         if render is not None:
-            self.render(render)
+            self.render(**render)
 
         if smtp is None:
             smtp = {'host': 'localhost', 'port': 25, 'timeout': 5}

@@ -24,7 +24,6 @@ except ImportError:
     SMTP_DATA = None
 
 
-
 def common_email_data(**kwargs):
     data = {}
     data['charset'] = 'utf-8'
@@ -76,12 +75,17 @@ def test_send1():
     data['attachments'] = [emails.store.LazyHTTPFile(uri=URL), ]
     m = emails.html(**data)
     m.render(name='Полина')
-    print("m.subject=", m.subject)
     assert m.subject=='Hello, Полина'
-    print(m.as_string())
-
     if HAS_INTERNET_CONNECTION:
         r = m.send(smtp=SMTP_DATA)
+
+def test_send_with_render():
+    data = _email_data()
+    m = emails.html(**data)
+    m.render(name=u'Полина')
+    assert m.subject==u'Hello, Полина'
+    if HAS_INTERNET_CONNECTION:
+        r = m.send(render={'name': u'Полина'},  smtp=SMTP_DATA)
 
 
 def test_send2():
@@ -184,14 +188,3 @@ def test_dkim():
     assert m1 == m2
 
 
-
-
-if __name__ == '__main__':
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
-    test_dkim()
-    test_renderables()
-    test_common_mail_build()
-    test_send_inline_images()
-    test_send2()
-    test_send1()
