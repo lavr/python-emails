@@ -1,11 +1,12 @@
 # encoding: utf-8
 from __future__ import unicode_literals, print_function
 import logging
+
 from cssutils.css import CSSStyleSheet
 from cssutils import CSSParser
 import cssutils
 
-from emails.compat import urlparse, to_native, string_types, to_unicode, to_bytes, text_type
+from emails.compat import to_unicode
 
 
 class PageStylesheets:
@@ -103,7 +104,7 @@ class StyledTagWrapper:
 # Expired from cssutils examples
 
 def _style_declarations(base):
-    "recursive generator to find all CSSStyleDeclarations"
+    """recursive generator to find all CSSStyleDeclarations"""
     if hasattr(base, 'cssRules'):
         for rule in base.cssRules:
             for s in _style_declarations(rule):

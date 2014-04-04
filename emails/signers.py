@@ -53,6 +53,6 @@ class DKIMSigner:
             (header, value) = dkim_header_str.split(': ', 1)
             if value.endswith("\r\n"):
                 value = value[:-2]
-            return (header, value)
+            return header, value
 
         return None

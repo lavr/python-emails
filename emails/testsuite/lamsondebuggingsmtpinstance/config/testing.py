@@ -1,11 +1,13 @@
-from config import settings
+import logging
+import logging.config
+
 from lamson import view
 from lamson.routing import Router
 from lamson.server import Relay
 import jinja2
-import logging
-import logging.config
-import os
+
+from config import settings
+
 
 logging.config.fileConfig("config/test_logging.conf")
 

@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import emails
 from emails.loader.stylesheets import StyledTagWrapper
 from emails.compat import to_unicode
-import lxml
+import lxml, lxml.etree
 
 import os.path
 
@@ -24,7 +24,6 @@ def normalize_html(s):
 
 def test_insert_style():
 
-    html = '<img src="1.png">'
     html =  """ <img src="1.png" style="background: url(2.png)"> <style>p {background: url(3.png)} </style> """
     tree = lxml.etree.HTML(html, parser=lxml.etree.HTMLParser())
     #print __name__, "test_insert_style step1: ", lxml.etree.tostring(tree, encoding='utf-8', method='html')
@@ -41,9 +40,9 @@ def test_insert_style():
         tree = new_document
 
     html = normalize_html(lxml.etree.tostring(tree, encoding='utf-8', method='html'))
-    RESULT_HTML = normalize_html('<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"></head><body>' \
-                 '<style></style><img src="1.png" style="background: url(2.png)"> '\
-                 '<style>p {background: url(3.png)} </style> </body></html>')
+    RESULT_HTML = normalize_html('<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"></head><body>'
+                                 '<style></style><img src="1.png" style="background: url(2.png)"> '
+                                 '<style>p {background: url(3.png)} </style> </body></html>')
     assert html==RESULT_HTML, "Invalid html expected: %s, got: %s" % (RESULT_HTML.__repr__(), html.__repr__())
 
 
@@ -71,9 +70,9 @@ def test_all_images():
         obj.link = "prefix_" + obj.link
 
     result_html = normalize_html( loader.html )
-    VALID_RESULT = normalize_html("""<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>"""\
-                          """</head><body><style>p { background: url(prefix_3.png) }</style>"""\
-                          """<img src="prefix_1.png" style="background: url(prefix_2.png)"/> </body></html>""")
+    VALID_RESULT = normalize_html("""<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>"""
+                                  """</head><body><style>p { background: url(prefix_3.png) }</style>"""
+                                  """<img src="prefix_1.png" style="background: url(prefix_2.png)"/> </body></html>""")
 
     assert result_html == VALID_RESULT, "Invalid html expected: %s, got: %s" % (result_html.__repr__(), VALID_RESULT.__repr__())
 
@@ -90,8 +89,6 @@ def test_load_local_directory():
     files = set(colordirect_loader.filestore.keys())
 
     not_attached = ALL_FILES - files
-
-    return 0
 
     assert len(not_attached)==0, "Not attached files found: %s" % not_attached
 
@@ -208,17 +205,4 @@ def test_commons_css_inline():
     result = normalize_html(_do_inline_css(HTML, CSS, pretty_print=True))  # , save_to_file='_result.html')
     assert VALID_RESULT.strip() == result.strip(), "Invalid html got: %s, expected: %s" % (result.__repr__(), VALID_RESULT.__repr__())
 
-
-
-if __name__ == '__main__':
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
-    test_zip_load()
-    test_insert_style()
-    test_all_images()
-    test_load_local_directory()
-    test_load_sites()
-    test_tagwithstyle()
-    test_commons_css_inline()
-    test_unmergeable_css()
 

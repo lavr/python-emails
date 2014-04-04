@@ -1,11 +1,10 @@
 # encoding: utf-8
 from __future__ import unicode_literals
-
-import emails
-from emails.smtp import SMTPResponse, SMTPBackend
 import os
-
 import logging
+import emails
+from emails.smtp import SMTPBackend
+
 
 TRAVIS_CI = os.environ.get('TRAVIS')
 HAS_INTERNET_CONNECTION = not TRAVIS_CI

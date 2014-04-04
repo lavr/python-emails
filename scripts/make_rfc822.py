@@ -20,15 +20,16 @@ Copyright 2013  Sergey Lavrinenko <s@lavr.me>
 
 """
 
-import os
-import argparse
 import sys
 import logging
 import json
 
+import argparse
+
 import emails
 import emails.loader
 from emails.template import JinjaTemplate as T
+
 
 class MakeRFC822:
 

@@ -5,9 +5,7 @@ __all__ = ['guess_charset', 'fix_content_type']
 import re
 import cgi
 import chardet
-from emails.compat import to_unicode, to_bytes
-
-import logging
+from emails.compat import to_unicode
 
 # HTML page charset stuff
 
@@ -17,7 +15,7 @@ RE_INSIDE_META = re.compile(b"content=\"?'?([^\"'>]+)", re.I + re.S + re.M)
 
 
 def fix_content_type(content_type, t='image'):
-    if (not content_type):
+    if not content_type:
         return "%s/unknown" % t
     else:
         return content_type
