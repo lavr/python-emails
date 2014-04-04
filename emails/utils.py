@@ -7,16 +7,13 @@ import socket
 import time
 import os
 import random
-from email.parser import HeaderParser
 import email.charset
 
-from email import charset as Charset
 from email.generator import Generator
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
 from email.header import Header
-from email.utils import formatdate, getaddresses, formataddr, parseaddr
+from email.utils import formataddr, parseaddr
 
 from emails.compat import string_types, to_unicode, NativeStringIO
 
@@ -111,48 +108,6 @@ def parse_name_and_email(obj, encoding='utf-8'):
     return _realname or None, _email or None
 
 
-class BadHeaderError(ValueError):
-    pass
-
-
-DEFAULT_CHARSET = 'utf-8'
-
-# Header names that contain structured address data (RFC #5322)
-ADDRESS_HEADERS = set([
-    'from',
-    'sender',
-    'reply-to',
-    'to',
-    'cc',
-    'bcc',
-    'resent-from',
-    'resent-sender',
-    'resent-to',
-    'resent-cc',
-    'resent-bcc',
-])
-
-
-def forbid_multi_line_headers(name, val, encoding):
-    """Forbids multi-line headers, to prevent header injection."""
-    encoding = encoding or DEFAULT_CHARSET
-    val = to_unicode(val)
-    if '\n' in val or '\r' in val:
-        raise BadHeaderError("Header values can't contain newlines (got %r for header %r)" % (val, name))
-    try:
-        val.encode('ascii')
-    except UnicodeEncodeError:
-        if name.lower() in ADDRESS_HEADERS:
-            val = ', '.join(sanitize_address(addr, encoding)
-                for addr in getaddresses((val,)))
-        else:
-            val = Header(val, encoding).encode()
-    else:
-        if name.lower() == 'subject':
-            val = Header(val).encode()
-    return str(name), val
-
-
 def sanitize_address(addr, encoding):
     if isinstance(addr, string_types):
         addr = parseaddr(to_unicode(addr))
@@ -183,7 +138,6 @@ class SafeMIMEText(MIMEText):
         MIMEText.__init__(self, text, subtype, charset)
 
     def __setitem__(self, name, val):
-        #name, val = forbid_multi_line_headers(name, val, self.encoding)
         MIMEText.__setitem__(self, name, val)
 
     def as_string(self, unixfrom=False):
@@ -207,7 +161,6 @@ class SafeMIMEMultipart(MIMEMultipart):
         MIMEMultipart.__init__(self, _subtype, boundary, _subparts, **_params)
 
     def __setitem__(self, name, val):
-        #name, val = forbid_multi_line_headers(name, val, self.encoding)
         MIMEMultipart.__setitem__(self, name, val)
 
     def as_string(self, unixfrom=False):

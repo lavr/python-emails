@@ -3,19 +3,14 @@ from __future__ import unicode_literals
 
 import time
 from functools import wraps
-import logging
 
 from dateutil.parser import parse as dateutil_parse
 from email.header import Header
-from email.utils import formatdate
-from email.encoders import encode_base64
-from email.mime.base import MIMEBase
-from .utils import SafeMIMEText
-from .utils import SafeMIMEMultipart
+from email.utils import formatdate, getaddresses
 
-from emails.compat import string_types, to_unicode, is_callable, NativeStringIO, to_bytes, to_native
+from emails.compat import string_types, to_unicode, is_callable, to_bytes
 
-from .utils import parse_name_and_email
+from .utils import SafeMIMEText, SafeMIMEMultipart, sanitize_address, parse_name_and_email
 from .smtp import ObjectFactory, SMTPBackend
 from .store import MemoryFileStore, BaseFile
 from .signers import DKIMSigner
@@ -26,6 +21,24 @@ load_email_charsets()  # sic!
 
 
 ROOT_PREAMBLE = 'This is a multi-part message in MIME format.\n'
+
+class BadHeaderError(ValueError):
+    pass
+
+# Header names that contain structured address data (RFC #5322)
+ADDRESS_HEADERS = set([
+    'from',
+    'sender',
+    'reply-to',
+    'to',
+    'cc',
+    'bcc',
+    'resent-from',
+    'resent-sender',
+    'resent-to',
+    'resent-cc',
+    'resent-bcc',
+])
 
 def renderable(f):
     @wraps(f)
@@ -38,7 +51,6 @@ def renderable(f):
         else:
             return r
     return wrapper
-
 
 
 class IncompleteMessage(Exception):
@@ -202,8 +214,6 @@ class Message(BaseEmail):
 
     def encode_header(self, value):
         value = to_unicode(value, charset=self.charset)
-        if '\n' in value or '\r' in value:
-            raise BadHeaderError("Header values can't contain newlines (got %r for header %r)" % (value, 'unknown'))
         if isinstance(value, string_types):
             value = value.rstrip()
             _r = Header(value, self.charset)
@@ -219,8 +229,20 @@ class Message(BaseEmail):
             return email
 
     def set_header(self, msg, key, value, encode=True):
-        if value is not None:
-            msg[key] = encode and self.encode_header(value) or value
+
+        if value is None:
+            # TODO: may be remove header here ?
+            return
+
+        # Prevent header injection
+        if '\n' in value or '\r' in value:
+            raise BadHeaderError("Header values can't contain newlines (got %r for header %r)" % (value, key))
+
+        if key.lower() in ADDRESS_HEADERS:
+            value = ', '.join(sanitize_address(addr, self.charset)
+                for addr in getaddresses((value,)))
+
+        msg[key] = encode and self.encode_header(value) or value
 
     def _build_message(self):
 
@@ -228,7 +250,7 @@ class Message(BaseEmail):
 
         msg.preamble = ROOT_PREAMBLE
 
-        self.set_header(msg, 'Date',  self.message_date, encode=False )
+        self.set_header(msg, 'Date',  self.message_date, encode=False)
         self.set_header(msg, 'Message-ID',  self.message_id(), encode=False)
 
         if self._headers:
@@ -360,7 +382,7 @@ class Message(BaseEmail):
             params['mail_options'] = smtp_mail_options
 
         if smtp_rcpt_options:
-            params['rcpt_options'] = rcpt_options
+            params['rcpt_options'] = smtp_rcpt_options
 
         response = smtp.sendmail(**params)
         return response[0]
