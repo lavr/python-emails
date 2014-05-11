@@ -235,7 +235,7 @@ class Message(BaseEmail):
             return
 
         # Prevent header injection
-        if b'\n' in value or b'\r' in value:
+        if '\n' in value or '\r' in value:
             raise BadHeaderError("Header values can't contain newlines (got %r for header %r)" % (value, key))
 
         if key.lower() in ADDRESS_HEADERS:
