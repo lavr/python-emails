@@ -42,6 +42,7 @@ class HTTPLoader:
 
     tag_link_cls = {
         'a': TAG_WRAPPER('href'),
+        'area': TAG_WRAPPER('href'),
         'link': TAG_WRAPPER('href'),
         'img': TAG_WRAPPER('src'),
         'td':  TAG_WRAPPER('background'),
