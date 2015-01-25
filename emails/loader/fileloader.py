@@ -69,7 +69,7 @@ class BaseLoader(object):
                     html_files.append(filename)
 
         if html_files:
-            return htmlfiles[0]
+            return html_files[0]
 
         raise FileNotFound('index html')
 
