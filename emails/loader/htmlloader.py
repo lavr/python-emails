@@ -2,20 +2,17 @@
 from __future__ import unicode_literals
 import posixpath
 import os.path
-from lxml import etree
-import requests
 import logging
 
-from emails.compat import urlparse, to_native, string_types, to_unicode, to_bytes, text_type
+from lxml import etree
+import requests
 
+from emails.compat import urlparse, to_unicode, to_bytes, text_type
 from emails.store import MemoryFileStore, LazyHTTPFile
-from .stylesheets import PageStylesheets, get_stylesheets_uri_properties, StyledTagWrapper
-
+from .stylesheets import PageStylesheets, StyledTagWrapper
 from .cssinliner import CSSInliner
 from .helpers import guess_charset
-
 from .wrappers import TAG_WRAPPER, CSS_WRAPPER
-
 from . import helpers
 
 
@@ -177,7 +174,7 @@ class HTTPLoader:
                 # Remove unsafe tags
                 # self._removed_unsafe.append(el)  # Save it for reports
                 p = el.getparent()
-                if (p is not None):
+                if p is not None:
                     p.remove(el)
 
         # now make concatenated stylesheet

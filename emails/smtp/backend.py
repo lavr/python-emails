@@ -9,8 +9,7 @@ import threading
 from functools import wraps
 
 from .client import SMTPResponse, SMTPClientWithResponse, SMTPClientWithResponse_SSL
-from emails.compat import urlparse, to_native, string_types, to_unicode, to_bytes, text_type
-from emails.utils import sanitize_address
+from emails.compat import to_bytes
 
 logger = logging.getLogger(__name__)
 

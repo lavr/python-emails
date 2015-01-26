@@ -5,8 +5,6 @@ __all__ = [ 'SMTPResponse', 'SMTPClientWithResponse', 'SMTPClientWithResponse_SS
 from smtplib import _have_ssl, SMTP
 import smtplib
 
-from emails.compat import to_unicode, string_types
-
 import logging
 
 logger = logging.getLogger(__name__)
@@ -92,7 +90,7 @@ class SMTPClientWithResponse(SMTP):
     def data(self, msg):
         (code, msg) = SMTP.data(self, msg)
         self._last_smtp_response = (code, msg)
-        return (code, msg)
+        return code, msg
 
 
     def _send_one_mail(self, from_addr, to_addr, msg, mail_options=[], rcpt_options=[]):

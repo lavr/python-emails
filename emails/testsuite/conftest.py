@@ -1,13 +1,15 @@
 # encoding: utf-8
 
-import pytest
 import subprocess
 import shlex
 import time
 import logging
 import threading
-import sys
-import os, os.path
+import os
+import os.path
+
+import pytest
+
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()

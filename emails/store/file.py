@@ -18,7 +18,7 @@ from emails.compat import string_types, to_unicode, to_bytes
 MIMETYPE_UNKNOWN = 'application/unknown'
 
 def fix_content_type(content_type, t='image'):
-    if (not content_type):
+    if not content_type:
         return "%s/unknown" % t
     else:
         return content_type
@@ -68,7 +68,7 @@ class BaseFile(object):
 
     def get_uri(self):
         _uri = getattr(self, '_uri', None)
-        if (_uri is None):
+        if _uri is None:
             _filename = getattr(self, '_filename', None)
             if _filename:
                 _uri = self._uri = _filename
@@ -81,7 +81,7 @@ class BaseFile(object):
 
     def get_filename(self):
         _filename = getattr(self, '_filename', None)
-        if (_filename is None):
+        if _filename is None:
             _uri = getattr(self, '_uri', None)
             if _uri:
                 parsed_path = urlparse.urlparse(_uri)
@@ -98,7 +98,7 @@ class BaseFile(object):
 
     def get_mime_type(self):
         _ = getattr(self, '_mime_type', None)
-        if (_ is None):
+        if _ is None:
             filename = self.filename
             if filename:
                 _ = self._mime_type = guess_type(filename)[0]

@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 # adapted from https://github.com/kgn/cssutils/blob/master/examples/style.py
 from __future__ import unicode_literals, print_function
+import logging
+
 from cssutils.css import CSSStyleSheet, CSSStyleDeclaration, CSSStyleRule
 from cssutils import CSSParser
 from lxml import etree
-from lxml.builder import E
-import logging
 
 from emails.compat import to_unicode, string_types
 import emails
+
 
 # Workaround the missing python3-cssselect package
 # If no system-installed cssselect library found, use one from our distribution
@@ -41,14 +42,6 @@ class CSSInliner:
             css = CSSParser().parseString(css, href=href)  # Распарсим файл
 
         for rule in css:
-            """
-            if rule.type == rule.STYLE_RULE:
-                for property in rule.style:
-                    if property.name.find('background')>=0:
-                       _v = property.value
-                       property.value = self.change_css_background( property.value, base_url = sheet.href )
-                       #print '[after]', property.name,':', property.value
-            """
             self.stylesheet.add(rule)
 
     def log(self, level, *msg):
@@ -56,7 +49,7 @@ class CSSInliner:
             print(('%s- %s' % (level * '\t ', ' '.join((to_unicode(m or '') for m in msg)))))
 
     def styleattribute(self, element):
-            "returns css.CSSStyleDeclaration of inline styles, for html: @style"
+            """returns css.CSSStyleDeclaration of inline styles, for html: @style"""
             cssText = element.get('style')
             if cssText:
                 try:
