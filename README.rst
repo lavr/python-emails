@@ -39,17 +39,17 @@ Templating:
     from emails.template import JinjaTemplate as T
 
     message = emails.html(subject=T('Payment Receipt No.{{no}}'),
-                          html=T('<p>Dear {{account}} owner! This is a receipt for your subscription...'),
+                          html=T('<p>Dear {{ name }}! This is a receipt for your subscription...'),
                           mail_from=('ABC', 'robot@mycompany.com'))
 
-    message.send(to=('John Braun', 'jbraun@gmail.com'), render={'account': 'lavr', 'no':'141051906163'} )
+    message.send(to=('John Brown', 'jbrown@gmail.com'), render={'name': 'John Brown', 'billno':'141051906163'} )
 
 Send without pain and (even) get response:
 
 ::
 
     SMTP = { 'host':'smtp.mycompany.com', 'port': 465, 'ssl': True }
-    r = messages.send(to=('John Braun', 'jbraun@gmail.com'), smtp=SMTP)
+    r = message.send(to=('John Brown', 'jbrown@gmail.com'), smtp=SMTP)
     assert r.status_code == 250
 
 
