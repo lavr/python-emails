@@ -1,7 +1,10 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 import logging
+import os
 from os import path
+
+import errno
 from zipfile import ZipFile
 
 from emails.compat import to_unicode, string_types
@@ -192,5 +195,3 @@ class ZipLoader(BaseLoader):
     def list_files(self):
         self._unpack_zip()
         return sorted(self._filenames)
-
-
