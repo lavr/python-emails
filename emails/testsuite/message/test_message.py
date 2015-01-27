@@ -15,6 +15,12 @@ def test_message_build():
     assert m.as_string()
 
 
+def test_property_works():
+    m = emails.Message(subject='A')
+    assert m._subject == 'A'
+
+    m.subject = 'C'
+    assert m._subject == 'C'
 
 
 def test_after_build():
