@@ -3,14 +3,14 @@ from __future__ import unicode_literals
 import emails
 from emails.template import JinjaTemplate, StringTemplate, MakoTemplate
 
-def test_templates_commons():
 
-    JINJA_TEMPLATE  = "Hello, {{name}}!"
+def test_templates_commons():
+    JINJA_TEMPLATE = "Hello, {{name}}!"
     STRING_TEMPLATE = "Hello, $name!"
     MAKO_TEMPLATE = "Hello, ${name}!"
     RESULT = "Hello, world!"
 
-    values = { 'name': 'world' }
+    values = {'name': 'world'}
 
     assert JinjaTemplate(JINJA_TEMPLATE).render(**values) == RESULT
 
@@ -19,13 +19,11 @@ def test_templates_commons():
     assert MakoTemplate(MAKO_TEMPLATE).render(**values) == RESULT
 
 
-
 def test_render_message_with_template():
-
     TEMPLATE = JinjaTemplate('Hello, {{name}}!')
     V = dict(name='world')
     RESULT = TEMPLATE.render(**V)
-    assert RESULT=='Hello, world!'
+    assert RESULT == 'Hello, world!'
 
     msg = emails.html(subject=TEMPLATE)
     msg.render(**V)
@@ -38,4 +36,3 @@ def test_render_message_with_template():
     msg = emails.html(text=TEMPLATE)
     msg.render(**V)
     assert msg.text_body == RESULT
-

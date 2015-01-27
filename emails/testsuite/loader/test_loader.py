@@ -3,7 +3,9 @@ from __future__ import unicode_literals
 import emails
 from emails.loader.stylesheets import StyledTagWrapper
 from emails.compat import to_unicode
-import lxml, lxml.etree
+
+import lxml
+import lxml.etree
 
 import os.path
 
@@ -22,15 +24,15 @@ def test_tagwithstyle():
 def normalize_html(s):
     return "".join(to_unicode(s).split())
 
-def test_insert_style():
 
-    html =  """ <img src="1.png" style="background: url(2.png)"> <style>p {background: url(3.png)} </style> """
+def test_insert_style():
+    html = """ <img src="1.png" style="background: url(2.png)"> <style>p {background: url(3.png)} </style> """
     tree = lxml.etree.HTML(html, parser=lxml.etree.HTMLParser())
-    #print __name__, "test_insert_style step1: ", lxml.etree.tostring(tree, encoding='utf-8', method='html')
+    # print __name__, "test_insert_style step1: ", lxml.etree.tostring(tree, encoding='utf-8', method='html')
     emails.loader.helpers.add_body_stylesheet(tree,
-                                    element_cls=lxml.etree.Element,
-                                    tag="body",
-                                    cssText="")
+                                              element_cls=lxml.etree.Element,
+                                              tag="body",
+                                              cssText="")
 
     #print __name__, "test_insert_style step2: ", lxml.etree.tostring(tree, encoding='utf-8', method='html')
 
@@ -40,15 +42,14 @@ def test_insert_style():
         tree = new_document
 
     html = normalize_html(lxml.etree.tostring(tree, encoding='utf-8', method='html'))
-    RESULT_HTML = normalize_html('<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"></head><body>'
-                                 '<style></style><img src="1.png" style="background: url(2.png)"> '
-                                 '<style>p {background: url(3.png)} </style> </body></html>')
-    assert html==RESULT_HTML, "Invalid html expected: %s, got: %s" % (RESULT_HTML.__repr__(), html.__repr__())
-
+    RESULT_HTML = normalize_html(
+        '<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"></head><body>'
+        '<style></style><img src="1.png" style="background: url(2.png)"> '
+        '<style>p {background: url(3.png)} </style> </body></html>')
+    assert html == RESULT_HTML, "Invalid html expected: %s, got: %s" % (RESULT_HTML.__repr__(), html.__repr__())
 
 
 def test_all_images():
-
     # Check if we load images from CSS:
     styles = emails.loader.stylesheets.PageStylesheets()
     styles.append(text="p {background: url(3.png);}")
@@ -59,7 +60,7 @@ def test_all_images():
     HTML1 = """ <img src="1.png" style="background: url(2.png)"> <style>p {background: url(3.png)} </style> """
     loader = emails.loader.from_string(html=HTML1)
     # should be 3 image_link object
-    assert len(list(loader.iter_image_links()))==3
+    assert len(list(loader.iter_image_links())) == 3
 
     # should be 3 files in filestore
     files = set(loader.filestore.keys())
@@ -69,12 +70,14 @@ def test_all_images():
     for obj in loader.iter_image_links():
         obj.link = "prefix_" + obj.link
 
-    result_html = normalize_html( loader.html )
+    result_html = normalize_html(loader.html)
     VALID_RESULT = normalize_html("""<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>"""
                                   """</head><body><style>p { background: url(prefix_3.png) }</style>"""
                                   """<img src="prefix_1.png" style="background: url(prefix_2.png)"/> </body></html>""")
 
-    assert result_html == VALID_RESULT, "Invalid html expected: %s, got: %s" % (result_html.__repr__(), VALID_RESULT.__repr__())
+    assert result_html == VALID_RESULT, "Invalid html expected: %s, got: %s" % (
+        result_html.__repr__(), VALID_RESULT.__repr__())
+
 
 def test_load_local_directory():
     ROOT = os.path.dirname(__file__)
@@ -82,20 +85,19 @@ def test_load_local_directory():
     colordirect_html = "data/html_import/colordirect/html/left_sidebar.html"
     colordirect_loader = emails.loader.from_file(os.path.join(ROOT, colordirect_html))
 
-    ALL_FILES = "bg_divider_top.png,bullet.png,img.png,img_deco_bottom.png,img_email.png,"\
+    ALL_FILES = "bg_divider_top.png,bullet.png,img.png,img_deco_bottom.png,img_email.png," \
                 "bg_email.png,ico_lupa.png,img_deco.png".split(',')
-    ALL_FILES = set(["images/"+n for n in ALL_FILES])
+    ALL_FILES = set(["images/" + n for n in ALL_FILES])
 
     files = set(colordirect_loader.filestore.keys())
 
     not_attached = ALL_FILES - files
 
-    assert len(not_attached)==0, "Not attached files found: %s" % not_attached
-
+    assert len(not_attached) == 0, "Not attached files found: %s" % not_attached
 
     for fn in ( "data/html_import/colordirect/html/full_width.html",
                 "data/html_import/oldornament/html/full_width.html"
-            ):
+    ):
         filename = os.path.join(ROOT, fn)
         print(fn)
         loader = emails.loader.from_file(filename)
@@ -103,7 +105,6 @@ def test_load_local_directory():
 
 
 def test_load_http():
-
     URLs = [
         'http://lavr.github.io/python-emails/tests/campaignmonitor-samples/sample-template/template-widgets.html',
         'https://github.com/lavr/python-emails',
@@ -122,8 +123,8 @@ def test_load_http():
 def test_load_zip():
     ROOT = os.path.dirname(__file__)
     filename = os.path.join(ROOT, "data/html_import/oldornament.zip")
-    loader = emails.loader.from_zip( open(filename, 'rb') )
-    assert len(list(loader.filestore.keys()))>=13
+    loader = emails.loader.from_zip(open(filename, 'rb'))
+    assert len(list(loader.filestore.keys())) >= 13
     assert "SET-3-old-ornament" in loader.html
 
 
@@ -139,15 +140,13 @@ def _do_inline_css(html, css, save_to_file=None, pretty_print=False):
 
 
 def test_unmergeable_css():
-
     HTML = "<a>b</a>"
     CSS = "a:visited {color: red;}"
-    r = _do_inline_css(HTML, CSS) #, save_to_file='_result.html')
+    r = _do_inline_css(HTML, CSS)  # , save_to_file='_result.html')
     print(r)
 
 
 def test_commons_css_inline():
-
     tmpl = '''<html><head><title>style test</title></head><body>%s</body></html>'''
 
     HTML = tmpl % '''
@@ -203,6 +202,7 @@ def test_commons_css_inline():
 </html>""")
 
     result = normalize_html(_do_inline_css(HTML, CSS, pretty_print=True))  # , save_to_file='_result.html')
-    assert VALID_RESULT.strip() == result.strip(), "Invalid html got: %s, expected: %s" % (result.__repr__(), VALID_RESULT.__repr__())
+    assert VALID_RESULT.strip() == result.strip(), "Invalid html got: %s, expected: %s" % (
+        result.__repr__(), VALID_RESULT.__repr__())
 
 
