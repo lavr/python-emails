@@ -48,7 +48,7 @@ class IncompleteMessage(Exception):
     pass
 
 
-class Message:
+class Message(object):
     """
     Email class
 
