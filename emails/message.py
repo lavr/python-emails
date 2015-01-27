@@ -95,6 +95,8 @@ class Message:
             for a in attachments:
                 self.attachments.add(a)
 
+        self.after_build = None
+
     def set_mail_from(self, mail_from):
         # In: ('Alice', '<alice@me.com>' )
         self._mail_from = mail_from and parse_name_and_email(mail_from) or None
@@ -276,6 +278,9 @@ class Message:
             msgfile = f.mime
             if msgfile:
                 msg.attach(msgfile)
+
+        if self.after_build:
+            self.after_build(self, msg)
 
         return msg
 
