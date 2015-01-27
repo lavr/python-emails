@@ -1,3 +1,5 @@
+--requirement=base.txt
+
 jinja2
 mako
 django
