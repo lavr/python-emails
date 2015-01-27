@@ -9,13 +9,13 @@ import os
 import random
 import email.charset
 
-from email.generator import Generator
+from email import generator
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email.utils import formataddr, parseaddr
 
-from emails.compat import string_types, to_unicode, NativeStringIO
+from emails.compat import string_types, to_unicode, NativeStringIO, is_py2, BytesIO
 
 _charsets_loaded = False
 
@@ -55,12 +55,9 @@ DNS_NAME = CachedDnsName()
 
 class MessageID:
     """Returns a string suitable for RFC 2822 compliant Message-ID, e.g:
-
     <20020201195627.33539.96671@nightshade.la.mastaler.com>
-
     Optional idstring if given is a string used to strengthen the
     uniqueness of the message id.
-
     Based on django.core.mail.message.make_msgid
     """
 
@@ -134,7 +131,40 @@ def sanitize_address(addr, encoding):
     return formataddr((nm, addr))
 
 
-class SafeMIMEText(MIMEText):
+class MIMEMixin():
+    def as_string(self, unixfrom=False, linesep='\n'):
+        """Return the entire formatted message as a string.
+        Optional `unixfrom' when True, means include the Unix From_ envelope
+        header.
+        This overrides the default as_string() implementation to not mangle
+        lines that begin with 'From '. See bug #13433 for details.
+        """
+        fp = NativeStringIO()
+        g = generator.Generator(fp, mangle_from_=False)
+        if is_py2:
+            g.flatten(self, unixfrom=unixfrom)
+        else:
+            g.flatten(self, unixfrom=unixfrom, linesep=linesep)
+
+        return fp.getvalue()
+
+    if is_py2:
+        as_bytes = as_string
+    else:
+        def as_bytes(self, unixfrom=False, linesep='\n'):
+            """Return the entire formatted message as bytes.
+            Optional `unixfrom' when True, means include the Unix From_ envelope
+            header.
+            This overrides the default as_bytes() implementation to not mangle
+            lines that begin with 'From '. See bug #13433 for details.
+            """
+            fp = BytesIO()
+            g = generator.BytesGenerator(fp, mangle_from_=False)
+            g.flatten(self, unixfrom=unixfrom, linesep=linesep)
+            return fp.getvalue()
+
+
+class SafeMIMEText(MIMEMixin, MIMEText):
     def __init__(self, text, subtype, charset):
         self.encoding = charset
         MIMEText.__init__(self, text, subtype, charset)
@@ -142,21 +172,9 @@ class SafeMIMEText(MIMEText):
     def __setitem__(self, name, val):
         MIMEText.__setitem__(self, name, val)
 
-    def as_string(self, unixfrom=False):
-        """Return the entire formatted message as a string.
-        Optional `unixfrom' when True, means include the Unix From_ envelope
-        header.
 
-        This overrides the default as_string() implementation to not mangle
-        lines that begin with 'From '. See bug #13433 for details.
-        """
-        fp = NativeStringIO()
-        g = Generator(fp, mangle_from_=False)
-        g.flatten(self, unixfrom=unixfrom)
-        return fp.getvalue()
+class SafeMIMEMultipart(MIMEMixin, MIMEMultipart):
 
-
-class SafeMIMEMultipart(MIMEMultipart):
     def __init__(self, _subtype='mixed', boundary=None, _subparts=None, encoding=None, **_params):
         self.encoding = encoding
         MIMEMultipart.__init__(self, _subtype, boundary, _subparts, **_params)
@@ -164,24 +182,9 @@ class SafeMIMEMultipart(MIMEMultipart):
     def __setitem__(self, name, val):
         MIMEMultipart.__setitem__(self, name, val)
 
-    def as_string(self, unixfrom=False):
-        """Return the entire formatted message as a string.
-        Optional `unixfrom' when True, means include the Unix From_ envelope
-        header.
-
-        This overrides the default as_string() implementation to not mangle
-        lines that begin with 'From '. See bug #13433 for details.
-        """
-        fp = NativeStringIO()
-        g = Generator(fp, mangle_from_=False)
-        g.flatten(self, unixfrom=unixfrom)
-        return fp.getvalue()
-
-
 def test_parse_name_and_email():
     assert parse_name_and_email('john@smith.me') == ('', 'john@smith.me')
     assert parse_name_and_email('"John Smith" <john@smith.me>') == \
            ('John Smith', 'john@smith.me')
     assert parse_name_and_email(['John Smith', 'john@smith.me']) == \
            ('John Smith', 'john@smith.me')
-

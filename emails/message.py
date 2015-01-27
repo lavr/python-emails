@@ -226,9 +226,10 @@ class Message:
 
         msg[key] = encode and self.encode_header(value) or value
 
-    def _build_message(self):
+    def _build_message(self, message_cls=None):
 
-        msg = SafeMIMEMultipart()
+        message_cls = message_cls or SafeMIMEMultipart
+        msg = message_cls()
 
         msg.preamble = ROOT_PREAMBLE
 
@@ -278,8 +279,8 @@ class Message:
 
         return msg
 
-    def message(self):
-        msg = self._build_message()
+    def message(self, message_cls=None):
+        msg = self._build_message(message_cls=message_cls)
         if self._dkim_signer:
             msg_str = msg.as_string()
             dkim_header = self._dkim_signer.get_sign_header(to_bytes(msg_str))
