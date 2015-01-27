@@ -26,8 +26,8 @@ class BadHeaderError(ValueError):
     pass
 
 # Header names that contain structured address data (RFC #5322)
-ADDRESS_HEADERS = {'from', 'sender', 'reply-to', 'to', 'cc', 'bcc', 'resent-from', 'resent-sender', 'resent-to',
-                   'resent-cc', 'resent-bcc'}
+ADDRESS_HEADERS = set(['from', 'sender', 'reply-to', 'to', 'cc', 'bcc', 'resent-from', 'resent-sender', 'resent-to',
+                   'resent-cc', 'resent-bcc'])
 
 
 def renderable(f):
