@@ -9,7 +9,7 @@ python:
 script: py.test
 
 install:
-  - pip install -r requirements.txt --use-mirrors && pip install -r requirements-tests-$TRAVIS_PYTHON_VERSION.txt --use-mirrors
+  - pip install -r requirements/tests-$TRAVIS_PYTHON_VERSION.txt --use-mirrors
 
 env:
   - PIP_DOWNLOAD_CACHE=$HOME/.pip-cache
