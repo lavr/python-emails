@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 from .base import BaseTemplate
 
+
 class JinjaTemplate(BaseTemplate):
 
     DEFAULT_JINJA_ENVIRONMENT = {}
@@ -9,7 +10,7 @@ class JinjaTemplate(BaseTemplate):
     def __init__(self, template_text, **kwargs):
         if 'jinja2' not in globals():
             globals()['jinja2'] = __import__('jinja2')
-        self.environment = kwargs.get('environment', None) or  jinja2.Environment(**self.DEFAULT_JINJA_ENVIRONMENT)
+        self.environment = kwargs.get('environment', None) or jinja2.Environment(**self.DEFAULT_JINJA_ENVIRONMENT)
         self.template = self.environment.from_string(template_text)
 
     def render(self, **kwargs):

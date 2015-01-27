@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 import string
 
+
 class BaseTemplate:
 
     def __init__(self, template_text, **kwargs):
@@ -21,5 +22,5 @@ class StringTemplate:
         self.safe_substitute = safe_substitute
 
     def render(self, **kwargs):
-        render = self.safe_substitute and self.template.safe_substitute or self.template.substitute
-        return render(**kwargs)
+        r = self.safe_substitute and self.template.safe_substitute or self.template.substitute
+        return r(**kwargs)

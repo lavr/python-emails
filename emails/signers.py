@@ -11,6 +11,7 @@ import logging
 from emails.packages import dkim
 from emails.compat import to_bytes, to_native
 
+
 class DKIMSigner:
 
     def __init__(self, selector, domain, privkey, ignore_sign_errors=True, **kwargs):
@@ -21,23 +22,21 @@ class DKIMSigner:
         if privkey and hasattr(privkey, 'read'):
             privkey = privkey.read()
 
-        self._sign_params.update({'privkey':to_bytes(privkey), 'domain': to_bytes(domain), 'selector':to_bytes(selector)})
-
+        self._sign_params.update({'privkey': to_bytes(privkey), 'domain': to_bytes(domain),
+                                  'selector': to_bytes(selector)})
 
     def get_sign(self, message):
 
         dkim_header = None
 
         try:
-            # TODO:
-            #  pydkim module parses message and privkey on each signing
-            #  this is not optimal for our purposes
-            #  we need patch for pydkim or some another signing module
+            # pydkim module parses message and privkey on each signing
+            # this is not optimal for mass operations
+            # TODO: patch pydkim or use another signing module
             dkim_header = dkim.sign(message=message, **self._sign_params)
         except:
             if self.ignore_sign_errors:
                 logging.exception('Error signing message')
-                #dkim_header = "X-DKIM-Signature-Failed: yes\r\n"
             else:
                 raise
 
@@ -48,8 +47,7 @@ class DKIMSigner:
         dkim_header_str = self.get_sign(message)
 
         if dkim_header_str:
-            # pdkim returns string
-            # let's
+            # pdkim returns string, so we should split
             (header, value) = dkim_header_str.split(': ', 1)
             if value.endswith("\r\n"):
                 value = value[:-2]

@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 from .base import BaseTemplate
 
+
 class MakoTemplate(BaseTemplate):
 
     def __init__(self, template_text, **kwargs):

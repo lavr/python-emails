@@ -1,7 +1,7 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-__all__ = [ 'parse_name_and_email', 'load_email_charsets', 'MessageID' ]
+__all__ = ['parse_name_and_email', 'load_email_charsets', 'MessageID']
 
 import socket
 import time
@@ -20,11 +20,12 @@ from emails.compat import string_types, to_unicode, NativeStringIO
 _charsets_loaded = False
 
 CHARSETS_FIX = [
-             ['windows-1251', 'QP', 'QP'],
-             # koi8 should by send as Quoted Printable because of bad SpamAssassin reaction on base64 (2008)
-             ['koi8-r', 'QP', 'QP'],
-             ['utf-8', 'BASE64', 'BASE64']
-            ]
+    ['windows-1251', 'QP', 'QP'],
+    # koi8 should by send as Quoted Printable because of bad SpamAssassin reaction on base64 (2008)
+    ['koi8-r', 'QP', 'QP'],
+    ['utf-8', 'BASE64', 'BASE64']
+]
+
 
 def load_email_charsets():
     global _charsets_loaded
@@ -48,7 +49,9 @@ class CachedDnsName(object):
             self._fqdn = socket.getfqdn()
         return self._fqdn
 
+
 DNS_NAME = CachedDnsName()
+
 
 class MessageID:
     """Returns a string suitable for RFC 2822 compliant Message-ID, e.g:
@@ -132,7 +135,6 @@ def sanitize_address(addr, encoding):
 
 
 class SafeMIMEText(MIMEText):
-
     def __init__(self, text, subtype, charset):
         self.encoding = charset
         MIMEText.__init__(self, text, subtype, charset)
@@ -149,13 +151,12 @@ class SafeMIMEText(MIMEText):
         lines that begin with 'From '. See bug #13433 for details.
         """
         fp = NativeStringIO()
-        g = Generator(fp, mangle_from_ = False)
+        g = Generator(fp, mangle_from_=False)
         g.flatten(self, unixfrom=unixfrom)
         return fp.getvalue()
 
 
 class SafeMIMEMultipart(MIMEMultipart):
-
     def __init__(self, _subtype='mixed', boundary=None, _subparts=None, encoding=None, **_params):
         self.encoding = encoding
         MIMEMultipart.__init__(self, _subtype, boundary, _subparts, **_params)
@@ -172,16 +173,15 @@ class SafeMIMEMultipart(MIMEMultipart):
         lines that begin with 'From '. See bug #13433 for details.
         """
         fp = NativeStringIO()
-        g = Generator(fp, mangle_from_ = False)
+        g = Generator(fp, mangle_from_=False)
         g.flatten(self, unixfrom=unixfrom)
         return fp.getvalue()
-
 
 
 def test_parse_name_and_email():
     assert parse_name_and_email('john@smith.me') == ('', 'john@smith.me')
     assert parse_name_and_email('"John Smith" <john@smith.me>') == \
-                               ('John Smith', 'john@smith.me')
+           ('John Smith', 'john@smith.me')
     assert parse_name_and_email(['John Smith', 'john@smith.me']) == \
-                               ('John Smith', 'john@smith.me')
+           ('John Smith', 'john@smith.me')
 

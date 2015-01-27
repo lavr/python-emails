@@ -3,19 +3,20 @@ from __future__ import unicode_literals
 
 import uuid
 
-from os.path import splitext, basename
+from os.path import basename
 
 import requests
 from mimetypes import guess_type
 from email.mime.base import MIMEBase
 from email.encoders import encode_base64
 from emails.compat import urlparse
-from emails.compat import string_types, to_unicode, to_bytes
+from emails.compat import string_types, to_bytes
 
 # class FileNotFound(Exception):
 #    pass
 
 MIMETYPE_UNKNOWN = 'application/unknown'
+
 
 def fix_content_type(content_type, t='image'):
     if not content_type:
@@ -48,7 +49,7 @@ class BaseFile(object):
         self.id = id
 
     def as_dict(self, fields=None):
-        fields = fields or ( 'uri', 'absolute_url', 'filename', 'data',
+        fields = fields or ('uri', 'absolute_url', 'filename', 'data',
                             'mime_type', 'content_disposition', 'subtype')
         return dict([(k, getattr(self, k)) for k in fields])
 

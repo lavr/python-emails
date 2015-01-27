@@ -15,30 +15,20 @@ from .smtp import ObjectFactory, SMTPBackend
 from .store import MemoryFileStore, BaseFile
 from .signers import DKIMSigner
 
-
 from .utils import load_email_charsets
+
 load_email_charsets()  # sic!
 
-
 ROOT_PREAMBLE = 'This is a multi-part message in MIME format.\n'
+
 
 class BadHeaderError(ValueError):
     pass
 
 # Header names that contain structured address data (RFC #5322)
-ADDRESS_HEADERS = set([
-    'from',
-    'sender',
-    'reply-to',
-    'to',
-    'cc',
-    'bcc',
-    'resent-from',
-    'resent-sender',
-    'resent-to',
-    'resent-cc',
-    'resent-bcc',
-])
+ADDRESS_HEADERS = {'from', 'sender', 'reply-to', 'to', 'cc', 'bcc', 'resent-from', 'resent-sender', 'resent-to',
+                   'resent-cc', 'resent-bcc'}
+
 
 def renderable(f):
     @wraps(f)
@@ -50,18 +40,15 @@ def renderable(f):
             return d
         else:
             return r
+
     return wrapper
 
 
 class IncompleteMessage(Exception):
     pass
 
-class BaseEmail:
-    pass
 
-
-class Message(BaseEmail):
-
+class Message:
     """
     Email class
 
@@ -89,12 +76,8 @@ class Message(BaseEmail):
                  mail_to=None,
                  headers=None,
                  html=None,
-                 # html_from_url=None,
                  text=None,
-                 # text_from_url=None,
-                 attachments=None,
-                 dkim_key=None,
-                 dkim_selector=None):
+                 attachments=None):
 
         self._attachments = None
         self.charset = charset or 'utf-8'  # utf-8 is standard de-facto, yeah
@@ -118,7 +101,7 @@ class Message(BaseEmail):
 
     def set_mail_to(self, mail_to):
         # Now we parse only one to-addr
-        # TODO: parse list of to-addr
+        # TODO: parse list of to-addrs
         mail_to = mail_to and parse_name_and_email(mail_to)
         self._mail_to = mail_to and [mail_to, ] or []
 
@@ -154,7 +137,7 @@ class Message(BaseEmail):
         """
         message = cls(html=template_cls and template_cls(loader.html) or loader.html, **kwargs)
         for att in loader.filestore:
-            message.attach( **att.as_dict() )
+            message.attach(**att.as_dict())
         return message
 
     @property
@@ -211,7 +194,6 @@ class Message(BaseEmail):
             return None
         return is_callable(mid) and mid() or mid
 
-
     def encode_header(self, value):
         value = to_unicode(value, charset=self.charset)
         if isinstance(value, string_types):
@@ -240,7 +222,7 @@ class Message(BaseEmail):
 
         if key.lower() in ADDRESS_HEADERS:
             value = ', '.join(sanitize_address(addr, self.charset)
-                for addr in getaddresses((value,)))
+                              for addr in getaddresses((value,)))
 
         msg[key] = encode and self.encode_header(value) or value
 
@@ -250,8 +232,8 @@ class Message(BaseEmail):
 
         msg.preamble = ROOT_PREAMBLE
 
-        self.set_header(msg, 'Date',  self.message_date, encode=False)
-        self.set_header(msg, 'Message-ID',  self.message_id(), encode=False)
+        self.set_header(msg, 'Date', self.message_date, encode=False)
+        self.set_header(msg, 'Message-ID', self.message_id(), encode=False)
 
         if self._headers:
             for (name, value) in self._headers.items():
@@ -263,7 +245,7 @@ class Message(BaseEmail):
         self.set_header(msg, 'Subject', subject)
 
         mail_from = self.encode_name_header(*self._mail_from)
-        #if mail_from is None:
+        # if mail_from is None:
         #    raise IncompleteMessage("Message must have 'mail_from'")
         self.set_header(msg, 'From', mail_from, encode=False)
 
@@ -376,7 +358,7 @@ class Message(BaseEmail):
             raise ValueError('No from-addr')
 
         params = dict(from_addr=from_addr,
-                      to_addrs=[ to_addr, ],
+                      to_addrs=[to_addr, ],
                       msg=self)
         if smtp_mail_options:
             params['mail_options'] = smtp_mail_options
