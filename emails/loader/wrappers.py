@@ -16,7 +16,6 @@ class ElementWithLink(object):
         self.encoding = encoding
 
     def get_link(self):
-        #print(__name__, "ElementWithLink encoding=", self.encoding)
         r = self.el.get(self.LINK_ATTR_NAME)
         if self.encoding:
             r = to_unicode(r, self.encoding)
@@ -71,7 +70,6 @@ class CSS_link(ElementWithLink):
         ElementWithLink.__init__(self, el)
         self.updateme = updateme
         self.encoding = encoding
-        #print __name__, "CSS_link", el, el.uri
 
     def get_link(self):
         r = self.el.uri

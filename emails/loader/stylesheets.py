@@ -36,7 +36,8 @@ class PageStylesheets:
         if (url is not None) and (url in self.urls):
             logging.debug('stylesheet url duplicate: %s', url)
             return
-        self.sheets.append({'url': url, 'text': text, 'absolute_url': absolute_url or url, 'local_loader': local_loader})
+        self.sheets.append({'url': url, 'text': text, 'absolute_url': absolute_url or url,
+                            'local_loader': local_loader})
         self.dirty = True
 
     def _concatenate_sheets(self):
@@ -60,13 +61,10 @@ class PageStylesheets:
 
                 for rule in sheet:
                     r.add(rule)
-                    #print __name__, "rule=", rule
                     for p in _get_rule_uri_properties(rule):
-                        #print __name__, "_get_rule_uri_properties:", p
                         uri_properties.append(p)
 
             self._uri_properties = uri_properties
-            #print __name__, "self._uri_properties=", self._uri_properties
             self._cached_stylesheet = r
             self.dirty = False
 
@@ -101,7 +99,7 @@ class StyledTagWrapper:
 
 
 # Stuff for extracting 'uri-properties' from CSS
-# Expired from cssutils examples
+# Inspired by cssutils examples
 
 def _style_declarations(base):
     """recursive generator to find all CSSStyleDeclarations"""
@@ -114,7 +112,6 @@ def _style_declarations(base):
 
 
 def _get_rule_uri_properties(rule):
-
     for style in _style_declarations(rule):
         for p in style.getProperties(all=True):
             for v in p.propertyValue:

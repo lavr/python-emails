@@ -147,7 +147,6 @@ class CSSInliner:
         _unmergable_css = _unmergable_rules.cssText
         if _unmergable_css:
             e = etree.Element('style')
-            # print __name__, _unmergable_css.__repr__()
             e.text = to_unicode(_unmergable_css, 'utf-8')
             body = document.find('body') or document
             body.insert(0, e)  # add <style> right into body

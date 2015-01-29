@@ -1,9 +1,8 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 import logging
-import os, os.path
+import os
 from os import path
-
 import errno
 from zipfile import ZipFile
 
@@ -11,8 +10,10 @@ from emails.compat import to_unicode, string_types
 
 # FileSystemLoader adapted from jinja2.loaders
 
+
 class FileNotFound(Exception):
     pass
+
 
 def split_template_path(template):
     """Split a path into segments and perform a sanity check.  If it detects
@@ -21,12 +22,13 @@ def split_template_path(template):
     pieces = []
     for piece in template.split('/'):
         if path.sep in piece \
-           or (path.altsep and path.altsep in piece) or \
-           piece == path.pardir:
+                or (path.altsep and path.altsep in piece) or \
+                        piece == path.pardir:
             raise FileNotFound(template)
         elif piece and piece != '.':
             pieces.append(piece)
     return pieces
+
 
 def open_if_exists(filename, mode='rb'):
     """Returns a file descriptor for the filename if that file exists,
@@ -40,7 +42,6 @@ def open_if_exists(filename, mode='rb'):
 
 
 class BaseLoader(object):
-
     def __getitem__(self, filename):
         try:
             contents, _ = self.get_source(filename)
@@ -49,7 +50,6 @@ class BaseLoader(object):
             return None
 
     def find_index_file(self, filename=None):
-        #print __name__, "BaseLoader.find_index_file", filename
         if filename:
             if self[filename]:
                 return filename
@@ -57,13 +57,10 @@ class BaseLoader(object):
                 raise FileNotFound(filename)
 
         html_files = []
-        index_html = None
 
         for filename in self.list_files():
 
             f = path.basename(filename).lower()
-
-            #print __name__, "BaseLoader.find_index_file", filename, f
 
             if f.endswith('.htm') or f.endswith('.html'):
                 if f.startswith('index.'):
@@ -124,25 +121,22 @@ class FileSystemLoader(BaseLoader):
         for searchpath in self.searchpath:
             for dirpath, dirnames, filenames in os.walk(searchpath):
                 for filename in filenames:
-                    template = os.path.join(dirpath, filename) \
-                        [len(searchpath):].strip(os.path.sep) \
-                                          .replace(os.path.sep, '/')
+                    template = path.join(dirpath, filename) \
+                        [len(searchpath):].strip(path.sep) \
+                        .replace(path.sep, '/')
                     if template[:2] == './':
                         template = template[2:]
                     if template not in found:
                         yield template
 
 
-
 class ZipLoader(BaseLoader):
-
     def __init__(self, file, encoding='utf-8', base_path=None):
         self.zipfile = ZipFile(file, 'r')
         self.encoding = encoding
         self.base_path = base_path
         self.mapping = {}
         self._filenames = None
-
 
     def _decode_zip_filename(self, name):
         for enc in ('cp866', 'cp1251', 'utf-8'):
@@ -152,14 +146,12 @@ class ZipLoader(BaseLoader):
                 pass
         return name
 
-
     def _unpack_zip(self):
         if self._filenames is None:
             self._filenames = {}
             for name in self.zipfile.namelist():
                 decoded_name = self._decode_zip_filename(name)
                 self._filenames[decoded_name] = name
-
 
     def get_source(self, name):
 
@@ -190,7 +182,6 @@ class ZipLoader(BaseLoader):
 
         logging.debug('ZipLoader.get_source returns %s bytes', len(data))
         return data, name
-
 
     def list_files(self):
         self._unpack_zip()

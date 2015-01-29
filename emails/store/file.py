@@ -98,16 +98,15 @@ class BaseFile(object):
     filename = property(get_filename, set_filename)
 
     def get_mime_type(self):
-        _ = getattr(self, '_mime_type', None)
-        if _ is None:
+        r = getattr(self, '_mime_type', None)
+        if r is None:
             filename = self.filename
             if filename:
-                _ = self._mime_type = guess_type(filename)[0]
-                # print __name__, "get_mime_type calculated=", _
-        if not _:
-            _ = MIMETYPE_UNKNOWN
-        self._mime_type = _
-        return _
+                r = self._mime_type = guess_type(filename)[0]
+        if not r:
+            r = MIMETYPE_UNKNOWN
+        self._mime_type = r
+        return r
 
     mime_type = property(get_mime_type)
 
@@ -153,7 +152,6 @@ class LazyHTTPFile(BaseFile):
 
     def fetch(self):
         if (not self._fetched) and self.uri:
-            #logging.debug('LazyHTTPFile local_loader is %s', local_loader)
             if self.local_loader:
                 data = self.local_loader[self.uri]
 

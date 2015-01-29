@@ -1,12 +1,9 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 from os.path import splitext
-from emails.compat import OrderedDict, string_types, to_unicode
+from emails.compat import OrderedDict, string_types
 
 from .file import BaseFile
-
-# class FileNotFound(Exception):
-#    pass
 
 
 class FileStore(object):
@@ -42,7 +39,6 @@ class MemoryFileStore(FileStore):
             yield d.as_dict()
 
     def remove(self, uri):
-        # print __name__, "remove %s %s" % (uri, type(uri))
         if isinstance(uri, self.file_cls):
             uri = uri.uri
 
