@@ -12,7 +12,7 @@ import email.charset
 from email import generator
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from email.header import Header
+from email.header import Header, decode_header
 from email.utils import formataddr, parseaddr
 
 from emails.compat import string_types, to_unicode, NativeStringIO, is_py2, BytesIO
@@ -51,6 +51,14 @@ class CachedDnsName(object):
 
 
 DNS_NAME = CachedDnsName()
+
+
+def getheader(header_text, default="ascii"):
+    """Decode the specified header"""
+    headers = decode_header(header_text)
+    header_sections = [unicode(text, charset or default)
+                       for text, charset in headers]
+    return u"".join(header_sections)
 
 
 class MessageID:
