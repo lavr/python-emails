@@ -127,9 +127,18 @@ Library is under development and contributions are welcome!
 Background
 ----------
 
-Library inspired by excellent python-requests and werkzeug library.
+API structure inspired by python-requests and werkzeug libraries.
 Some code is from my mailcube.ru experience.
 
+
+See also
+--------
+
+There are plenty other python email-around libraries:
+
+ - premailer https://github.com/peterbe/premailer
+ - pyzmail http://www.magiksys.net/pyzmail/
+ - ...
 
 .. image:: https://travis-ci.org/lavr/python-emails.png?branch=master
    :target: https://travis-ci.org/lavr/python-emails
