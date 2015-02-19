@@ -1,6 +1,7 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 import logging
+import mimetypes
 import os
 from os import path
 import errno
@@ -186,3 +187,104 @@ class ZipLoader(BaseLoader):
     def list_files(self):
         self._unpack_zip()
         return sorted(self._filenames)
+
+
+class MsgLoader(BaseLoader):
+    """
+    Load files from email.Message
+
+    Thanks to
+    http://blog.magiksys.net/parsing-email-using-python-content
+
+    """
+
+    common_charsets = ['ascii', 'utf-8', 'utf-16', 'windows-1252', 'cp850', 'windows-1251']
+
+    def __init__(self, msg, base_path=None):
+        self.msg = msg
+        self.base_path = base_path
+        self._html_files = []
+        self._text_files = []
+        self._files = {}
+
+
+    def decode_text(self, text, charset=None):
+        if charset:
+            try:
+                return text.decode(charset), charset
+            except UnicodeError:
+                pass
+        for charset in self.common_charsets:
+            try:
+                return text.decode(charset), charset
+            except UnicodeError:
+                pass
+        return text, None
+
+    def clean_content_id(self, content_id):
+        if content_id.startswith('<'):
+            content_id = content_id[1:]
+        if content_id.endswith('>'):
+            content_id = content_id[:-1]
+        return content_id
+
+    def extract_part_text(self, part):
+        return self.decode_text(part.get_payload(decode=True), charset=part.get_param('charset'))[0]
+
+    def add_html_part(self, part):
+        name = '__index.html'
+        self._files[name] = {'data': self.extract_part_text(part),
+                             'filename': name,
+                             'content_type': part.get_content_type()}
+
+    def add_text_part(self, part):
+        name = '__index.txt'
+        self._files[name] = {'data': self.extract_part_text(part),
+                             'filename': name,
+                             'content_type': part.get_content_type()}
+
+
+    def add_another_part(self, part):
+        counter = 1
+        f = {}
+        content_id = part['Content-ID']
+        if content_id:
+            f['filename'] = self.clean_content_id(content_id)
+            f['inline'] = True
+        else:
+            filename = part.get_filename()
+            if not filename:
+                ext = mimetypes.guess_extension(part.get_content_type())
+                if not ext:
+                    # Use a generic bag-of-bits extension
+                    ext = '.bin'
+                filename = 'part-%03d%s' % (counter, ext)
+                counter += 1
+            f['filename'] = filename
+        f['content_type'] = part.get_content_type()
+        f['data'] = part.get_payload(decode=True)
+        self._files[f['filename']] = f
+
+    def _parse_msg(self):
+        for part in self.msg.walk():
+            content_type = part.get_content_type()
+
+            if content_type.startswith('multipart/'):
+                continue
+
+            if content_type == 'text/html':
+                self.add_html_part(part)
+                continue
+
+            if content_type == 'text/plain':
+                self.add_text_part(part)
+                continue
+
+            self.add_another_part(part)
+
+    def get_source(self, name):
+        self._parse_msg()
+        return self._files.get(name)
+
+    def list_files(self):
+        return sorted(self._files)
