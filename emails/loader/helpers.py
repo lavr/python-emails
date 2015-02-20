@@ -34,7 +34,6 @@ def guess_charset(headers, html):
                 return r
 
     # guess by html meta
-    #print(__name__, "guess_charset html=", html[:1024])
     for s in RE_META.findall(html):
         for x in RE_INSIDE_META.findall(s):
             for charset in RE_CHARSET.findall(x):
