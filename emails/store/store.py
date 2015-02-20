@@ -80,12 +80,12 @@ class MemoryFileStore(FileStore):
         self._filenames.add(value.filename)
         self._files[uri] = value
 
-    def by_uri(self, uri, synonims=None):
+    def by_uri(self, uri, synonyms=None):
         r = self._files.get(uri, None)
         if r:
             return r
-        if synonims:
-            for _uri in synonims:
+        if synonyms:
+            for _uri in synonyms:
                 r = self._files.get(_uri, None)
                 if r:
                     return r

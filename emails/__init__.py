@@ -26,7 +26,7 @@ __title__ = 'emails'
 __version__ = '0.1.12'
 __author__ = 'Sergey Lavrinenko'
 __license__ = 'Apache 2.0'
-__copyright__ = 'Copyright 2013 Sergey Lavrinenko'
+__copyright__ = 'Copyright 2013-2015 Sergey Lavrinenko'
 
 from .message import Message, html
 from .utils import MessageID
