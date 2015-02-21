@@ -1,7 +1,7 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 import emails
-
+import emails.store
 
 def test_lazy_http():
     IMG_URL = 'http://lavr.github.io/python-emails/tests/python-logo.gif'
@@ -20,3 +20,9 @@ def test_store_commons():
         for (k, v) in orig_file.items():
             assert v == getattr(stored_file, k)
 
+def test_store_unique_name():
+    store = emails.store.MemoryFileStore()
+    f1 = store.add({'uri': '/a/c.gif'})
+    assert f1.filename == 'c.gif'
+    f2 = store.add({'uri': '/a/b/c.gif'})
+    assert f2.filename == 'c-2.gif'

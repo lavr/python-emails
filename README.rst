@@ -1,7 +1,7 @@
 python-emails
 =============
 
-Emails without pain for python.
+Modern email handling in python.
 
 
 What can you do:
@@ -21,14 +21,14 @@ Attach files or inline images:
 
 ::
 
-    message.attach( data=open('event.ics'), filename='Event.ics' )
-    message.attach( data=open('image.png'), filename='image.png', content_disposition='inline' )
+    message.attach(data=open('event.ics'), filename='Event.ics')
+    message.attach(data=open('image.png'), filename='image.png', content_disposition='inline')
 
 Add DKIM easily:
 
 ::
 
-    message.dkim( key=open('my.key'), domain='mycompany.com', selector='newsletter' )
+    message.dkim(key=open('my.key'), domain='mycompany.com', selector='newsletter')
 
 
 
@@ -48,7 +48,7 @@ Send without pain and (even) get response:
 
 ::
 
-    SMTP = { 'host':'smtp.mycompany.com', 'port': 465, 'ssl': True }
+    SMTP = {'host':'smtp.mycompany.com', 'port': 465, 'ssl': True}
     r = message.send(to=('John Brown', 'jbrown@gmail.com'), smtp=SMTP)
     assert r.status_code == 250
 
@@ -63,10 +63,11 @@ Design email with less pain or even let designers make design:
 
 ::
 
-    import emails
-    URL = 'http://_youproject_.github.io/newsletter/2013-08-14/index.html'
-    page = emails.loader.from_url(URL, css_inline=True, make_links_absolute=True)
-    message = emails.html(html=page.html, ...)
+    import emails, emails.loader
+    URL = "http://xxx.github.io/newsletter/2015-08-14/index.html"
+    message = emails.Message.from_loader(loader=emails.loader.from_url(URL),
+                                         mail_from=("ABC", "robot@mycompany.com"),
+                                         subject="Newsletter")
     for mail_to in _get_maillist():
         message.send(to=mail_to)
 
@@ -99,19 +100,18 @@ Features
 
 TODO
 ----
-- Python3 (almost done)
+
+- Documentation
 - Add "safety stuff" from django (done)
 - Django integration (django.core.mail.backends.smtp.EmailBackend subclass)
 - Flask extension
-- Documentation
 - 100% test coverage
 - More accurate smtp session handling
-- Some patches for pydkim performance (i.e. preload key once, not each time)
-- More genius css inliner
 - Catch all bugs
 - ESP integration: Amazon SES, SendGrid, ...
-- deb package (ubuntu package done)
+- deb package (ubuntu package almost done)
 - rpm package
+- Patch pydkim for performance (i.e. preload key once, not each time)
 
 How to Help
 -----------
@@ -129,6 +129,8 @@ Background
 
 API structure inspired by python-requests and werkzeug libraries.
 Some code is from my mailcube.ru experience.
+
+Library uses peterbe's Premailer for css handling.
 
 
 See also

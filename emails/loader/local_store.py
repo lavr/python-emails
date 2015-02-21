@@ -8,8 +8,6 @@ from zipfile import ZipFile
 
 from emails.compat import to_unicode, string_types
 
-# FileSystemLoader adapted from jinja2.loaders
-
 
 class FileNotFound(Exception):
     pass
@@ -73,6 +71,8 @@ class BaseLoader(object):
 
         raise FileNotFound('index html')
 
+
+# FileSystemLoader from jinja2.loaders
 
 class FileSystemLoader(BaseLoader):
     """Loads templates from the file system.  This loader can find templates
@@ -154,8 +154,6 @@ class ZipLoader(BaseLoader):
                 self._filenames[decoded_name] = name
 
     def get_source(self, name):
-
-        logging.debug('ZipLoader.get_source %s', name)
 
         if self.base_path:
             name = path.join(self.base_path, name)

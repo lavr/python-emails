@@ -1,12 +1,9 @@
 # coding: utf-8
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import emails
-from emails.compat import StringIO
-from emails.template import JinjaTemplate
-from emails.compat import NativeStringIO, to_bytes
-
-from .helpers import TRAVIS_CI, HAS_INTERNET_CONNECTION, _email_data, common_email_data
+from emails.compat import to_unicode
+from .helpers import common_email_data
 
 
 def test_message_build():
@@ -18,7 +15,6 @@ def test_message_build():
 def test_property_works():
     m = emails.Message(subject='A')
     assert m._subject == 'A'
-
     m.subject = 'C'
     assert m._subject == 'C'
 
@@ -34,7 +30,9 @@ def test_after_build():
     m = emails.Message(**kwargs)
     m.after_build = my_after_build
 
-    assert AFTER_BUILD_HEADER in m.as_string()
+    s = m.as_string()
+    print("type of message.as_string() is {0}".format(type(s)))
+    assert AFTER_BUILD_HEADER in to_unicode(s, 'utf-8')
 
 
 # TODO: more tests here

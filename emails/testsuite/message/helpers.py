@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import logging
 import os
 
-from emails.loader import cssinliner
 import emails
 from emails.compat import StringIO
 from emails.template import JinjaTemplate
