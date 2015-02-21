@@ -1,6 +1,6 @@
 --requirement=base.txt
+--requirement=tests-base.txt
 
-jinja2
-mako
 django==1.6
 lamson
+ordereddict

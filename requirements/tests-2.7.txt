@@ -1,6 +1,5 @@
 --requirement=base.txt
+--requirement=tests-base.txt
 
-jinja2
-mako
 django
 lamson

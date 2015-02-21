@@ -1,15 +1,20 @@
 language: python
 
+sudo: no
+
 python:
   - "2.6"
   - "2.7"
   - "3.3"
   - "3.4"
 
-script: py.test
+script: py.test --cov emails
+
+before_install:
+  - travis_retry pip install coverage coveralls pytest-cov
 
 install:
-  - pip install -r requirements/tests-$TRAVIS_PYTHON_VERSION.txt --use-mirrors
+  - travis_retry pip install -r requirements/tests-$TRAVIS_PYTHON_VERSION.txt
 
 env:
   - PIP_DOWNLOAD_CACHE=$HOME/.pip-cache
@@ -17,3 +22,17 @@ env:
 cache:
   directories:
     - $HOME/.pip-cache/
+
+after_success:
+  # Report coverage results to coveralls.io
+  - coveralls
+
+ deploy:
+   provider: pypi
+   user: lavr
+   password:
+     secure: "WuFOsmKW77foHa0Ywv7pwXNvSQ+lHSx/IlYxPTuE7dTj1mNgvXC48NXQONY1ZEDiysryimgfsqumvx6PqLsFmOkG4r9k3gaau0eHE063+/hse0YvbqpnzIWa1FTe4yxreJeEHWSiNyAyo0ERaZVMcnj1ii6paHzuMVuCQ/BwV3k="
+   on:
+     branch: master
+     tags: true
+   distributions: "sdist bdist_wheel"

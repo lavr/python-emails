@@ -56,26 +56,28 @@ class run_audit(Command):
         else:
             print("No problems found in sourcecode.")
 
+import emails
+
 settings.update(
     name='emails',
-    version='0.1.13',
+    version=emails.__version__,
     description='Elegant and simple email library for python 2/3',
     long_description=open('README.rst').read(),
     author='Sergey Lavrinenko',
     author_email='s@lavr.me',
     url='https://github.com/lavr/python-emails',
-    packages = ['emails',
-                'emails.compat',
-                'emails.loader',
-                'emails.store',
-                'emails.smtp',
-                'emails.template',
-                'emails.packages',
-                'emails.packages.cssselect',
-                'emails.packages.dkim'
-               ],
-    scripts=[ 'scripts/make_rfc822.py' ],
-    install_requires = [ 'cssutils', 'lxml', 'chardet', 'python-dateutil', 'requests'  ],
+    packages=['emails',
+              'emails.compat',
+              'emails.loader',
+              'emails.store',
+              'emails.smtp',
+              'emails.template',
+              'emails.packages',
+              'emails.packages.cssselect',
+              'emails.packages.dkim'
+             ],
+    scripts=['scripts/make_rfc822.py'],
+    install_requires=['cssutils', 'lxml', 'chardet', 'python-dateutil', 'requests', 'premailer'],
     license=open('LICENSE').read(),
     #test_suite = "emails.testsuite.test_all",
     zip_safe=False,

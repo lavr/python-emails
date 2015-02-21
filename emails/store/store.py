@@ -18,7 +18,7 @@ class MemoryFileStore(FileStore):
         if file_cls:
             self.file_cls = file_cls
         self._files = OrderedDict()
-        self._filenames = set()
+        self._filenames = {}
 
     def __contains__(self, k):
         if isinstance(k, self.file_cls):
@@ -48,24 +48,26 @@ class MemoryFileStore(FileStore):
         if v:
             filename = v.filename
             if filename and (filename in self._filenames):
-                self._filenames.remove(filename)
+                del self._filenames[filename]
             del self._files[uri]
 
-    def unique_filename(self, filename):
+    def unique_filename(self, filename, uri=None):
 
-        if filename not in self._filenames:
-            return filename
+        if filename in self._filenames:
+            n = 1
+            basefilename, ext = splitext(filename)
 
-        n = 1
-        basefilename, ext = splitext(filename)
+            while True:
+                n += 1
+                filename = "%s-%d%s" % (basefilename, n, ext)
+                if filename not in self._filenames:
+                    break
+        else:
+            self._filenames[filename] = uri
 
-        while True:
-            n += 1
-            filename = "%s-%d%s" % (basefilename, n, ext)
-            if filename not in self._filenames:
-                return filename
+        return filename
 
-    def add(self, value):
+    def add(self, value, replace=False):
 
         if isinstance(value, self.file_cls):
             uri = value.uri
@@ -75,24 +77,35 @@ class MemoryFileStore(FileStore):
         else:
             raise ValueError("Unknown file type: %s" % type(value))
 
-        self.remove(uri)
-        value.filename = self.unique_filename(value.filename)
-        self._filenames.add(value.filename)
-        self._files[uri] = value
+        if (uri not in self._files) or replace:
+            self.remove(uri)
+            value.filename = self.unique_filename(value.filename, uri=uri)
+            self._files[uri] = value
+        return value
 
-    def by_uri(self, uri, synonims=None):
+    def by_uri(self, uri, synonyms=None):
         r = self._files.get(uri, None)
         if r:
             return r
-        if synonims:
-            for _uri in synonims:
+        if synonyms:
+            for _uri in synonyms:
                 r = self._files.get(_uri, None)
                 if r:
                     return r
         return None
 
+    def by_filename(self, filename):
+        uri = self._filenames.get(filename)
+        if uri:
+            return self.by_uri(uri)
+
+    def by_content_id(self, content_id):
+        parsed = self.file_cls.parse_content_id(content_id)
+        if parsed:
+            return self.by_filename(parsed['filename'])
+
     def __getitem__(self, uri):
-        return self._files.get(uri, None)
+        return self.by_uri(uri) or self.by_filename(uri)
 
     def __iter__(self):
         for k in self._files:

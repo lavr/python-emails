@@ -2,7 +2,7 @@
 
 def simple_dict2str(d):
     # Simple dict serializer
-    return ";".join( [ "%s=%s" % (k, v) for (k, v) in d.items() ] )
+    return ";".join(["%s=%s" % (k, v) for (k, v) in d.items()])
 
 _serializer = simple_dict2str
 

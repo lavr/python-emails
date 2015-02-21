@@ -1,5 +1,8 @@
 # encoding: utf-8
 from __future__ import unicode_literals
+import emails
+import requests
+from emails.exc import HTTPLoaderError
 
 __all__ = ['parse_name_and_email', 'load_email_charsets', 'MessageID']
 
@@ -190,9 +193,27 @@ class SafeMIMEMultipart(MIMEMixin, MIMEMultipart):
     def __setitem__(self, name, val):
         MIMEMultipart.__setitem__(self, name, val)
 
-def test_parse_name_and_email():
-    assert parse_name_and_email('john@smith.me') == ('', 'john@smith.me')
-    assert parse_name_and_email('"John Smith" <john@smith.me>') == \
-           ('John Smith', 'john@smith.me')
-    assert parse_name_and_email(['John Smith', 'john@smith.me']) == \
-           ('John Smith', 'john@smith.me')
+
+DEFAULT_REQUESTS_PARAMS = dict(allow_redirects=True,
+                             verify=False, timeout=10,
+                             headers={'User-Agent': emails.USER_AGENT})
+
+
+def fetch_url(url, valid_http_codes=(200, ), requests_args=None):
+    args = {}
+    args.update(DEFAULT_REQUESTS_PARAMS)
+    args.update(requests_args or {})
+    r = requests.get(url, **args)
+    if valid_http_codes and (r.status_code not in valid_http_codes):
+        raise HTTPLoaderError('Error loading url: %s. HTTP status: %s' % (url, r.status_code))
+    return r
+
+
+def encode_header(value, charset='utf-8'):
+    value = to_unicode(value, charset=charset)
+    if isinstance(value, string_types):
+        value = value.rstrip()
+        _r = Header(value, charset)
+        return str(_r)
+    else:
+        return value

@@ -7,27 +7,18 @@ from functools import wraps
 from dateutil.parser import parse as dateutil_parse
 from email.header import Header
 from email.utils import formatdate, getaddresses
-
 from emails.compat import string_types, to_unicode, is_callable, to_bytes
-
-from .utils import SafeMIMEText, SafeMIMEMultipart, sanitize_address, parse_name_and_email
+from .utils import (SafeMIMEText, SafeMIMEMultipart, sanitize_address,
+                    parse_name_and_email, load_email_charsets,
+                    encode_header as encode_header_)
 from .smtp import ObjectFactory, SMTPBackend
 from .store import MemoryFileStore, BaseFile
 from .signers import DKIMSigner
 
-from .utils import load_email_charsets
-
 load_email_charsets()  # sic!
-
-ROOT_PREAMBLE = 'This is a multi-part message in MIME format.\n'
-
 
 class BadHeaderError(ValueError):
     pass
-
-# Header names that contain structured address data (RFC #5322)
-ADDRESS_HEADERS = set(['from', 'sender', 'reply-to', 'to', 'cc', 'bcc', 'resent-from', 'resent-sender', 'resent-to',
-                   'resent-cc', 'resent-bcc'])
 
 
 def renderable(f):
@@ -48,23 +39,22 @@ class IncompleteMessage(Exception):
     pass
 
 
-class Message(object):
-    """
-    Email class
 
-        message = HtmlEmail()
 
-    Message parts:
-        * html
-        * text
-        * attachments
+class BaseMessage(object):
 
     """
+    Base email message with html part, text part and attachments.
+    """
+
+    ROOT_PREAMBLE = 'This is a multi-part message in MIME format.\n'
+
+    # Header names that contain structured address data (RFC #5322)
+    ADDRESS_HEADERS = set(['from', 'sender', 'reply-to', 'to', 'cc', 'bcc',
+                           'resent-from', 'resent-sender', 'resent-to',
+                           'resent-cc', 'resent-bcc'])
 
     attachment_cls = BaseFile
-    dkim_cls = DKIMSigner
-    smtp_pool_factory = ObjectFactory
-    smtp_cls = SMTPBackend
     filestore_cls = MemoryFileStore
 
     def __init__(self,
@@ -87,19 +77,24 @@ class Message(object):
         self.set_mail_from(mail_from)
         self.set_mail_to(mail_to)
         self.set_headers(headers)
-        self.set_html(html=html)  # , url=self.html_from_url)
-        self.set_text(text=text)  # , url=self.text_from_url)
+        self.set_html(html=html)
+        self.set_text(text=text)
         self.render_data = {}
-        self._dkim_signer = None
+        self.after_build = None
+
         if attachments:
             for a in attachments:
                 self.attachments.add(a)
 
-        self.after_build = None
-
     def set_mail_from(self, mail_from):
         # In: ('Alice', '<alice@me.com>' )
         self._mail_from = mail_from and parse_name_and_email(mail_from) or None
+
+    def get_mail_from(self):
+        # Out: ('Alice', '<alice@me.com>') or None
+        return self._mail_from
+
+    mail_from = property(get_mail_from, set_mail_from)
 
     def set_mail_to(self, mail_to):
         # Now we parse only one to-addr
@@ -121,25 +116,40 @@ class Message(object):
         self._html = html
         self._html_url = url
 
+    def get_html(self):
+        return self._html
+
+    html = property(get_html, set_html)
+
     def set_text(self, text, url=None):
         if hasattr(text, 'read'):
             text = text.read()
         self._text = text
         self._text_url = url
 
-    def attach(self, **kwargs):
-        if 'content_disposition' not in kwargs:
-            kwargs['content_disposition'] = 'attachment'
-        self.attachments.add(kwargs)
+    def get_text(self):
+        return self._text
+
+    text = property(get_text, set_text)
 
     @classmethod
     def from_loader(cls, loader, template_cls=None, **kwargs):
         """
-        Get html and attachments from HTTPLoader
+        Get html and attachments from Loader
         """
-        message = cls(html=template_cls and template_cls(loader.html) or loader.html, **kwargs)
-        for att in loader.filestore:
-            message.attach(**att.as_dict())
+
+        html = loader.html
+        if html and template_cls:
+            html = template_cls(html)
+
+        text = loader.text
+        if text and template_cls:
+            text = template_cls(text)
+
+        message = cls(html=html, text=text, **kwargs)
+
+        for attachment in loader.attachments:
+            message.attach(**attachment.as_dict())
         return message
 
     @property
@@ -163,12 +173,6 @@ class Message(object):
 
     def render(self, **kwargs):
         self.render_data = kwargs
-
-    @property
-    def attachments(self):
-        if self._attachments is None:
-            self._attachments = self.filestore_cls(self.attachment_cls)
-        return self._attachments
 
     def set_date(self, value):
         if isinstance(value, string_types):
@@ -197,13 +201,7 @@ class Message(object):
         return is_callable(mid) and mid() or mid
 
     def encode_header(self, value):
-        value = to_unicode(value, charset=self.charset)
-        if isinstance(value, string_types):
-            value = value.rstrip()
-            _r = Header(value, self.charset)
-            return str(_r)
-        else:
-            return value
+        return encode_header_(value, self.charset)
 
     def encode_name_header(self, realname, email):
         if realname:
@@ -222,18 +220,29 @@ class Message(object):
         if '\n' in value or '\r' in value:
             raise BadHeaderError("Header values can't contain newlines (got %r for header %r)" % (value, key))
 
-        if key.lower() in ADDRESS_HEADERS:
+        if key.lower() in self.ADDRESS_HEADERS:
             value = ', '.join(sanitize_address(addr, self.charset)
                               for addr in getaddresses((value,)))
 
         msg[key] = encode and self.encode_header(value) or value
+
+    @property
+    def attachments(self):
+        if self._attachments is None:
+            self._attachments = self.filestore_cls(self.attachment_cls)
+        return self._attachments
+
+    def attach(self, **kwargs):
+        if 'content_disposition' not in kwargs:
+            kwargs['content_disposition'] = 'attachment'
+        self.attachments.add(kwargs)
 
     def _build_message(self, message_cls=None):
 
         message_cls = message_cls or SafeMIMEMultipart
         msg = message_cls()
 
-        msg.preamble = ROOT_PREAMBLE
+        msg.preamble = self.ROOT_PREAMBLE
 
         self.set_header(msg, 'Date', self.message_date, encode=False)
         self.set_header(msg, 'Message-ID', self.message_id(), encode=False)
@@ -255,8 +264,11 @@ class Message(object):
         mail_to = self._mail_to and self.encode_name_header(*self._mail_to[0]) or None
         self.set_header(msg, 'To', mail_to, encode=False)
 
+        msgrel = SafeMIMEMultipart('related')
+        msg.attach(msgrel)
+
         msgalt = SafeMIMEMultipart('alternative')
-        msg.attach(msgalt)
+        msgrel.attach(msgalt)
 
         _text = self.text_body
         _html = self.html_body
@@ -275,34 +287,23 @@ class Message(object):
             msgalt.attach(msghtml)
 
         for f in self.attachments:
-            msgfile = f.mime
-            if msgfile:
-                msg.attach(msgfile)
+            part = f.mime
+            if part:
+                if f.is_inline:
+                    msgrel.attach(part)
+                else:
+                    msg.attach(part)
 
         if self.after_build:
             self.after_build(self, msg)
 
         return msg
 
-    def message(self, message_cls=None):
-        msg = self._build_message(message_cls=message_cls)
-        if self._dkim_signer:
-            msg_str = msg.as_string()
-            dkim_header = self._dkim_signer.get_sign_header(to_bytes(msg_str))
-            if dkim_header:
-                msg._headers.insert(0, dkim_header)
-        return msg
 
-    def as_string(self):
-        # self.as_string() is not equialent self.message().as_string()
-        # self.as_string() gets one less message-to-string conversions for dkim
-        msg = self._build_message()
-        r = msg.as_string()
-        if self._dkim_signer:
-            dkim_header = self._dkim_signer.get_sign(to_bytes(r))
-            if dkim_header:
-                r = dkim_header + r
-        return r
+class MessageSendMixin(object):
+
+    smtp_pool_factory = ObjectFactory
+    smtp_cls = SMTPBackend
 
     @property
     def smtp_pool(self):
@@ -310,9 +311,6 @@ class Message(object):
         if pool is None:
             pool = self._smtp_pool = self.smtp_pool_factory(cls=self.smtp_cls)
         return pool
-
-    def dkim(self, **kwargs):
-        self._dkim_signer = self.dkim_cls(**kwargs)
 
     def send(self,
              to=None,
@@ -361,7 +359,7 @@ class Message(object):
             from_addr = self._mail_from[1]
 
         if not from_addr:
-            raise ValueError('No from-addr')
+            raise ValueError('No "from" addr')
 
         params = dict(from_addr=from_addr,
                       to_addrs=[to_addr, ],
@@ -376,6 +374,105 @@ class Message(object):
         return response[0]
 
 
+class MessageTransformerMixin(object):
+
+    transformer_cls = None
+
+    def create_transformer(self, **kw):
+        cls = self.transformer_cls
+        if cls is None:
+            from emails.transformer import MessageTransformer
+            cls = MessageTransformer
+
+        self._transformer = cls(message=self, **kw)
+        return self._transformer
+
+    def destroy_transformer(self):
+        self._transformer = None
+
+    @property
+    def transformer(self):
+        t = getattr(self, '_transformer', None)
+        if t is None:
+            t = self.create_transformer()
+        return t
+
+
+class Message(BaseMessage, MessageSendMixin, MessageTransformerMixin):
+    """
+    Email message with:
+    - DKIM signer
+    - smtp send
+    - Message.transformer object
+    """
+
+    dkim_cls = DKIMSigner
+
+    def __init__(self, **kwargs):
+        BaseMessage.__init__(self, **kwargs)
+        self._dkim_signer = None
+        self.after_build = None
+
+    def dkim(self, **kwargs):
+        self._dkim_signer = self.dkim_cls(**kwargs)
+
+    def set_html(self, **kw):
+        # When html set, remove old transformer
+        self.destroy_transformer()
+        super(Message, self).set_html(**kw)
+
+    def as_message(self, message_cls=None):
+        msg = self._build_message(message_cls=message_cls)
+        if self._dkim_signer:
+            msg_str = msg.as_string()
+            dkim_header = self._dkim_signer.get_sign_header(to_bytes(msg_str))
+            if dkim_header:
+                msg._headers.insert(0, dkim_header)
+        return msg
+
+    message = as_message
+
+    def as_string(self):
+        # self.as_string() is not equialent self.message().as_string()
+        # self.as_string() gets one less message-to-string conversions for dkim
+        msg = self._build_message()
+        r = msg.as_string()
+        if self._dkim_signer:
+            dkim_header = self._dkim_signer.get_sign(to_bytes(r))
+            if dkim_header:
+                r = dkim_header + r
+        return r
+
+
 def html(**kwargs):
     return Message(**kwargs)
 
+
+class DjangoMessageProxy(object):
+
+    """
+    Class looks like django.core.mail.EmailMessage for standard django email backend.
+
+    Example usage:
+
+        message = emails.Message(html='...', subject='...', mail_from='robot@company.ltd')
+        connection = django.core.mail.get_connection()
+
+        message.set_mail_to('somebody@somewhere.net')
+        connection.send_messages([DjangoMessageProxy(message), ])
+    """
+
+    def __init__(self, message, recipients=None, context=None):
+        self._message = message
+        self._recipients = recipients
+        self._context = context and context.copy() or {}
+
+        self.from_email = message.mail_from[1]
+        self.encoding = message.charset
+
+    def recipients(self):
+        return self._recipients or [r[1] for r in self._message.mail_to]
+
+    def message(self):
+        self._message.render(**self._context)
+        return self._message.message()
