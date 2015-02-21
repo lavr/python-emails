@@ -101,6 +101,12 @@ class Message(object):
         # In: ('Alice', '<alice@me.com>' )
         self._mail_from = mail_from and parse_name_and_email(mail_from) or None
 
+    def get_mail_from(self):
+        # Out: ('Alice', '<alice@me.com>') or None
+        return self._mail_from
+
+    mail_from = property(get_mail_from, set_mail_from)
+
     def set_mail_to(self, mail_to):
         # Now we parse only one to-addr
         # TODO: parse list of to-addrs
@@ -371,7 +377,7 @@ class Message(object):
             from_addr = self._mail_from[1]
 
         if not from_addr:
-            raise ValueError('No from-addr')
+            raise ValueError('No "from" addr')
 
         params = dict(from_addr=from_addr,
                       to_addrs=[to_addr, ],
@@ -388,4 +394,34 @@ class Message(object):
 
 def html(**kwargs):
     return Message(**kwargs)
+
+
+class DjangoMessageProxy(object):
+
+    """
+    Class looks like django.core.mail.EmailMessage for standard django email backend.
+
+    Example usage:
+
+        message = emails.Message(html='...', subject='...', mail_from='robot@company.ltd')
+        connection = django.core.mail.get_connection()
+
+        message.set_mail_to('somebody@somewhere.net')
+        connection.send_messages([DjangoMessageProxy(message), ])
+    """
+
+    def __init__(self, message, recipients=None, context=None):
+        self._message = message
+        self._recipients = recipients
+        self._context = context and context.copy() or {}
+
+        self.from_email = message.mail_from[1]
+        self.encoding = message.charset
+
+    def recipients(self):
+        return self._recipients or [r[1] for r in self._message.mail_to]
+
+    def message(self):
+        self._message.render(**self._context)
+        return self._message.message()
 

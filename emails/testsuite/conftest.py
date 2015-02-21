@@ -98,10 +98,8 @@ def smtp_server(request):
 def django_email_backend(request):
     from django.conf import settings
     logger.debug('django_email_backend...')
-    server = smtp_server(request)
-    settings.configure(EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend',
-                        EMAIL_HOST=server.host, EMAIL_PORT=server.port)
+    settings.configure(EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
+                       EMAIL_FILE_PATH='tmp-emails')
     from django.core.mail import get_connection
-    SETTINGS = {}
     return get_connection()
 
