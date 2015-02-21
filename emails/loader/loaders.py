@@ -18,9 +18,18 @@ class BaseLoader(object):
 
     USER_AGENT = 'python-emails/1.1'
 
-    def __init__(self, requests_params=None, **kwargs):
+    def __init__(self, requests_params=None,
+                 css_inline=True,
+                 remove_unsafe_tags=True,
+                 make_links_absolute=False,
+                 set_content_type_meta=True,
+                 update_stylesheet=True,
+                 images_inline=False,
+                 **kwargs):
+
         self.requests_params = requests_params
         self.transformer = None
+        self.css_inline = css_inline
 
     def fetch_url(self, url, valid_http_codes=(200, ), params=None):
         args = dict(allow_redirects=True, headers={'User-Agent': self.USER_AGENT})
@@ -40,8 +49,16 @@ class BaseLoader(object):
         return self.transformer.to_string()
 
     @property
+    def text(self):
+        return None
+
+    @property
     def attachments_dict(self):
         return list(self.transformer.attachment_store.as_dict())
+
+    @property
+    def attachments(self):
+        return self.transformer.attachment_store.as_dict()
 
 
 def _make_base_url(url):

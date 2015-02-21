@@ -79,6 +79,7 @@ class MemoryFileStore(FileStore):
         value.filename = self.unique_filename(value.filename)
         self._filenames.add(value.filename)
         self._files[uri] = value
+        return value
 
     def by_uri(self, uri, synonyms=None):
         r = self._files.get(uri, None)

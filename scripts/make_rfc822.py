@@ -7,13 +7,15 @@ Simple utility that imports html from url ang print generated rfc822 message to 
 
 Example usage:
 
-    $ python make_rfc822.py --url=http://lavr.github.io/python-emails/tests/campaignmonitor-samples/sample-template/template-widgets.html
-            --subject="Some subject"
-            --from-name="Sergey Lavrinenko"
-            --from-email=s@lavr.me
-            --message-id-domain=localhost
-            --send-test-email-to=sergei-nko@mail.ru
-            --smtp-host=mxs.mail.ru
+    $ python make_rfc822.py --url=http://lavr.github.io/python-emails/tests/campaignmonitor-samples/sample-template/template-widgets.html \
+            --subject="Some subject" \
+            --from-name="Sergey Lavrinenko" \
+            --from-email=s@lavr.me \
+            --message-id-domain=localhost \
+            --add-header="X-Test-Header: Test" \
+            --add-header-imported-from \
+            --send-test-email-to=sergei-nko@mail.ru \
+            --smtp-host=mxs.mail.ru \
             --smtp-port=25
 
 Copyright 2013  Sergey Lavrinenko <s@lavr.me>
@@ -32,7 +34,6 @@ from emails.template import JinjaTemplate as T
 
 
 class MakeRFC822:
-
     def __init__(self, options):
         self.options = options
 
@@ -41,9 +42,14 @@ class MakeRFC822:
         --add-header "X-Source: AAA"
         """
         r = {}
-        for s in self.options.add_headers:
-            (k, v) = s.split(':', 1)
-            r[k] = v
+        if self.options.add_headers:
+            for s in self.options.add_headers:
+                (k, v) = s.split(':', 1)
+                r[k] = v
+
+        if self.options.add_header_imported_from:
+            r['X-Imported-From-URL'] = self.options.url
+
         return r
 
     def _get_message(self):
@@ -51,22 +57,18 @@ class MakeRFC822:
         options = self.options
 
         if options.message_id_domain:
-            message_id = emails.utils.MessageID(domain=options.message_id_domain)
+            message_id = emails.MessageID(domain=options.message_id_domain)
         else:
             message_id = None
 
         loader = emails.loader.from_url(url=options.url, images_inline=options.inline_images)
-
-
         message = emails.Message.from_loader(loader=loader,
-                              headers= self._headers_from_command_line(), #{'X-Imported-From-URL': options.url },
-                              template_cls=T,
-                              mail_from=(options.from_name, options.from_email),
-                              subject=T(unicode(options.subject, 'utf-8')),
-                              message_id=message_id
-                            )
+                                             headers=self._headers_from_command_line(),
+                                             template_cls=T,
+                                             mail_from=(options.from_name, options.from_email),
+                                             subject=T(unicode(options.subject, 'utf-8')),
+                                             message_id=message_id)
         return message
-
 
     def _send_test_email(self, message):
 
@@ -88,9 +90,10 @@ class MakeRFC822:
     def _start_batch(self):
 
         fn = self.options.batch
-        if not fn: return None
+        if not fn:
+            return None
 
-        if fn=='-':
+        if fn == '-':
             f = sys.stdin
         else:
             f = open(fn, 'rb')
@@ -98,16 +101,16 @@ class MakeRFC822:
         def wrapper():
             for l in f.readlines():
                 l = l.strip()
-                if not l: continue
-                # Magic is here
+                if not l:
+                    continue
                 try:
                     # Try to parse line as json
                     yield json.loads(l)
                 except ValueError:
                     # If it is not json, we expect one word with '@' sign
-                    assert len(l.split())==1
+                    assert len(l.split()) == 1
                     print l
-                    login, domain = l.split('@') # ensure there is something email-like
+                    login, domain = l.split('@')  # ensure there is something email-like
                     yield {'to': l}
 
         return wrapper()
@@ -115,7 +118,7 @@ class MakeRFC822:
     def _generate_batch(self, batch, message):
         n = 0
         for values in batch:
-            message.set_mail_to( values['to'] )
+            message.set_mail_to(values['to'])
             message.render(**values.get('data', {}))
             s = message.as_string()
             n += 1
@@ -124,33 +127,23 @@ class MakeRFC822:
 
     def main(self):
 
-        options = self.options
-
         message = self._get_message()
-
-        self._send_test_email(message)
 
         if self.options.batch:
             batch = self._start_batch()
             self._generate_batch(batch, message)
         else:
-            batch = None
-            if self.options.output_format=='eml':
+            if self.options.output_format == 'eml':
                 print(message.as_string())
-            elif self.options.output_format=='html':
+            elif self.options.output_format == 'html':
                 print(message.html_body)
 
+        self._send_test_email(message)
 
 
-
-
-
-
-
-if __name__=="__main__":
-
-
-    parser = argparse.ArgumentParser(description='Simple utility that imports html from url ang print generated rfc822 message to console.')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description='Imports html from url ang generate rfc822 message.')
 
     parser.add_argument("-u", "--url", metavar="URL", dest="url", action="store", default=None, required=True)
 
@@ -160,6 +153,8 @@ if __name__=="__main__":
     parser.add_argument("--message-id-domain", dest="message_id_domain", default=None, required=True)
 
     parser.add_argument("--add-header", dest="add_headers", action='append', default=None, required=False)
+    parser.add_argument("--add-header-imported-from", dest="add_header_imported_from", default=False,
+                        action="store_true")
 
     parser.add_argument("--inline-images", action="store_true", dest="inline_images", default=False)
 
@@ -174,12 +169,12 @@ if __name__=="__main__":
     parser.add_argument("--smtp-password", dest="smtp_password", default=None)
     parser.add_argument("--smtp-debug", dest="smtp_debug", action="store_true")
 
-    parser.add_argument("--batch",       dest="batch",       default=None)
+    parser.add_argument("--batch", dest="batch", default=None)
     parser.add_argument("--batch-start", dest="batch_start", default=None)
     parser.add_argument("--batch-limit", dest="batch_limit", default=None)
 
     options = parser.parse_args()
 
-    logging.basicConfig( level=logging.getLevelName(options.log_level.upper()) )
+    logging.basicConfig(level=logging.getLevelName(options.log_level.upper()))
 
     MakeRFC822(options=options).main()

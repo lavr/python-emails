@@ -6,6 +6,7 @@ import re
 import cgi
 import chardet
 from emails.compat import to_unicode
+import logging
 
 # HTML page charset stuff
 
@@ -40,4 +41,5 @@ def guess_charset(headers, html):
 
     # guess by chardet
     return chardet.detect(html)['encoding']
+
 

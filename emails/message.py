@@ -135,11 +135,21 @@ class Message(object):
     @classmethod
     def from_loader(cls, loader, template_cls=None, **kwargs):
         """
-        Get html and attachments from HTTPLoader
+        Get html and attachments from Loader
         """
-        message = cls(html=template_cls and template_cls(loader.html) or loader.html, **kwargs)
-        for att in loader.filestore:
-            message.attach(**att.as_dict())
+
+        html = loader.html
+        if html and template_cls:
+            html = template_cls(html)
+
+        text = loader.text
+        if text and template_cls:
+            text = template_cls(text)
+
+        message = cls(html=html, text=text, **kwargs)
+
+        for attachment in loader.attachments:
+            message.attach(**attachment)
         return message
 
     @property
