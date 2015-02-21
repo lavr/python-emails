@@ -31,6 +31,4 @@ def test_django_message_proxy(django_email_backend):
                       'mail_to': 's.lavrinenko@gmail.com',
                       'subject': 'Test from python-emails'}
     msg = emails.html(**message_params)
-    print "msg.mail_from=", msg.mail_from
-
     django_email_backend.send_messages([emails.message.DjangoMessageProxy(msg), ])

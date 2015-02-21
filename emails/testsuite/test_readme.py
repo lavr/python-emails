@@ -11,4 +11,4 @@ def test_loader_example():
                                          mail_from=('ABC', 'robot@mycompany.com'),
                                          subject="Newsletter")
 
-    print message.as_string()
+    print(message.as_string())

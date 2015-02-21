@@ -25,5 +25,4 @@ def test_store_unique_name():
     f1 = store.add({'uri': '/a/c.gif'})
     assert f1.filename == 'c.gif'
     f2 = store.add({'uri': '/a/b/c.gif'})
-    print f2.filename
     assert f2.filename == 'c-2.gif'
