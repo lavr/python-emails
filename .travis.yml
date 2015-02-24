@@ -27,12 +27,12 @@ after_success:
   # Report coverage results to coveralls.io
   - coveralls
 
- deploy:
+deploy:
    provider: pypi
    user: lavr
    password:
      secure: "WuFOsmKW77foHa0Ywv7pwXNvSQ+lHSx/IlYxPTuE7dTj1mNgvXC48NXQONY1ZEDiysryimgfsqumvx6PqLsFmOkG4r9k3gaau0eHE063+/hse0YvbqpnzIWa1FTe4yxreJeEHWSiNyAyo0ERaZVMcnj1ii6paHzuMVuCQ/BwV3k="
    on:
-     branch: master
      tags: true
+     branch: master
    distributions: "sdist bdist_wheel"
