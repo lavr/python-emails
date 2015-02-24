@@ -1,0 +1,8 @@
+[run]
+source = emails
+
+[report]
+omit = 
+    emails/testsuite*
+    emails/packages*
+    emails/compat*

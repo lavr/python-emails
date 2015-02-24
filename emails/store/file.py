@@ -10,8 +10,11 @@ import requests
 from mimetypes import guess_type
 from email.mime.base import MIMEBase
 from email.encoders import encode_base64
+import emails
 from emails.compat import urlparse
 from emails.compat import string_types, to_bytes
+from emails.utils import fetch_url, encode_header
+
 
 # class FileNotFound(Exception):
 #    pass
@@ -32,6 +35,8 @@ class BaseFile(object):
     Store base "attachment-file" information.
     """
 
+    content_id_suffix = '@python.emails'
+
     def __init__(self, **kwargs):
         """
         uri and filename are connected properties.
@@ -42,12 +47,11 @@ class BaseFile(object):
         self.absolute_url = kwargs.get('absolute_url', None) or self.uri
         self.filename = kwargs.get('filename', None)
         self.data = kwargs.get('data', None)
-        self._mime_type = kwargs.get('mime_type', None)
-        self._headers = kwargs.get('headers', None)
-        self._content_disposition = kwargs.get('content_disposition', None)
-        self.subtype = kwargs.get('subtype', None)
-        self.local_loader = kwargs.get('local_loader', None)
-        self.id = id
+        self._mime_type = kwargs.get('mime_type')
+        self._headers = kwargs.get('headers')
+        self._content_disposition = kwargs.get('content_disposition', 'attachment')
+        self.subtype = kwargs.get('subtype')
+        self.local_loader = kwargs.get('local_loader')
 
     def as_dict(self, fields=None):
         fields = fields or ('uri', 'absolute_url', 'filename', 'data',
@@ -120,20 +124,40 @@ class BaseFile(object):
     content_disposition = property(get_content_disposition, set_content_disposition)
 
     @property
+    def is_inline(self):
+        return self.content_disposition == 'inline'
+
+    @is_inline.setter
+    def is_inline(self, value):
+        if bool(value):
+            self.content_disposition = 'inline'
+        else:
+            self.content_disposition = 'attachment'
+
+    @property
+    def content_id(self):
+        return "{0}{1}".format(self.filename, self.content_id_suffix)
+
+    @staticmethod
+    def parse_content_id(cls, content_id):
+        if content_id.endswith(cls.content_id_suffix):
+            return {'filename': content_id[:-len(cls.content_id_suffix)]}
+        else:
+            return None
+
+    @property
     def mime(self):
         if self.content_disposition is None:
             return None
         _mime = getattr(self, '_cached_mime', None)
         if _mime is None:
-            filename = str(Header(self.filename, 'utf-8'))
-            self._cached_mime = _mime = MIMEBase(*self.mime_type.split('/', 1))
+            filename_header = encode_header(self.filename)
+            self._cached_mime = _mime = MIMEBase(*self.mime_type.split('/', 1), name=filename_header)
             _mime.set_payload(to_bytes(self.data))
             encode_base64(_mime)
-            _mime.add_header('Content-Disposition',
-                             self.content_disposition,
-                             filename=filename)
+            _mime.add_header('Content-Disposition', self.content_disposition, filename=filename_header)
             if self.content_disposition == 'inline':
-                _mime.add_header('Content-ID', '<{0}>'.format(filename))
+                _mime.add_header('Content-ID', '<%s>' % self.content_id)
         return _mime
 
     def reset_mime(self):
@@ -145,11 +169,9 @@ class BaseFile(object):
 
 class LazyHTTPFile(BaseFile):
 
-    def __init__(self, fetch_params=None, **kwargs):
+    def __init__(self, requests_args=None, **kwargs):
         BaseFile.__init__(self, **kwargs)
-        self.fetch_params = dict(allow_redirects=True, verify=False)
-        if fetch_params:
-            self.fetch_params.update(fetch_params)
+        self.requests_args = requests_args
         self._fetched = False
 
     def fetch(self):
@@ -162,7 +184,7 @@ class LazyHTTPFile(BaseFile):
                     self._data = data
                     return
 
-            r = requests.get(self.absolute_url or self.uri, **self.fetch_params)
+            r = fetch_url(url=self.absolute_url or self.uri, requests_args=self.requests_args)
             if r.status_code == 200:
                 self._data = r.content
                 self._headers = r.headers

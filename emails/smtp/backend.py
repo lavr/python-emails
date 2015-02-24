@@ -1,11 +1,10 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-__all__ = [ 'SMTPSender' ]
+__all__ = ['SMTPBackend']
 
 import smtplib
 import logging
-import threading
 from functools import wraps
 
 from .client import SMTPResponse, SMTPClientWithResponse, SMTPClientWithResponse_SSL
@@ -31,25 +30,19 @@ class SMTPBackend:
 
 
     def __init__(self,
-                 user=None,
-                 password=None,
                  ssl=False,
-                 tls=False,
-                 debug=False,
                  fail_silently=True,
                  **kwargs):
 
         self.smtp_cls = ssl and self.connection_ssl_cls or self.connection_cls
-        self.debug = debug
+
         self.ssl = ssl
-        self.tls = tls
+        self.tls = kwargs.get('tls')
         if self.ssl and self.tls:
             raise ValueError(
                 "ssl/tls are mutually exclusive, so only set "
                 "one of those settings to True.")
 
-        self.user = user
-        self.password = password
         if 'timeout' not in kwargs:
             kwargs['timeout'] = self.DEFAULT_SOCKET_TIMEOUT
         self.smtp_cls_kwargs = kwargs
@@ -59,10 +52,8 @@ class SMTPBackend:
         self.fail_silently = fail_silently
         self.connection = None
         #self.local_hostname=DNS_NAME.get_fqdn()
-        self._lock = threading.RLock()
 
     def open(self):
-        #logger.debug('SMTPSender _connect')
         if self.connection is None:
             self.connection = self.smtp_cls(parent=self, **self.smtp_cls_kwargs)
             self.connection.initialize()
@@ -82,7 +73,6 @@ class SMTPBackend:
                 raise
         finally:
             self.connection = None
-
 
     def make_response(self, exception=None):
         return self.response_cls(host=self.host, port=self.port, exception=exception)
@@ -105,21 +95,17 @@ class SMTPBackend:
 
     def sendmail(self, from_addr, to_addrs, msg, mail_options=[], rcpt_options=[]):
 
-        if not to_addrs: return False
+        if not to_addrs:
+            return False
 
         if not isinstance(to_addrs, (list, tuple)):
             to_addrs = [to_addrs, ]
-
-        #from_addr = sanitize_address(from_addr, email_message.encoding)
-        #to_addrs = [sanitize_address(addr, email_message.encoding) for addr in to_addrs]
-        #message = email_message.message()
-        #charset = message.get_charset().get_output_charset() if message.get_charset() else 'utf-8'
 
         try:
             self.open()
         except (IOError, smtplib.SMTPException) as e:
             logger.exception("Error connecting smtp server")
-            response = self.make_response(exception = e)
+            response = self.make_response(exception=e)
             if not self.fail_silently:
                 response.raise_if_needed()
             return [response, ]
@@ -133,7 +119,6 @@ class SMTPBackend:
                              rcpt_options=rcpt_options)
 
         if not self.fail_silently:
-            [ r.raise_if_needed() for r in response ]
+            [r.raise_if_needed() for r in response]
 
         return response
-

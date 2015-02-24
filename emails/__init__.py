@@ -23,10 +23,12 @@ More examples is at <https://github.com/lavr/python-emails/README.rst>.
 """
 
 __title__ = 'emails'
-__version__ = '0.1.13'
+__version__ = '0.2'
 __author__ = 'Sergey Lavrinenko'
 __license__ = 'Apache 2.0'
-__copyright__ = 'Copyright 2013 Sergey Lavrinenko'
+__copyright__ = 'Copyright 2013-2015 Sergey Lavrinenko'
+
+USER_AGENT = 'python-emails/%s' % __version__
 
 from .message import Message, html
 from .utils import MessageID
