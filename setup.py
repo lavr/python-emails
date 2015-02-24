@@ -58,7 +58,7 @@ class run_audit(Command):
 
 settings.update(
     name='emails',
-    version='0.1.12',
+    version='0.1.13',
     description='Elegant and simple email library for python 2/3',
     long_description=open('README.rst').read(),
     author='Sergey Lavrinenko',
