@@ -1,5 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals
+from email.header import Header
 
 import uuid
 
@@ -124,14 +125,15 @@ class BaseFile(object):
             return None
         _mime = getattr(self, '_cached_mime', None)
         if _mime is None:
+            filename = str(Header(self.filename, 'utf-8'))
             self._cached_mime = _mime = MIMEBase(*self.mime_type.split('/', 1))
             _mime.set_payload(to_bytes(self.data))
             encode_base64(_mime)
             _mime.add_header('Content-Disposition',
                              self.content_disposition,
-                             filename=self.filename)
+                             filename=filename)
             if self.content_disposition == 'inline':
-                _mime.add_header('Content-ID', '<%s>' % self.filename)
+                _mime.add_header('Content-ID', '<{0}>'.format(filename))
         return _mime
 
     def reset_mime(self):

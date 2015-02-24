@@ -33,11 +33,9 @@ def test_send1():
         r = m.send(smtp=SMTP_DATA)
 
 
-def test_send_with_render():
-    data = _email_data()
+def test_send3():
+    data = _email_data(subject='[test python-emails] email with attachments')
     m = emails.html(**data)
-    m.render(name=u'Полина')
-    assert m.subject == u'Hello, Полина'
     if HAS_INTERNET_CONNECTION:
         r = m.send(render={'name': u'Полина'}, smtp=SMTP_DATA)
 

@@ -41,8 +41,8 @@ def _email_data(**kwargs):
             'text': T('Привет, {{name}}!\nВ первых строках...'),
             'headers': {'X-Mailer': 'python-emails'},
             'attachments': [
-                {'data': 'aaa', 'filename': 'Event.ics'},
-                {'data': 'bbb', 'filename': 'map.png'}
+                {'data': 'aaa', 'filename': 'Event.ics', 'content_disposition': 'attachment'},
+                {'data': 'bbb', 'filename': 'Карта.png', 'content_disposition': 'attachment'}
             ]}
     if kwargs:
         data.update(kwargs)
