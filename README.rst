@@ -187,3 +187,6 @@ There are plenty other python email-around libraries:
 
 .. image:: https://travis-ci.org/lavr/python-emails.png?branch=master
    :target: https://travis-ci.org/lavr/python-emails
+
+.. image:: https://coveralls.io/repos/lavr/python-emails/badge.svg?branch=master
+   :target: https://coveralls.io/r/lavr/python-emails?branch=master
