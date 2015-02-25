@@ -2,4 +2,3 @@
 --requirement=tests-base.txt
 
 django
-lamson

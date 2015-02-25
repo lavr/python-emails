@@ -40,59 +40,81 @@ class TestSmtpServer:
             self._process.terminate()
 
 
-class TestLamsonSmtpServer:
+class SecureSMTPDServer(object):
 
     def __init__(self):
-        import sys
-        sys.path.insert(0, os.path.dirname(__file__))
-        import lamsondebuggingsmtpinstance
-        import lamsondebuggingsmtpinstance.config.settings
-        self.lamsondir = os.path.dirname(lamsondebuggingsmtpinstance.__file__)
-        settings = lamsondebuggingsmtpinstance.config.settings
-        self.host = settings.receiver_config['host']
-        self.port = settings.receiver_config['port']
-        self.lock = threading.Lock()
-        self._started = False
+        self._cwd = os.path.join(os.path.dirname(__file__), 'contrib/local-smtpd')
+        self._process = None
+        self.host = 'localhost'
+        self.user = 'A'
+        self.password = 'B'
+        self.argv = None
 
-
-    def _lamson_command(self, lamson_params):
-        r = subprocess.call("lamson {0}".format( lamson_params ), shell=True, cwd=self.lamsondir)
-        print("_lamson_command '{0}' return code is {1}".format(lamson_params, r))
+    def as_dict(self):
+        r = {'host': self.host, 'port': self.port, 'fail_silently': False, 'debug': 1}
+        argv = self.argv or []
+        if 'ssl' in argv:
+            r['ssl'] = True
+        if 'auth' in argv:
+            r.update({'user': self.user, 'password': self.password})
         return r
 
-    def _start_lamson(self):
-        if not self._started:
-            self._stop_lamson() # just is case
-            logger.debug('stop lamson...')
-            return self._lamson_command('start -FORCE')
-
-    def _stop_lamson(self):
-        return self._lamson_command('stop')
-
-    def get_server(self):
-        self._start_lamson()
-        time.sleep(1)
+    def get_server(self, argv=None):
+        if self._process is None:
+            self.argv = argv or []
+            if 'ssl' in self.argv:
+                self.port = 25126
+            elif 'auth' in self.argv:
+                self.port = 25127
+            else:
+                self.port = 25125
+            cmd = '/bin/sh ./run.sh'.split(' ')
+            if argv:
+                cmd.extend(argv)
+            self._process = subprocess.Popen(cmd, shell=False, cwd=self._cwd)
+            logger.error('Started test smtp server "%s", pid: %s', cmd, self._process.pid)
+            #print('Started test smtp server "{0}", pid: {1}'.format(CMD, self._process.pid))
+            time.sleep(1)
         return self
 
     def stop(self):
-        if self._started:
-            logger.debug('stop lamson...')
-            self._start_lamson()
+        if self._process:
+            logger.error('kill process...')
+            self._process.terminate()
+            time.sleep(1)
 
 
 @pytest.fixture(scope="module")
 def smtp_server(request):
     logger.debug('smtp_server...')
-    try:
-        import lamson
-        ext_server = TestLamsonSmtpServer()
-    except ImportError:
-        ext_server = TestSmtpServer()
+    ext_server = SecureSMTPDServer()
     def fin():
         print ("stopping ext_server")
         ext_server.stop()
     request.addfinalizer(fin)
-    return ext_server.get_server() #host, ext_server.port)
+    return ext_server.get_server()
+
+@pytest.fixture(scope="module")
+def smtp_server_with_auth(request):
+    logger.debug('smtp_server with auth...')
+    ext_server = SecureSMTPDServer()
+    def fin():
+        print ("stopping ext_server with auth")
+        ext_server.stop()
+    request.addfinalizer(fin)
+    return ext_server.get_server(['auth'])
+
+
+@pytest.fixture(scope="module")
+def smtp_server_with_ssl(request):
+    logger.debug('smtp_server with ssl...')
+    ext_server = SecureSMTPDServer()
+    def fin():
+        print ("stopping ext_server with auth")
+        ext_server.stop()
+    request.addfinalizer(fin)
+    return ext_server.get_server(['ssl'])
+
 
 @pytest.fixture(scope='module')
 def django_email_backend(request):

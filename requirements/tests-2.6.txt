@@ -2,5 +2,4 @@
 --requirement=tests-base.txt
 
 django==1.6
-lamson
 ordereddict
