@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import codecs
 import os
+import re
 import sys
 
 
@@ -56,11 +57,21 @@ class run_audit(Command):
         else:
             print("No problems found in sourcecode.")
 
-import emails
+def find_version(*file_paths):
+    version_file_path = os.path.join(os.path.dirname(__file__),
+                                     *file_paths)
+    version_file = codecs.open(version_file_path,
+                               encoding='utf-8').read()
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
 
 settings.update(
     name='emails',
-    version=emails.__version__,
+    version=find_version('emails/__init__.py'),
     description='Elegant and simple email library for python 2/3',
     long_description=open('README.rst').read(),
     author='Sergey Lavrinenko',
