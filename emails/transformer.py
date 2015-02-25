@@ -11,8 +11,9 @@ from premailer import Premailer
 from premailer.premailer import ExternalNotFoundError
 
 import emails
-from emails.compat import urlparse, to_unicode, to_bytes, text_type
-from emails.store import MemoryFileStore, LazyHTTPFile
+from .compat import urlparse, to_unicode, to_bytes, text_type
+from .store import MemoryFileStore, LazyHTTPFile
+from .template.base import BaseTemplate
 from .loader.local_store import FileNotFound
 
 
@@ -310,9 +311,17 @@ class MessageTransformer(BaseTransformer):
 
     def __init__(self, message, **kw):
         self.message = message
-        params = {'html': message._html, 'attachment_store': message.attachments}
+
+        t = message._html
+        _html = isinstance(t, BaseTemplate) and t.template_text or t
+
+        params = {'html': _html, 'attachment_store': message.attachments}
         params.update(kw)
         BaseTransformer.__init__(self, **params)
 
     def save(self):
-        self.message._html = self.to_string()
+        m = self.message
+        if isinstance(m._html, BaseTemplate):
+            m._html.set_template_text(self.to_string())
+        else:
+            m._html = self.to_string()
