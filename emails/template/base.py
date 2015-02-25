@@ -3,24 +3,40 @@ from __future__ import unicode_literals
 import string
 
 
-class BaseTemplate:
+class BaseTemplate(object):
 
     def __init__(self, template_text, **kwargs):
-        self.template = template_text
+        self.set_template_text(template_text)
+        self.kwargs = kwargs
+
+    def set_template_text(self, template_text):
+        self.template_text = template_text
+        self._template = None
 
     def render(self, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
+
+    def compile_template(self):
+        raise NotImplementedError
+
+    @property
+    def template(self):
+        if self._template is None:
+            self._template = self.compile_template()
+        return self._template
 
 
-class StringTemplate:
+class StringTemplate(BaseTemplate):
     """
-    string.Template is very basic template engine.
-    Do not use it really.
+    string.Template based engine.
     """
-    def __init__(self, template_text, safe_substitute=True, **kwargs):
-        self.template = string.Template(template_text)
-        self.safe_substitute = safe_substitute
+    def compile_template(self):
+        safe_substitute = self.kwargs.get('safe_substitute')
+        t = string.Template(self.template_text)
+        if safe_substitute:
+            return t.safe_substitute
+        else:
+            return t.substitute
 
     def render(self, **kwargs):
-        r = self.safe_substitute and self.template.safe_substitute or self.template.substitute
-        return r(**kwargs)
+        return self.template(**kwargs)
