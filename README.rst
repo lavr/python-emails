@@ -190,3 +190,6 @@ There are plenty other python email-around libraries:
 
 .. image:: https://coveralls.io/repos/lavr/python-emails/badge.svg?branch=master
    :target: https://coveralls.io/r/lavr/python-emails?branch=master
+
+.. image:: http://allmychanges.com/p/python/emails/badge/
+   :target: http://allmychanges.com/p/python/emails/?utm_source=badge
