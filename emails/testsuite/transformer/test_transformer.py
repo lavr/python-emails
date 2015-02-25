@@ -1,6 +1,7 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 from emails.transformer import Transformer
+import emails.loader
 
 
 def test_image_apply():
@@ -40,3 +41,18 @@ def test_link_apply():
         t = Transformer(html=before)
         t.apply_to_links(func)
         assert after in t.to_string()
+
+
+def test_tag_attribute():
+
+
+    m1 = emails.loader.from_string(html="""<img src="1.jpg">""")
+    assert len(m1.attachments.keys()) == 1
+    assert m1.attachments['1.jpg'].content_disposition != "inline"
+
+    m2 = emails.loader.from_string(html="""<img src="1.jpg" data-emails="ignore">""")
+    assert len(m2.attachments.keys()) == 0
+
+    m3 = emails.loader.from_string(html="""<img src="1.jpg" data-emails="inline">""")
+    assert len(m3.attachments.keys()) == 1
+    assert m3.attachments['1.jpg'].content_disposition == "inline"

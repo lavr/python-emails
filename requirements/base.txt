@@ -3,4 +3,4 @@ lxml
 chardet
 python-dateutil
 requests
-premailer
+premailer>=2.8.3

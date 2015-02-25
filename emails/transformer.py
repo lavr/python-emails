@@ -19,10 +19,12 @@ from .loader.local_store import FileNotFound
 
 class LocalPremailer(Premailer):
 
-    def __init__(self, html, local_loader=None, **kw):
+    def __init__(self, html, local_loader=None, attribute_name=None, **kw):
         if 'preserve_internal_links' not in kw:
             kw['preserve_internal_links'] = True
         self.local_loader = local_loader
+        if attribute_name:
+            self.attribute_name = attribute_name
         super(LocalPremailer, self).__init__(html=html, **kw)
 
     def _load_external(self, url):
@@ -159,6 +161,7 @@ class BaseTransformer(HTMLParser):
 
     attachment_store_cls = MemoryFileStore
     attachment_file_cls = LazyHTTPFile
+    html_attribute_name = 'data-emails'
 
     def __init__(self, html, local_loader=None,
                  attachment_store=None,
@@ -170,6 +173,8 @@ class BaseTransformer(HTMLParser):
         self.local_loader = local_loader
         self.base_url = base_url
         self.requests_params = requests_params
+
+        self._premailer = None
 
     def get_absolute_url(self, url):
 
@@ -188,20 +193,47 @@ class BaseTransformer(HTMLParser):
 
         return url
 
+    def _attribute_value(self, el):
+        return el is not None \
+               and hasattr(el, 'attrib') \
+               and el.attrib.get(self.html_attribute_name) \
+               or None
+
     def _load_attachment_func(self, uri, element=None, **kw):
+
         #
         # Load uri from remote url or from local_store
         # Return local uri
         #
+
+        # Ignore tags with attribute data-emails="ignore"
+        attribute_value = self._attribute_value(element)
+        if attribute_value == 'ignore':
+            return uri
+
         attachment = self.attachment_store.by_uri(uri)
         if attachment is None:
             attachment = self.attachment_file_cls(
                 uri=uri,
                 absolute_url=self.get_absolute_url(uri),
                 local_loader=self.local_loader,
+                content_disposition='inline' if attribute_value and 'inline' in attribute_value else None,
                 requests_args=self.requests_params)
             self.attachment_store.add(attachment)
         return attachment.filename
+
+    def get_premailer(self, **kw):
+        kw.setdefault('attribute_name', self.html_attribute_name)
+        kw.setdefault('method', self._method)
+        kw.setdefault('base_url', self.base_url)
+        kw.setdefault('local_loader', self.local_loader)
+        return LocalPremailer(html=self.tree, **kw)
+
+    @property
+    def premailer(self):
+        if self._premailer is None:
+            self._premailer = self.get_premailer()
+        return self._premailer
 
     def remove_unsafe_tags(self):
         for tag in self.UNSAFE_TAGS:
@@ -224,10 +256,6 @@ class BaseTransformer(HTMLParser):
             # Now we use Premailer that always makes links absolute
             warnings.warn("make_links_absolute=False is deprecated.", DeprecationWarning)
 
-        if not css_inline:
-            # Premailer always makes inline css.
-            warnings.warn("css_inline=False is deprecated.", DeprecationWarning)
-
         if update_stylesheet:
             # Premailer has no such feature.
             warnings.warn("update_stylesheet=True is deprecated.", DeprecationWarning)
@@ -235,12 +263,8 @@ class BaseTransformer(HTMLParser):
         # 1. Premailer make some transformations on self.root tree:
         #  - load external css and make css inline
         #  - make absolute href and src if base_url is set
-        premailer = LocalPremailer(html=self.tree,
-                                   local_loader=self.local_loader,
-                                   method=self._method,
-                                   base_url=self.base_url,
-                                   **kw)
-        premailer.transform()
+        if css_inline:
+            self.get_premailer(**kw).transform()
 
         # 2. Load linked images and transform links
         if load_images:

@@ -43,7 +43,7 @@ def all_equals(seq):
 
 def test_loaders():
 
-    messages = list(_get_messages())
+    messages = list(_get_messages(requests_params={'timeout': 10}))
 
     # Check loaded images
     for m in messages:
