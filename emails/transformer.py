@@ -256,9 +256,12 @@ class BaseTransformer(HTMLParser):
 
         # 5. Make images inline
         if load_images and images_inline:
-            for a in self.attachment_store:
-                a.is_inline = True
-            self.synchronize_inline_images()
+            self.make_all_images_inline()
+
+    def make_all_images_inline(self):
+        for a in self.attachment_store:
+            a.is_inline = True
+        self.synchronize_inline_images()
 
     def synchronize_inline_images(self, inline_names=None, non_inline_names=None):
         """
