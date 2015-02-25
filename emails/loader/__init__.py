@@ -44,7 +44,7 @@ def from_directory(directory, index_file=None, message_params=None, **kwargs):
 
     message_params = message_params or {}
     message = Message(html=store[index_file_name], **message_params)
-    message.create_transformer(local_loader=store, requests_params=kwargs.get('requests_params'))
+    message.create_transformer(local_loader=store, requests_params=kwargs.pop('requests_params', None))
     message.transformer.load_and_transform(**kwargs)
     message.transformer.save()
     return message
@@ -63,7 +63,7 @@ def from_zip(zip_file, message_params=None, **kwargs):
 
     message_params = message_params or {}
     message = Message(html=store[index_file_name], **message_params)
-    message.create_transformer(local_loader=store, requests_params=kwargs.get('requests_params'))
+    message.create_transformer(local_loader=store, requests_params=kwargs.pop('requests_params', None))
     message.transformer.load_and_transform(**kwargs)
     message.transformer.save()
     return message

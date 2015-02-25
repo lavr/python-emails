@@ -13,7 +13,6 @@ ROOT = os.path.dirname(__file__)
 
 BASE_URL = 'http://lavr.github.io/python-emails/tests/campaignmonitor-samples/oldornament'
 
-
 def _get_messages(**kw):
     # All loaders loads same data
     yield emails.loader.from_url(BASE_URL + '/index.html', **kw)
@@ -43,7 +42,7 @@ def all_equals(seq):
 
 def test_loaders():
 
-    messages = list(_get_messages(requests_params={'timeout': 10}))
+    messages = list(_get_messages())
 
     # Check loaded images
     for m in messages:
@@ -59,6 +58,27 @@ def test_loaders():
     htmls = [normalize_html(m.html) for m in messages]
     assert 'Lorem Ipsum Dolor Sit Amet' in htmls[0]
     assert all_equals(htmls)
+
+
+def test_loaders_with_params():
+
+    transform_params = dict(css_inline=True,
+                            remove_unsafe_tags=True,
+                            make_links_absolute=True,
+                            set_content_type_meta=True,
+                            update_stylesheet=True,
+                            load_images=True,
+                            images_inline=True)
+
+    message_params = {'subject': 'X', 'mail_to': 'a@b.net'}
+
+    for m in _get_messages(requests_params={'timeout': 10},
+                           message_params=message_params,
+                           **transform_params):
+        assert m.subject == message_params['subject']
+        assert m.mail_to[0][1] == message_params['mail_to']
+        for a in m.attachments:
+            assert a.is_inline is True
 
 
 def _test_external_urls():
