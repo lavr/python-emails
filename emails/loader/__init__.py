@@ -1,12 +1,12 @@
 # encoding: utf-8
 import os
 import os.path
-from emails.loader.helpers import guess_charset
 from emails.compat import to_unicode
 from emails.compat import urlparse
 from emails import Message
 from emails.utils import fetch_url
 from emails.loader import local_store
+from emails.loader.helpers import guess_charset
 
 
 def from_url(url, message_params=None, requests_params=None, **kwargs):
@@ -43,7 +43,7 @@ def from_directory(directory, index_file=None, message_params=None, **kwargs):
         store.base_path = dirname
 
     message_params = message_params or {}
-    message = Message(html=store[index_file_name], **message_params)
+    message = Message(html=store.content(index_file_name, is_html=True, guess_charset=True), **message_params)
     message.create_transformer(local_loader=store, requests_params=kwargs.pop('requests_params', None))
     message.transformer.load_and_transform(**kwargs)
     message.transformer.save()
@@ -62,7 +62,7 @@ def from_zip(zip_file, message_params=None, **kwargs):
         store.base_path = dirname
 
     message_params = message_params or {}
-    message = Message(html=store[index_file_name], **message_params)
+    message = Message(html=store.content(index_file_name, is_html=True, guess_charset=True), **message_params)
     message.create_transformer(local_loader=store, requests_params=kwargs.pop('requests_params', None))
     message.transformer.load_and_transform(**kwargs)
     message.transformer.save()
@@ -83,8 +83,8 @@ from_string = from_html
 def from_rfc822(msg, message_params=None, **kw):
 
     store = local_store.MsgLoader(msg=msg)
-    text = store.get_source('__index.txt')
-    html = store.get_source('__index.html')
+    text = store['__index.txt']
+    html = store['__index.html']
 
     message_params = message_params or {}
     message = Message(html=html, text=text, **message_params)

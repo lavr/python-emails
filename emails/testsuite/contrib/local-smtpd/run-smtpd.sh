@@ -10,5 +10,5 @@ else
     PYTHON=python
 fi
 
-echo "$PYTHON run.py $@"
-$PYTHON run.py $@
+echo "use python $PYTHON"
+$PYTHON run-smtpd.py $@

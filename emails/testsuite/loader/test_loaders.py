@@ -9,8 +9,9 @@ import emails
 import emails.loader
 import emails.transformer
 from emails.loader.local_store import MsgLoader, FileSystemLoader, FileNotFound, ZipLoader
-from emails.loader import guess_charset
 from emails.compat import text_type
+from emails.loader.helpers import guess_charset
+
 ROOT = os.path.dirname(__file__)
 
 BASE_URL = 'http://lavr.github.io/python-emails/tests/campaignmonitor-samples/oldornament'
@@ -138,16 +139,6 @@ def _test_mass_msgloader():
         msgloader._parse_msg()
 
 
-def test_guess_charset():
-    html = """<html><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />"""
-    assert guess_charset(headers=None, html=html) == 'UTF-8'
-
-    html = """Шла Саша по шоссе и сосала сушку"""
-    assert guess_charset(headers=None, html=html.encode('utf-8')) == 'utf-8'
-
-    assert guess_charset(headers={'content-type': 'text/html; charset=utf-8'}, html='') == 'utf-8'
-
-
 def _get_loaders():
     # All loaders loads same data
     yield FileSystemLoader(os.path.join(ROOT, "data/html_import/oldornament/"))
@@ -158,10 +149,11 @@ def test_local_store1():
     for loader in _get_loaders():
         print(loader)
         print(type(loader['index.html']))
-        assert isinstance(loader['index.html'], text_type)
-        assert '<table' in loader['index.html']
+        assert isinstance(loader.content('index.html'), text_type)
+        assert isinstance(loader['index.html'], bytes)
+        assert '<table' in loader.content('index.html')
         with pytest.raises(FileNotFound):
-            loader.get_source('nofile.ext')
+            loader.get_file('nofile.ext')
         files_list = list(loader.list_files())
         assert 'images/arrow.png' in files_list
         assert len(files_list) in [15, 16]

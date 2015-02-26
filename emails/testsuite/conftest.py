@@ -68,7 +68,7 @@ class SecureSMTPDServer(object):
                 self.port = 25127
             else:
                 self.port = 25125
-            cmd = '/bin/sh ./run.sh'.split(' ')
+            cmd = '/bin/sh ./run-smtpd.sh'.split(' ')
             if argv:
                 cmd.extend(argv)
             self._process = subprocess.Popen(cmd, shell=False, cwd=self._cwd)

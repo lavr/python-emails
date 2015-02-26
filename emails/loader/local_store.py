@@ -9,6 +9,7 @@ from zipfile import ZipFile
 import email
 
 from emails.compat import to_unicode, string_types
+from emails.loader.helpers import guess_html_charset, decode_text
 
 
 class FileNotFound(Exception):
@@ -42,12 +43,26 @@ def open_if_exists(filename, mode='rb'):
 
 
 class BaseLoader(object):
+
     def __getitem__(self, filename):
         try:
-            contents, _ = self.get_source(filename)
+            contents, _ = self.get_file(filename)
             return contents
         except FileNotFound:
             return None
+
+    def get_file(self, name):
+        raise NotImplementedError
+
+    def content(self, filename, is_html=False, decode=True, guess_charset=False, charset='utf-8'):
+        data = self[filename]
+        if decode:
+            data, encoding = decode_text(data,
+                                         is_html=is_html,
+                                         guess_charset=guess_charset,
+                                         try_common_charsets=False,
+                                         fallback_charset=charset)
+        return data
 
     def find_index_file(self, filename=None):
         if filename:
@@ -98,25 +113,21 @@ class FileSystemLoader(BaseLoader):
         self.encoding = encoding
         self.base_path = base_path
 
-    def get_source(self, template):
-
+    def get_file(self, filename):
         if self.base_path:
-            name = path.join(self.base_path, template)
-
-        pieces = split_template_path(template)
+            filename = path.join(self.base_path, filename)
+        pieces = split_template_path(filename)
         for searchpath in self.searchpath:
             filename = path.join(searchpath, *pieces)
             f = open_if_exists(filename)
             if f is None:
                 continue
             try:
-                contents = f.read().decode(self.encoding)
+                contents = f.read()
             finally:
                 f.close()
-
             return contents, filename
-
-        raise FileNotFound(template)
+        raise FileNotFound(filename)
 
     def list_files(self):
         found = set()
@@ -133,11 +144,11 @@ class FileSystemLoader(BaseLoader):
 
 
 class ZipLoader(BaseLoader):
-    def __init__(self, file, encoding='utf-8', base_path=None):
+    def __init__(self, file, encoding='utf-8', base_path=None, guess_encoding=True):
         self.zipfile = ZipFile(file, 'r')
         self.encoding = encoding
         self.base_path = base_path
-        self.mapping = {}
+        self.guess_encoding = guess_encoding
         self._filenames = None
 
     def _decode_zip_filename(self, name):
@@ -155,7 +166,7 @@ class ZipLoader(BaseLoader):
                 decoded_name = self._decode_zip_filename(name)
                 self._filenames[decoded_name] = name
 
-    def get_source(self, name):
+    def get_file(self, name):
 
         if self.base_path:
             name = path.join(self.base_path, name)
@@ -165,19 +176,12 @@ class ZipLoader(BaseLoader):
         if isinstance(name, str):
             name = to_unicode(name, 'utf-8')
 
-        data = self.mapping.get(name, None)
-
-        if data is not None:
-            return data, name
-
         original_name = self._filenames.get(name)
 
         if original_name is None:
             raise FileNotFound(name)
 
-        data = self.zipfile.read(original_name).decode(self.encoding)
-
-        return data, name
+        return self.zipfile.read(original_name), name
 
     def list_files(self):
         self._unpack_zip()
@@ -277,12 +281,12 @@ class MsgLoader(BaseLoader):
 
             self.add_another_part(part)
 
-    def get_source(self, name):
+    def get_file(self, name):
         self._parse_msg()
         f = self._files.get(name)
         if f:
             return f['data'], name
-        return None, name
+        raise FileNotFound(name)
 
     def list_files(self):
         return self._files
