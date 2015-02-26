@@ -22,15 +22,16 @@ def test_send_to_unknow_host():
         assert response.error.errno==8
 
 
+SAMPLE_MESSAGE = {'html': '<p>Test from python-emails',
+                  'mail_from': 's@lavr.me',
+                  'mail_to': 'sergei-nko@yandex.ru',
+                  'subject': 'Test from python-emails'}
+
+
 def test_smtp_reconnect(smtp_server):
 
     # Simulate server disconnection
     # Check that SMTPBackend will reconnect
-
-    message_params = {'html':'<p>Test from python-emails',
-                      'mail_from': 's@lavr.me',
-                      'mail_to': 'sergei-nko@yandex.ru',
-                      'subject': 'Test from python-emails'}
 
     server = SMTPBackend(host=smtp_server.host, port=smtp_server.port, debug=1)
     server.open()
@@ -38,30 +39,22 @@ def test_smtp_reconnect(smtp_server):
     server.connection.sock.close()  # simulate disconnect
     response = server.sendmail(to_addrs='s@lavr.me',
                                from_addr='s@lavr.me',
-                               msg=emails.html(**message_params) )
+                               msg=emails.html(**SAMPLE_MESSAGE))
     print(response)
 
 
-def test_smtp_dict(smtp_server):
-
-    message_params = {'html':'<p>Test from python-emails',
-                      'mail_from': 's@lavr.me',
-                      'mail_to': 'sergei-nko@yandex.ru',
-                      'subject': 'Test from python-emails'}
-
-    response = emails.html(**message_params).send( smtp={'host':smtp_server.host, 'port':smtp_server.port} )
-
+def test_smtp_dict1(smtp_server):
+    response = emails.html(**SAMPLE_MESSAGE).send(smtp=smtp_server.as_dict())
     print(response)
+    assert response.status_code == 250
 
 
+def test_smtp_dict2(smtp_server_with_auth):
+    response = emails.html(**SAMPLE_MESSAGE).send(smtp=smtp_server_with_auth.as_dict())
+    print(response)
+    assert response.status_code == 250
 
-if __name__=="__main__":
-    import sys
-    import logging
-    sys.path.insert(0, '..')
-    logging.basicConfig(level=logging.DEBUG)
-    test_send_to_unknow_host()
-
-    from conftest import TestLamsonSmtpServer
-    smtp_server = TestLamsonSmtpServer().get_server()
-    test_smtp_reconnect(smtp_server)
+def test_smtp_dict2(smtp_server_with_ssl):
+    response = emails.html(**SAMPLE_MESSAGE).send(smtp=smtp_server_with_ssl.as_dict())
+    print(response)
+    assert response.status_code == 250
