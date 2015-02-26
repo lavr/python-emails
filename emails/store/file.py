@@ -138,7 +138,7 @@ class BaseFile(object):
     def content_id(self):
         return "{0}{1}".format(self.filename, self.content_id_suffix)
 
-    @staticmethod
+    @classmethod
     def parse_content_id(cls, content_id):
         if content_id.endswith(cls.content_id_suffix):
             return {'filename': content_id[:-len(cls.content_id_suffix)]}

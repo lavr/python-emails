@@ -30,4 +30,4 @@ class ObjectFactory:
         cache_key = _serializer(k)
         if cache_key in self.pool:
             del self.pool[cache_key]
-        return self[cache_key]
+        return self[k]

@@ -1,14 +1,16 @@
 # encoding: utf-8
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import glob
 import os.path
 import email
+import pytest
 from requests import ConnectionError
 import emails
 import emails.loader
 import emails.transformer
-from emails.loader.local_store import MsgLoader
-
+from emails.loader.local_store import MsgLoader, FileSystemLoader, FileNotFound, ZipLoader
+from emails.loader import guess_charset
+from emails.compat import text_type
 ROOT = os.path.dirname(__file__)
 
 BASE_URL = 'http://lavr.github.io/python-emails/tests/campaignmonitor-samples/oldornament'
@@ -62,26 +64,36 @@ def test_loaders():
 
 def test_loaders_with_params():
 
-    transform_params = dict(css_inline=True,
+    transform_params = [ dict(css_inline=True,
                             remove_unsafe_tags=True,
                             make_links_absolute=True,
                             set_content_type_meta=True,
                             update_stylesheet=True,
                             load_images=True,
-                            images_inline=True)
+                            images_inline=True),
+
+                         dict(css_inline=False,
+                              remove_unsafe_tags=False,
+                              make_links_absolute=False,
+                              set_content_type_meta=False,
+                              update_stylesheet=False,
+                              load_images=False,
+                              images_inline=False)
+                         ]
 
     message_params = {'subject': 'X', 'mail_to': 'a@b.net'}
 
-    for m in _get_messages(requests_params={'timeout': 10},
-                           message_params=message_params,
-                           **transform_params):
-        assert m.subject == message_params['subject']
-        assert m.mail_to[0][1] == message_params['mail_to']
-        for a in m.attachments:
-            assert a.is_inline is True
+    for tp in transform_params:
+        for m in _get_messages(requests_params={'timeout': 10},
+                               message_params=message_params,
+                               **tp):
+            assert m.subject == message_params['subject']
+            assert m.mail_to[0][1] == message_params['mail_to']
+            for a in m.attachments:
+                assert a.is_inline is True
 
 
-def _test_external_urls():
+def test_external_urls():
 
     # Load some real sites with complicated html and css.
     # Test loader don't throw any exception.
@@ -124,3 +136,33 @@ def _test_mass_msgloader():
         msg = email.message_from_string(open(filename).read())
         msgloader = MsgLoader(msg=msg)
         msgloader._parse_msg()
+
+
+def test_guess_charset():
+    html = """<html><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />"""
+    assert guess_charset(headers=None, html=html) == 'UTF-8'
+
+    html = """Шла Саша по шоссе и сосала сушку"""
+    assert guess_charset(headers=None, html=html.encode('utf-8')) == 'utf-8'
+
+    assert guess_charset(headers={'content-type': 'text/html; charset=utf-8'}, html='') == 'utf-8'
+
+
+def _get_loaders():
+    # All loaders loads same data
+    yield FileSystemLoader(os.path.join(ROOT, "data/html_import/oldornament/"))
+    yield ZipLoader(open(os.path.join(ROOT, "data/html_import/oldornament.zip"), 'rb'))
+
+
+def test_local_store1():
+    for loader in _get_loaders():
+        print(loader)
+        print(type(loader['index.html']))
+        assert isinstance(loader['index.html'], text_type)
+        assert '<table' in loader['index.html']
+        with pytest.raises(FileNotFound):
+            loader.get_source('nofile.ext')
+        files_list = list(loader.list_files())
+        assert 'images/arrow.png' in files_list
+        assert len(files_list) in [15, 16]
+        # TODO: remove directories from zip loader list_files results

@@ -175,7 +175,7 @@ class ZipLoader(BaseLoader):
         if original_name is None:
             raise FileNotFound(name)
 
-        data = self.zipfile.read(original_name)
+        data = self.zipfile.read(original_name).decode(self.encoding)
 
         return data, name
 
