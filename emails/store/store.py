@@ -22,8 +22,8 @@ class MemoryFileStore(FileStore):
 
     def __contains__(self, k):
         if isinstance(k, self.file_cls):
-            return k.url in self._files
-        elif isinstance(k, str):
+            return k.uri in self._files
+        elif isinstance(k, string_types):
             return k in self._files
         else:
             return False
@@ -83,16 +83,8 @@ class MemoryFileStore(FileStore):
             self._files[uri] = value
         return value
 
-    def by_uri(self, uri, synonyms=None):
-        r = self._files.get(uri, None)
-        if r:
-            return r
-        if synonyms:
-            for _uri in synonyms:
-                r = self._files.get(_uri, None)
-                if r:
-                    return r
-        return None
+    def by_uri(self, uri):
+        return self._files.get(uri, None)
 
     def by_filename(self, filename):
         uri = self._filenames.get(filename)

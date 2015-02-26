@@ -52,5 +52,3 @@ class DKIMSigner:
             if value.endswith("\r\n"):
                 value = value[:-2]
             return header, value
-
-        return None

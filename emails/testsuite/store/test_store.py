@@ -1,5 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals
+import pytest
 import emails
 import emails.store
 
@@ -26,3 +27,19 @@ def test_store_unique_name():
     assert f1.filename == 'c.gif'
     f2 = store.add({'uri': '/a/b/c.gif'})
     assert f2.filename == 'c-2.gif'
+
+def test_store_commons():
+    store = emails.store.MemoryFileStore()
+    f1 = store.add({'uri': '/a/c.gif'})
+    assert f1.filename
+    assert f1.content_id
+    assert f1 in store and f1.uri in store  # tests __contains__
+    assert store.by_content_id(f1.content_id) == f1
+    assert len(store) == 1  # tests __len__
+    assert len(list(store.as_dict())) == 1
+    with pytest.raises(ValueError):
+        store.add("X")
+    store.remove(f1)
+    assert f1 not in store
+    assert len(store) == 0
+

@@ -45,7 +45,7 @@ class LocalPremailer(Premailer):
 
             if self.local_loader:
                 try:
-                    content = self.local_loader.get_source(url)
+                    content = self.local_loader[url]
                 except FileNotFound:
                     content = None
 
@@ -147,6 +147,7 @@ class HTMLParser(object):
 
         head = self.tree.find('head')
         if head is None:
+            # After Premailer.transform there are always HEAD tag
             logging.warning('HEAD not found. This should not happen. Skip.')
             return
 
@@ -171,6 +172,8 @@ class BaseTransformer(HTMLParser):
 
         self.attachment_store = attachment_store if attachment_store is not None else self.attachment_store_cls()
         self.local_loader = local_loader
+        if base_url and not base_url.endswith('/'):
+            base_url = base_url + '/'
         self.base_url = base_url
         self.requests_params = requests_params
 
