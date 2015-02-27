@@ -84,7 +84,6 @@ settings.update(
               'emails.smtp',
               'emails.template',
               'emails.packages',
-              'emails.packages.cssselect',
               'emails.packages.dkim'
              ],
     scripts=['scripts/make_rfc822.py'],
