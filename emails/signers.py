@@ -25,7 +25,7 @@ class DKIMSigner:
         self._sign_params.update({'privkey': to_bytes(privkey), 'domain': to_bytes(domain),
                                   'selector': to_bytes(selector)})
 
-    def get_sign(self, message):
+    def get_sign_string(self, message):
 
         dkim_header = None
 
@@ -44,11 +44,29 @@ class DKIMSigner:
 
     def get_sign_header(self, message):
 
-        dkim_header_str = self.get_sign(message)
+        dkim_header_str = self.get_sign_string(message)
 
         if dkim_header_str:
-            # pdkim returns string, so we should split
+            # pydkim returns string, so we should split
             (header, value) = dkim_header_str.split(': ', 1)
             if value.endswith("\r\n"):
                 value = value[:-2]
             return header, value
+
+    def sign_message(self, msg):
+        """
+        Add DKIM header to email.message
+        """
+        dkim_header = self.get_sign_header(to_bytes(msg.as_string()))
+        if dkim_header:
+            msg._headers.insert(0, dkim_header)
+        return msg
+
+    def sign_message_string(self, message_string):
+        """
+        Insert DKIM header to message string
+        """
+        dkim_line = self.get_sign_string(to_bytes(message_string))
+        if dkim_line:
+            return dkim_line + message_string
+        return message_string
