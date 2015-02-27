@@ -5,27 +5,12 @@ import emails.message
 import emails.django_
 
 
-def test_send_via_django_backend(django_email_backend):
+def test_django_message_proxy(django_email_backend):
 
     """
-    Send email via django's email backend.
+    Send message via django email backend.
     `django_email_backend` defined in conftest.py
     """
-    message_params = {'html': '<p>Test from python-emails',
-                      'mail_from': 's@lavr.me',
-                      'mail_to': 's.lavrinenko@gmail.com',
-                      'subject': 'Test from python-emails'}
-    msg = emails.html(**message_params)
-    backend = django_email_backend
-    print('... django_email_backend={0}'.format(backend))
-    from django.core.mail import EmailMessage
-    email = EmailMessage('Hello', 'Body goes here', 'from@example.com',
-            ['to1@example.com', 'to2@example.com'], ['bcc@example.com'],
-            headers = {'Reply-To': 'another@example.com'})
-    backend.send_messages([email, ])
-
-
-def test_django_message_proxy(django_email_backend):
 
     message_params = {'html': '<p>Test from python-emails',
                       'mail_from': 's@lavr.me',
@@ -35,7 +20,7 @@ def test_django_message_proxy(django_email_backend):
     django_email_backend.send_messages([emails.message.DjangoMessageProxy(msg), ])
 
 
-def test_django_message(django_email_backend):
+def test_django_message_send(django_email_backend):
 
     message_params = {'html': '<p>Test from python-emails',
                       'mail_from': 's@lavr.me',
@@ -53,5 +38,39 @@ def test_django_message(django_email_backend):
     assert msg.recipients() == [TO, ]
     assert msg.mail_to[0][1] == TO
 
-    msg.send(context={'a':1})
+    msg.send(context={'a': 1})
 
+
+def test_django_message_commons():
+
+    mp = {'html': '<p>Test from python-emails',
+          'mail_from': 's@lavr.me',
+          'mail_to': 'jsmith@company.tld',
+          'charset': 'XXX-Y'}
+    msg = emails.django_.DjangoMessage(**mp)
+
+    assert msg.encoding == mp['charset']
+
+    # --- check recipients()
+
+    assert msg.recipients() == [mp['mail_to'], ]
+
+    msg._set_emails(mail_to='A', set_mail_to=False)
+    assert msg.recipients() == ['A', ]
+    assert msg.mail_to[0][1] == mp['mail_to']
+
+    msg._set_emails(mail_to='a@a.com', set_mail_to=True)
+    assert msg.recipients() == ['a@a.com', ]
+    assert msg.mail_to[0][1] == 'a@a.com'
+
+    # --- check from_email
+
+    assert msg.from_email == mp['mail_from']
+
+    msg._set_emails(mail_from='b@b.com', set_mail_from=False)
+    assert msg.from_email == 'b@b.com'
+    assert msg.mail_from[1] == mp['mail_from']
+
+    msg._set_emails(mail_from='c@c.com', set_mail_from=True)
+    assert msg.from_email == 'c@c.com'
+    assert msg.mail_from[1] == 'c@c.com'
