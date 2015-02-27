@@ -3,22 +3,6 @@ python-emails
 
 Modern email handling in python.
 
-Features
---------
-
--  HTML-email message abstraction
--  Method to transform html body:
-
-   - css inlining (using peterbe's premailer)
-   - image inlining
--  DKIM signature
--  Message loaders
--  Send directly or via django email backend
-
-
-Message abstraction:
---------------------
-
 .. code-block:: python
 
     m = emails.Message(html=T("<html><p>Build passed: {{ project_name }} <img src='cid:icon.png'> ..."),
@@ -41,8 +25,21 @@ but it is still more elegant, can be used in django environment and has html tra
 (see ``HTML Transformer`` section).
 
 
-More examples:
---------------
+Features
+--------
+
+-  HTML-email message abstraction
+-  Method to transform html body:
+
+   - css inlining (using peterbe's premailer)
+   - image inlining
+-  DKIM signature
+-  Message loaders
+-  Send directly or via django email backend
+
+
+Examples
+--------
 
 Create message:
 
@@ -176,28 +173,29 @@ Install on Ubuntu from PPA:
     $ [sudo] apt-get install python-emails
 
 
-
 TODO
 ----
 
 - Documentation
-- 100% test coverage
-- More accurate smtp session handling
-- ESP integration: Amazon SES, SendGrid, ...
-- deb package (ubuntu package almost done)
-- rpm package
-- Patch pydkim for performance (i.e. preload key once, not each time)
-- Flask extension
+- Increase test coverage
+- Feature: load message from rfc2822
+- Feature: export message to directory or zipfile
+- Performance: Patch pydkim for performance: i.e. preload key only once
+- Distribution: deb package (`debianization example <https://github.com/lavr/python-emails-debian/>`_)
+- Distribution: rpm package
+- Other: Flask extension
+- Feature: ESP integration - Amazon SES, SendGrid, ...
+
 
 How to Help
 -----------
 
-Library is under development and contributions are welcome!
+Library is under development and contributions are welcome.
 
 1. Open an issue to start a discussion around a bug or a feature.
 2. Fork the repository on GitHub and start making your changes to a new branch.
 3. Write a test which shows that the bug was fixed.
-4. Send a pull request. Make sure to add yourself to AUTHORS.
+4. Send a pull request. Make sure to add yourself to `AUTHORS <https://github.com/lavr/python-emails/blob/master/README.rst>`_.
 
 
 See also
@@ -210,13 +208,13 @@ There are plenty other python email-around libraries:
  - ...
 
 .. image:: https://travis-ci.org/lavr/python-emails.png?branch=master
-   :target: https://travis-ci.org/lavr/python-emails
-
-.. image:: https://coveralls.io/repos/lavr/python-emails/badge.svg?branch=master
-   :target: https://coveralls.io/r/lavr/python-emails?branch=master
+:target: https://travis-ci.org/lavr/python-emails
 
 .. image:: https://img.shields.io/pypi/v/emails.svg
-   :target: https://pypi.python.org/pypi/emails
+:target: https://pypi.python.org/pypi/emails
 
 .. image:: http://allmychanges.com/p/python/emails/badge/
-   :target: http://allmychanges.com/p/python/emails/?utm_source=badge
+:target: http://allmychanges.com/p/python/emails/?utm_source=badge
+
+.. image:: https://coveralls.io/repos/lavr/python-emails/badge.svg?branch=master
+:target: https://coveralls.io/r/lavr/python-emails?branch=master
