@@ -17,11 +17,15 @@ ROOT = os.path.dirname(__file__)
 
 BASE_URL = 'http://lavr.github.io/python-emails/tests/campaignmonitor-samples/oldornament'
 
+
 def _get_messages(**kw):
     # All loaders loads same data
     yield emails.loader.from_url(BASE_URL + '/index.html', **kw)
     yield emails.loader.from_file(os.path.join(ROOT, "data/html_import/oldornament/index.html"), **kw)
     yield emails.loader.from_zip(open(os.path.join(ROOT, "data/html_import/oldornament.zip"), 'rb'), **kw)
+    #msg = emails.loader.from_zip(open(os.path.join(ROOT, "data/html_import/oldornament.zip"), 'rb'), **kw)
+    #print("emails.loader.from_rfc822")
+    #yield emails.loader.from_rfc822(msg.as_string(), **kw)
 
 
 def normalize_html(s):
@@ -142,6 +146,7 @@ def test_msgloader():
     assert loader['__index.txt'] == data['text']
 
 
+
 def _test_mass_msgloader():
     ROOT = os.path.dirname(__file__)
     for filename in glob.glob(os.path.join(ROOT, "data/msg/*.eml")):
@@ -150,18 +155,15 @@ def _test_mass_msgloader():
         msgloader._parse_msg()
 
 
-def _get_loaders():
-    # All loaders loads same data
-    yield FileSystemLoader(os.path.join(ROOT, "data/html_import/oldornament/"))
-    yield ZipLoader(open(os.path.join(ROOT, "data/html_import/oldornament.zip"), 'rb'))
+def test_local_file_store1():
 
-
-def test_local_store1():
-    for loader in _get_loaders():
+    for loader in [FileSystemLoader(os.path.join(ROOT, "data/html_import/oldornament/")),
+                   ZipLoader(open(os.path.join(ROOT, "data/html_import/oldornament.zip"), 'rb'))]:
         print(loader)
-        assert isinstance(loader.content('index.html'), text_type)
-        assert isinstance(loader['index.html'], bytes)
-        assert '<table' in loader.content('index.html')
+        index_html = 'index.html'
+        assert isinstance(loader[index_html], bytes)
+        assert isinstance(loader.content(index_html), text_type)
+        assert '<table' in loader.content(index_html)
         with pytest.raises(FileNotFound):
             loader.get_file('-nonexistent-file')
         with pytest.raises(FileNotFound):
@@ -190,3 +192,33 @@ def test_base_loader():
     l.list_files = lambda **kw: ['a.gif', ]
     with pytest.raises(FileNotFound):
         print(l.find_index_file())
+
+
+def test_local_msgloader():
+
+    def _get_rfc_message():
+        m = emails.loader.from_zip(open(os.path.join(ROOT, "data/html_import/oldornament.zip"), 'rb'))
+        n = len(m.attachments)
+        for i, a in enumerate(m.attachments):
+            a.content_disposition = 'inline' if i < n/2 else 'attachment'
+        m.transformer.synchronize_inline_images()
+        m.transformer.save()
+        #open('oldornament.eml', 'wb').write(m.as_string())
+        return m.as_string()
+
+
+    for loader in [MsgLoader(msg=_get_rfc_message()), ]:
+        loader.parse()
+        print(loader)
+        index_html = '__index.html'
+        assert isinstance(loader.content(index_html), text_type)
+        assert '<table' in loader.content(index_html)
+        with pytest.raises(FileNotFound):
+            loader.get_file('-nonexistent-file')
+        with pytest.raises(FileNotFound):
+            loader.find_index_file('-nonexistent-file')
+        files_list = list(loader.list_files())
+        print("files_list=", files_list)
+        assert len(files_list) == 14
+        assert 'arrow.png' in files_list
+        assert len(loader['arrow.png']) == 484

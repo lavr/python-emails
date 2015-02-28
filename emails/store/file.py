@@ -1,16 +1,10 @@
 # encoding: utf-8
 from __future__ import unicode_literals
-from email.header import Header
-
 import uuid
-
 from os.path import basename
-
-import requests
 from mimetypes import guess_type
 from email.mime.base import MIMEBase
 from email.encoders import encode_base64
-import emails
 from emails.compat import urlparse
 from emails.compat import string_types, to_bytes
 from emails.utils import fetch_url, encode_header
@@ -177,8 +171,8 @@ class LazyHTTPFile(BaseFile):
     def fetch(self):
         if (not self._fetched) and self.uri:
             if self.local_loader:
+                print("LazyHTTPFile fetch", self.uri)
                 data = self.local_loader[self.uri]
-
                 if data:
                     self._fetched = True
                     self._data = data

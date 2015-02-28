@@ -206,7 +206,8 @@ class MsgLoader(BaseLoader):
         self._html_files = []
         self._text_files = []
         self._files = {}
-
+        self._content_ids = {}
+        self._parsed = False
 
     def decode_text(self, text, charset=None):
         if charset:
@@ -243,28 +244,31 @@ class MsgLoader(BaseLoader):
                              'filename': name,
                              'content_type': part.get_content_type()}
 
-    def add_another_part(self, part):
+    def add_attachment_part(self, part):
         counter = 1
         f = {}
+
+        filename = part.get_filename()
+        if not filename:
+            ext = mimetypes.guess_extension(part.get_content_type())
+            if not ext:
+                # Use a generic bag-of-bits extension
+                ext = '.bin'
+            filename = 'part-%03d%s' % (counter, ext)
+            counter += 1
+        f['filename'] = filename
+        f['content_type'] = part.get_content_type()
+
         content_id = part['Content-ID']
         if content_id:
-            f['filename'] = self.clean_content_id(content_id)
+            f['content_id'] = self.clean_content_id(content_id)
             f['inline'] = True
-        else:
-            filename = part.get_filename()
-            if not filename:
-                ext = mimetypes.guess_extension(part.get_content_type())
-                if not ext:
-                    # Use a generic bag-of-bits extension
-                    ext = '.bin'
-                filename = 'part-%03d%s' % (counter, ext)
-                counter += 1
-            f['filename'] = filename
-        f['content_type'] = part.get_content_type()
+            self._content_ids[f['content_id']] = f['filename']
         f['data'] = part.get_payload(decode=True)
         self._files[f['filename']] = f
 
-    def _parse_msg(self):
+
+    def _parse(self):
         for part in self.msg.walk():
             content_type = part.get_content_type()
 
@@ -279,14 +283,23 @@ class MsgLoader(BaseLoader):
                 self.add_text_part(part)
                 continue
 
-            self.add_another_part(part)
+            self.add_attachment_part(part)
+
+    def parse(self):
+        if not self._parsed:
+            self._parse()
+        self._parsed = True
 
     def get_file(self, name):
-        self._parse_msg()
+        print("MsgLoader.get_file", name)
+        self.parse()
+        if name.startswith('cid:'):
+            name = self._content_ids.get(name[4:])
         f = self._files.get(name)
         if f:
             return f['data'], name
         raise FileNotFound(name)
 
     def list_files(self):
+        self.parse()
         return self._files

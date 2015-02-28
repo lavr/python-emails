@@ -1,4 +1,5 @@
 # encoding: utf-8
+from __future__ import unicode_literals, print_function
 import os
 import os.path
 from emails.compat import to_unicode
@@ -94,6 +95,6 @@ def from_rfc822(msg, message_params=None, **kw):
         message.transformer.save()
     else:
         # TODO: add attachments for text-only message
-        pass
+        raise NotImplementedError('Text-only messages loading not implemented yet')
 
     return message

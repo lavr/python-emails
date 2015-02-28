@@ -1,5 +1,5 @@
 # encoding: utf-8
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import posixpath
 import os.path
 import logging
@@ -216,6 +216,7 @@ class BaseTransformer(HTMLParser):
 
         attachment = self.attachment_store.by_uri(uri)
         if attachment is None:
+            print("transformer _load_attachment_func", uri)
             attachment = self.attachment_file_cls(
                 uri=uri,
                 absolute_url=self.get_absolute_url(uri),
