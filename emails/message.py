@@ -39,8 +39,6 @@ class IncompleteMessage(Exception):
     pass
 
 
-
-
 class BaseMessage(object):
 
     """
@@ -397,51 +395,57 @@ class MessageTransformerMixin(object):
             t = self.create_transformer()
         return t
 
+    def set_html(self, **kw):
+        # When html set, remove old transformer
+        self.destroy_transformer()
+        BaseMessage.set_html(self, **kw)
 
-class Message(BaseMessage, MessageSendMixin, MessageTransformerMixin):
+
+
+class MessageDKIMMixin(object):
+
+    dkim_cls = DKIMSigner
+    _dkim_signer = None
+
+    def dkim(self, **kwargs):
+        self._dkim_signer = self.dkim_cls(**kwargs)
+
+    def dkim_sign_message(self, msg):
+        """
+        Add DKIM header
+        """
+        if self._dkim_signer:
+            return self._dkim_signer.sign_message(msg)
+        return msg
+
+    def dkim_sign_string(self, message_string):
+        """
+        Add DKIM header
+        """
+        if self._dkim_signer:
+            return self._dkim_signer.sign_message_string(message_string)
+        return message_string
+
+    def as_message(self, message_cls=None):
+        msg = self.dkim_sign_message(self._build_message(message_cls=message_cls))
+        return msg
+
+    message = as_message
+
+    def as_string(self, message_cls=None):
+        # self.as_string() is not equialent self.message().as_string()
+        # self.as_string() needs one less message-to-string conversions for dkim
+        return self.dkim_sign_string(self._build_message(message_cls=message_cls).as_string())
+
+
+class Message(MessageSendMixin, MessageTransformerMixin, MessageDKIMMixin, BaseMessage):
     """
     Email message with:
     - DKIM signer
     - smtp send
     - Message.transformer object
     """
-
-    dkim_cls = DKIMSigner
-
-    def __init__(self, **kwargs):
-        BaseMessage.__init__(self, **kwargs)
-        self._dkim_signer = None
-        self.after_build = None
-
-    def dkim(self, **kwargs):
-        self._dkim_signer = self.dkim_cls(**kwargs)
-
-    def set_html(self, **kw):
-        # When html set, remove old transformer
-        self.destroy_transformer()
-        super(Message, self).set_html(**kw)
-
-    def as_message(self, message_cls=None):
-        msg = self._build_message(message_cls=message_cls)
-        if self._dkim_signer:
-            msg_str = msg.as_string()
-            dkim_header = self._dkim_signer.get_sign_header(to_bytes(msg_str))
-            if dkim_header:
-                msg._headers.insert(0, dkim_header)
-        return msg
-
-    message = as_message
-
-    def as_string(self):
-        # self.as_string() is not equialent self.message().as_string()
-        # self.as_string() gets one less message-to-string conversions for dkim
-        msg = self._build_message()
-        r = msg.as_string()
-        if self._dkim_signer:
-            dkim_header = self._dkim_signer.get_sign(to_bytes(r))
-            if dkim_header:
-                r = dkim_header + r
-        return r
+    pass
 
 
 def html(**kwargs):
@@ -451,6 +455,8 @@ def html(**kwargs):
 class DjangoMessageProxy(object):
 
     """
+    Class obsoletes with emails.django_.DjangoMessage
+
     Class looks like django.core.mail.EmailMessage for standard django email backend.
 
     Example usage:

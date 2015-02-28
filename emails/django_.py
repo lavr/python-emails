@@ -1,13 +1,9 @@
 # encoding: utf-8
 from django.core.mail import get_connection
-from .message import Message
+from .message import Message, MessageTransformerMixin, MessageDKIMMixin, BaseMessage
 
 
-class DjangoMessage(Message):
-
-    """
-    send via django email smtp backend
-    """
+class DjangoMessageMixin(object):
 
     _recipients = None
     _from_email = None
@@ -45,7 +41,6 @@ class DjangoMessage(Message):
             else:
                 self._from_email = mail_from
 
-
     def send(self, mail_to=None, set_mail_to=True, mail_from=None, set_mail_from=False,
              context=None, connection=None, to=None):
 
@@ -57,3 +52,10 @@ class DjangoMessage(Message):
 
         connection = connection or get_connection()
         connection.send_messages([self, ])
+
+
+class DjangoMessage(DjangoMessageMixin, MessageTransformerMixin, MessageDKIMMixin, BaseMessage):
+    """
+    Send via django email smtp backend
+    """
+    pass
