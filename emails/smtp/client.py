@@ -72,7 +72,7 @@ class SMTPClientWithResponse(SMTP):
     def quit(self):
         """Closes the connection to the email server."""
         try:
-            super(self, SMTPClientWithResponse).quit()
+            SMTP.quit(self)
         except (smtplib.SMTPServerDisconnected, ):
             # This happens when calling quit() on a TLS connection
             # sometimes, or when the connection was already disconnected

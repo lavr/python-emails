@@ -55,6 +55,9 @@ def test_smtp_dict2(smtp_server_with_auth):
     assert response.status_code == 250
 
 def test_smtp_dict2(smtp_server_with_ssl):
-    response = emails.html(**SAMPLE_MESSAGE).send(smtp=smtp_server_with_ssl.as_dict())
+    smtp = smtp_server_with_ssl.as_dict()
+    message = emails.html(**SAMPLE_MESSAGE)
+    response = message.send(smtp=smtp)
     print(response)
     assert response.status_code == 250
+    message.smtp_pool[smtp].connection.quit()

@@ -8,7 +8,8 @@ from requests import ConnectionError
 import emails
 import emails.loader
 import emails.transformer
-from emails.loader.local_store import MsgLoader, FileSystemLoader, FileNotFound, ZipLoader
+from emails.loader.local_store import (MsgLoader, FileSystemLoader, FileNotFound, ZipLoader,
+                                       split_template_path, BaseLoader)
 from emails.compat import text_type
 from emails.loader.helpers import guess_charset
 
@@ -148,13 +149,34 @@ def _get_loaders():
 def test_local_store1():
     for loader in _get_loaders():
         print(loader)
-        print(type(loader['index.html']))
         assert isinstance(loader.content('index.html'), text_type)
         assert isinstance(loader['index.html'], bytes)
         assert '<table' in loader.content('index.html')
         with pytest.raises(FileNotFound):
-            loader.get_file('nofile.ext')
+            loader.get_file('-nonexistent-file')
+        with pytest.raises(FileNotFound):
+            loader.find_index_file('-nonexistent-file')
         files_list = list(loader.list_files())
         assert 'images/arrow.png' in files_list
         assert len(files_list) in [15, 16]
         # TODO: remove directories from zip loader list_files results
+
+
+def test_directory_loader():
+
+    with pytest.raises(FileNotFound):
+        split_template_path('../a.git')
+
+
+def test_base_loader():
+
+    l = BaseLoader()
+    l.list_files = lambda **kw: ['a.html', 'b.html']
+    l.get_file = lambda obj, name: ('xxx', name) if name in obj.list_files() else (None, name)
+
+    assert l.find_index_file() == l.list_files()[0]
+
+    # is no html file
+    l.list_files = lambda **kw: ['a.gif', ]
+    with pytest.raises(FileNotFound):
+        print(l.find_index_file())

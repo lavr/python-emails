@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 import os
 import emails
-from emails.compat import NativeStringIO, to_bytes
+from emails.compat import NativeStringIO, to_bytes, to_native
 
 
 TRAVIS_CI = os.environ.get('TRAVIS')
@@ -43,17 +43,30 @@ def _generate_privkey():
 
 def test_dkim():
 
-    message = emails.html(html='<p>This is the end, beautiful friend<br>'
-                               'This is the end, my only friend',
-                          subject='Hello, world!',
-                          message_id=False,
-                          mail_from=('Jim', 'jim@somewhere.net'),
-                          mail_to='Anyone <anyone@here.net>')
+    DKIM_PARAMS = [dict(privkey=NativeStringIO(to_native(_generate_privkey())),
+                        selector='_dkim',
+                        domain='somewhere.net',
+                        ignore_sign_errors=False),
 
-    message.attach(data=NativeStringIO('x' * 10), filename='Data.dat')
+                   dict(privkey=_generate_privkey(),
+                        selector='_dkim',
+                        domain='somewhere.net',
+                        ignore_sign_errors=False),
+                   ]
 
-    message.dkim(privkey=_generate_privkey(), selector='_dkim', domain='somewhere.net',
-                 ignore_sign_errors=False)
+    for dkimparams in DKIM_PARAMS:
 
-    # check that DKIM header exist
-    assert message.message()['DKIM-Signature']
+        message = emails.html(html='<p>This is the end, beautiful friend<br>'
+                                   'This is the end, my only friend',
+                              subject='Hello, world!',
+                              message_id=False,
+                              mail_from=('Jim', 'jim@somewhere.net'),
+                              mail_to='Anyone <anyone@here.net>')
+
+        message.attach(data=NativeStringIO('x' * 10), filename='Data.dat')
+
+        message.dkim(**dkimparams)
+
+        # check that DKIM header exist
+        assert message.as_message()['DKIM-Signature']
+        assert 'DKIM-Signature: ' in message.as_string()
