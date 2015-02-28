@@ -250,13 +250,10 @@ class BaseMessage(object):
                 self.set_header(msg, name, value)
 
         subject = self.subject
-        if subject is None:
-            raise IncompleteMessage("Message must have 'subject'")
-        self.set_header(msg, 'Subject', subject)
+        if subject is not None:
+            self.set_header(msg, 'Subject', subject)
 
-        mail_from = self.encode_name_header(*self._mail_from)
-        # if mail_from is None:
-        #    raise IncompleteMessage("Message must have 'mail_from'")
+        mail_from = self._mail_from and self.encode_name_header(*self._mail_from) or None
         self.set_header(msg, 'From', mail_from, encode=False)
 
         mail_to = self._mail_to and self.encode_name_header(*self._mail_to[0]) or None

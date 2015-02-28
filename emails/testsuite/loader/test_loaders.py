@@ -46,21 +46,31 @@ def all_equals(seq):
 
 def test_loaders():
 
-    messages = list(_get_messages())
+    message_params = {'subject': 'X', 'mail_to': 'a@b.net'}
 
-    # Check loaded images
-    for m in messages:
-        assert len(m.attachments.keys()) == 13
+    htmls = []
+    rfc_strings = []
 
-    valid_filenames = ['arrow.png', 'banner-bottom.png', 'banner-middle.gif', 'banner-top.gif', 'bg-all.jpg',
-                       'bg-content.jpg', 'bg-main.jpg', 'divider.jpg', 'flourish.png', 'img01.jpg', 'img02.jpg',
-                       'img03.jpg', 'spacer.gif']
-    assert sorted([a.filename for a in messages[0].attachments]) == sorted(valid_filenames)
-    assert len(messages[0].attachments.by_filename('arrow.png').data) == 484
+    for message in _get_messages(message_params=message_params):
+        # Check loaded images
+        assert len(message.attachments.keys()) == 13
 
-    # Simple html content check
-    htmls = [normalize_html(m.html) for m in messages]
-    assert 'Lorem Ipsum Dolor Sit Amet' in htmls[0]
+        valid_filenames = ['arrow.png', 'banner-bottom.png', 'banner-middle.gif', 'banner-top.gif', 'bg-all.jpg',
+                           'bg-content.jpg', 'bg-main.jpg', 'divider.jpg', 'flourish.png', 'img01.jpg', 'img02.jpg',
+                           'img03.jpg', 'spacer.gif']
+        assert sorted([a.filename for a in message.attachments]) == sorted(valid_filenames)
+        print(type(message.attachments))
+        assert len(message.attachments.by_filename('arrow.png').data) == 484
+
+        # Simple html content check
+        html = normalize_html(message.html)
+        assert 'Lorem Ipsum Dolor Sit Amet' in html
+        htmls.append(html)
+
+        # Simple string check
+        rfc_string = message.as_string()
+        rfc_strings.append(rfc_string)
+
     assert all_equals(htmls)
 
 
