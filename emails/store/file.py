@@ -203,7 +203,7 @@ class LazyHTTPFile(BaseFile):
     @property
     def mime_type(self):
         self.fetch()
-        return self._mime_type
+        return super(LazyHTTPFile, self).mime_type
 
     @property
     def headers(self):
