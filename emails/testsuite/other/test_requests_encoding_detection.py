@@ -2,8 +2,8 @@
 import pytest
 import requests
 
-@pytest.mark.xfail
-def test_encoding_detection():
+#@pytest.mark.xfail
+def _test_encoding_detection():
 
     """
     Broken encoding detection in requests 1.2.3. 

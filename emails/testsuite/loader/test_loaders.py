@@ -140,7 +140,6 @@ def test_msgloader():
 
     msg = emails.Message(**data).as_string()
     loader = MsgLoader(msg=msg)
-    loader._parse_msg()
     assert 'Event.ics' in loader.list_files()
     assert loader['__index.html'] == data['html']
     assert loader['__index.txt'] == data['text']
