@@ -81,7 +81,8 @@ settings.update(
               'emails.compat',
               'emails.loader',
               'emails.store',
-              'emails.smtp',
+              'emails.backend',
+              'emails.backend.smtp',
               'emails.template',
               'emails.packages',
               'emails.packages.dkim'
