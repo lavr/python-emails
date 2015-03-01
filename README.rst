@@ -93,17 +93,27 @@ Send and get response from smtp server:
 .. code-block:: python
 
     r = message.send(to=('John Brown', 'jbrown@gmail.com'),
+                     render={'field1': 'X'},
                      smtp={'host':'smtp.mycompany.com', 'port': 465, 'ssl': True})
     assert r.status_code == 250
 
-Or send via Django email backend:
+
+Django
+------
+
+DjangoMessage helper sends via django configured email backend:
 
 .. code-block:: python
 
-    from django.core.mail import get_connection
-    from emails.message import DjangoMessageProxy
-    c = django.core.mail.get_connection()
-    c.send_messages([DjangoMessageProxy(message), ])
+    from emails.django_ import DjangoMessage as Message
+    message = Message(...)
+    message.send(mail_to=('John Brown', 'jbrown@gmail.com'),
+                 context={'field1': 'X'})
+
+Flask
+-----
+
+For flask integration take a look at `flask-emails <https://github.com/lavr/flask-emails>`_
 
 
 HTML transformer
