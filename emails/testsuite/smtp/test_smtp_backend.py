@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import os
 import logging
 import emails
-from emails.smtp import SMTPBackend
+from emails.backend.smtp import SMTPBackend
 
 
 TRAVIS_CI = os.environ.get('TRAVIS')
