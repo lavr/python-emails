@@ -11,16 +11,14 @@ from emails.compat import string_types, to_unicode, is_callable, to_bytes
 from .utils import (SafeMIMEText, SafeMIMEMultipart, sanitize_address,
                     parse_name_and_email, load_email_charsets,
                     encode_header as encode_header_)
-
+from .exc import BadHeaderError
 from .backend import ObjectFactory
 from .backend.smtp import SMTPBackend
 from .store import MemoryFileStore, BaseFile
 from .signers import DKIMSigner
 
-load_email_charsets()  # sic!
 
-class BadHeaderError(ValueError):
-    pass
+load_email_charsets()  # sic!
 
 
 def renderable(f):
