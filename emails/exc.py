@@ -2,3 +2,6 @@
 
 class HTTPLoaderError(Exception):
     pass
+
+class BadHeaderError(ValueError):
+    pass

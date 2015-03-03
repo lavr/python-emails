@@ -1,24 +1,20 @@
 # encoding: utf-8
 from __future__ import unicode_literals
-import emails
-import requests
-from emails.exc import HTTPLoaderError
-
-__all__ = ['parse_name_and_email', 'load_email_charsets', 'MessageID']
-
 import socket
 import time
 import os
 import random
 import email.charset
-
 from email import generator
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header, decode_header
 from email.utils import formataddr, parseaddr
+import requests
 
+import emails
 from emails.compat import string_types, to_unicode, NativeStringIO, is_py2, BytesIO
+from emails.exc import HTTPLoaderError
 
 _charsets_loaded = False
 
@@ -180,18 +176,11 @@ class SafeMIMEText(MIMEMixin, MIMEText):
         self.encoding = charset
         MIMEText.__init__(self, text, subtype, charset)
 
-    def __setitem__(self, name, val):
-        MIMEText.__setitem__(self, name, val)
-
 
 class SafeMIMEMultipart(MIMEMixin, MIMEMultipart):
-
     def __init__(self, _subtype='mixed', boundary=None, _subparts=None, encoding=None, **_params):
         self.encoding = encoding
         MIMEMultipart.__init__(self, _subtype, boundary, _subparts, **_params)
-
-    def __setitem__(self, name, val):
-        MIMEMultipart.__setitem__(self, name, val)
 
 
 DEFAULT_REQUESTS_PARAMS = dict(allow_redirects=True,

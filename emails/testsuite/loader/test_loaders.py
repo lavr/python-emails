@@ -15,43 +15,50 @@ from emails.loader.helpers import guess_charset
 
 ROOT = os.path.dirname(__file__)
 
-BASE_URL = 'http://lavr.github.io/python-emails/tests/campaignmonitor-samples/oldornament'
+BASE_URL = 'http://lavr.github.io/python-emails/tests/'
 
-def _get_messages(**kw):
-    # All loaders loads same data
-    yield emails.loader.from_url(BASE_URL + '/index.html', **kw)
-    yield emails.loader.from_file(os.path.join(ROOT, "data/html_import/oldornament/index.html"), **kw)
-    yield emails.loader.from_zip(open(os.path.join(ROOT, "data/html_import/oldornament.zip"), 'rb'), **kw)
+OLDORNAMENT_URLS = dict(from_url='campaignmonitor-samples/oldornament/index.html',
+                        from_file='data/html_import/oldornament/oldornament/index.html',
+                        from_zip='data/html_import/oldornament/oldornament.zip')
 
 
-def normalize_html(s):
-    def _remove_base_url(src, **kw):
-        if src.startswith(BASE_URL):
-            return src[len(BASE_URL)+1:]
-        else:
-            return src
+def load_messages(from_url=None, from_file=None, from_zip=None, from_directory=None, **kw):
+    # Ususally all loaders loads same data
+    if from_url:
+        print("emails.loader.from_url", BASE_URL + from_url, kw)
+        yield emails.loader.from_url(BASE_URL + from_url, **kw)
+    if from_file:
+        print("emails.loader.from_file", os.path.join(ROOT, from_file), kw)
+        yield emails.loader.from_file(os.path.join(ROOT, from_file), **kw)
+    if from_directory:
+        print("emails.loader.from_directory", os.path.join(ROOT, from_directory), kw)
+        yield emails.loader.from_directory(os.path.join(ROOT, from_directory), **kw)
+    if from_zip:
+        print("emails.loader.from_zip", os.path.join(ROOT, from_zip), kw)
+        yield emails.loader.from_zip(open(os.path.join(ROOT, from_zip), 'rb'), **kw)
 
-    # Use Transformer not for test, just to walk tree
-    t = emails.transformer.Transformer(html=s)
-    t.apply_to_links(_remove_base_url)
-    t.apply_to_images(_remove_base_url)
-    return t.to_string()
-
-
-def all_equals(seq):
-    iseq = iter(seq)
-    first = next(iseq)
-    return all(x == first for x in iseq)
 
 
 def test_loaders():
+
+    def _all_equals(seq):
+        iseq = iter(seq)
+        first = next(iseq)
+        return all(x == first for x in iseq)
+
+    _base_url = os.path.dirname(BASE_URL + OLDORNAMENT_URLS['from_url']) + '/'
+    def _remove_base_url(src, **kw):
+        if src.startswith(_base_url):
+            return src[len(_base_url):]
+        else:
+            return src
 
     message_params = {'subject': 'X', 'mail_to': 'a@b.net'}
 
     htmls = []
     rfc_strings = []
 
-    for message in _get_messages(message_params=message_params):
+    for message in load_messages(message_params=message_params, **OLDORNAMENT_URLS):
         # Check loaded images
         assert len(message.attachments.keys()) == 13
 
@@ -63,15 +70,27 @@ def test_loaders():
         assert len(message.attachments.by_filename('arrow.png').data) == 484
 
         # Simple html content check
-        html = normalize_html(message.html)
-        assert 'Lorem Ipsum Dolor Sit Amet' in html
-        htmls.append(html)
+        assert 'Lorem Ipsum Dolor Sit Amet' in message.html
 
-        # Simple string check
-        rfc_string = message.as_string()
-        rfc_strings.append(rfc_string)
+        # Simple message build check
+        message.as_string()
 
-    assert all_equals(htmls)
+        # Normalize html and save for later check
+        message.transformer.apply_to_links(_remove_base_url)
+        message.transformer.apply_to_images(_remove_base_url)
+        message.transformer.save()
+        htmls.append(message.html)
+
+    assert _all_equals(htmls)
+
+
+def test_noindex_loaders():
+
+    with pytest.raises(emails.loader.IndexFileNotFound):
+        emails.loader.from_directory(os.path.join(ROOT, 'data/html_import/no-index/no-index/'))
+
+    with pytest.raises(emails.loader.IndexFileNotFound):
+        emails.loader.from_zip(open(os.path.join(ROOT, 'data/html_import/no-index/no-index.zip'), 'rb'))
 
 
 def test_loaders_with_params():
@@ -96,9 +115,12 @@ def test_loaders_with_params():
     message_params = {'subject': 'X', 'mail_to': 'a@b.net'}
 
     for tp in transform_params:
-        for m in _get_messages(requests_params={'timeout': 10},
+        args = {}
+        args.update(tp)
+        args.update(OLDORNAMENT_URLS)
+        for m in load_messages(requests_params={'timeout': 10},
                                message_params=message_params,
-                               **tp):
+                               **args):
             assert m.subject == message_params['subject']
             assert m.mail_to[0][1] == message_params['mail_to']
             for a in m.attachments:
@@ -152,8 +174,8 @@ def _test_mass_msgloader():
 
 def _get_loaders():
     # All loaders loads same data
-    yield FileSystemLoader(os.path.join(ROOT, "data/html_import/oldornament/"))
-    yield ZipLoader(open(os.path.join(ROOT, "data/html_import/oldornament.zip"), 'rb'))
+    yield FileSystemLoader(os.path.join(ROOT, "data/html_import/oldornament/oldornament/"))
+    yield ZipLoader(open(os.path.join(ROOT, "data/html_import/oldornament/oldornament.zip"), 'rb'))
 
 
 def test_local_store1():
@@ -172,7 +194,7 @@ def test_local_store1():
         # TODO: remove directories from zip loader list_files results
 
 
-def test_directory_loader():
+def test_split_template_path():
 
     with pytest.raises(FileNotFound):
         split_template_path('../a.git')
@@ -180,13 +202,23 @@ def test_directory_loader():
 
 def test_base_loader():
 
-    l = BaseLoader()
-    l.list_files = lambda **kw: ['a.html', 'b.html']
-    l.get_file = lambda obj, name: ('xxx', name) if name in obj.list_files() else (None, name)
+    # Prepare simple BaseLoader
+    class TestBaseLoader(BaseLoader):
+        _files = []
+        def list_files(self):
+            return self._files
+        def get_file(self, name):
+            return ('xxx', name) if name in self.list_files() else (None, name)
 
-    assert l.find_index_file() == l.list_files()[0]
+    l = TestBaseLoader()
+    l._files = ['__MACOSX/.index.html', 'a.html', 'b.html']
+    # Check index file search
+    assert l.find_index_file() == 'a.html'
 
-    # is no html file
-    l.list_files = lambda **kw: ['a.gif', ]
+    # Check .content works
+    assert l.content('a.html') == 'xxx'
+
+    # Raises exception when no html file
+    l._files = ['a.gif', '__MACOSX/.index.html']
     with pytest.raises(FileNotFound):
         print(l.find_index_file())

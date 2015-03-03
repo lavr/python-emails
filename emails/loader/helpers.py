@@ -80,7 +80,7 @@ def decode_text(text,
                 fallback_charset='utf-8'):
 
     if not isinstance(text, bytes):
-        return text
+        return text, None
 
     _charsets = []
     if guess_charset:

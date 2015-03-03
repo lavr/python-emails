@@ -1,7 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals, print_function
-
+import pytest
 import emails
+import emails.exc
 from emails.compat import to_unicode
 from .helpers import common_email_data
 
@@ -34,5 +35,14 @@ def test_after_build():
     print("type of message.as_string() is {0}".format(type(s)))
     assert AFTER_BUILD_HEADER in to_unicode(s, 'utf-8')
 
+
+def test_sanitize_header():
+    for header, value in (
+            ('subject', 'test\n'),
+            ('headers', {'X-Header': 'test\r'}),
+            ):
+        with pytest.raises(emails.exc.BadHeaderError):
+            print('header {0}'.format(header))
+            emails.Message(html='...', **{header: value}).as_message()
 
 # TODO: more tests here
