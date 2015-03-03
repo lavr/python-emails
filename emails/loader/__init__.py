@@ -1,12 +1,25 @@
 # encoding: utf-8
 import os
 import os.path
+from emails.loader.local_store import FileNotFound
 from emails.compat import to_unicode
 from emails.compat import urlparse
 from emails import Message
 from emails.utils import fetch_url
 from emails.loader import local_store
 from emails.loader.helpers import guess_charset
+
+
+class LoadError(Exception):
+    pass
+
+
+class IndexFileNotFound(LoadError):
+    pass
+
+
+class InvalidHtmlFile(LoadError):
+    pass
 
 
 def from_url(url, message_params=None, requests_params=None, **kwargs):
@@ -37,7 +50,13 @@ load_url = from_url
 def from_directory(directory, index_file=None, message_params=None, **kwargs):
 
     store = local_store.FileSystemLoader(searchpath=directory)
-    index_file_name = store.find_index_file(index_file)
+
+    try:
+        index_file_name = store.find_index_file(index_file)
+    except FileNotFound:
+        # reraise another exception
+        raise IndexFileNotFound('html file not found')
+
     dirname, _ = os.path.split(index_file_name)
     if dirname:
         store.base_path = dirname
@@ -45,6 +64,8 @@ def from_directory(directory, index_file=None, message_params=None, **kwargs):
     message_params = message_params or {}
     message = Message(html=store.content(index_file_name, is_html=True, guess_charset=True), **message_params)
     message.create_transformer(local_loader=store, requests_params=kwargs.pop('requests_params', None))
+    if message.transformer.tree is None:
+        raise InvalidHtmlFile("Error parsing file '%s'" % index_file_name)
     message.transformer.load_and_transform(**kwargs)
     message.transformer.save()
     return message
@@ -56,14 +77,22 @@ def from_file(filename, **kwargs):
 
 def from_zip(zip_file, message_params=None, **kwargs):
     store = local_store.ZipLoader(file=zip_file)
-    index_file_name = store.find_index_file()
-    dirname, index_file_name = os.path.split(index_file_name)
+
+    try:
+        origin_index_file_name = store.find_index_file()
+    except FileNotFound:
+        # reraise another exception
+        raise IndexFileNotFound('html file not found')
+
+    dirname, index_file_name = os.path.split(origin_index_file_name)
     if dirname:
         store.base_path = dirname
 
     message_params = message_params or {}
     message = Message(html=store.content(index_file_name, is_html=True, guess_charset=True), **message_params)
     message.create_transformer(local_loader=store, requests_params=kwargs.pop('requests_params', None))
+    if message.transformer.tree is None:
+        raise InvalidHtmlFile("Error parsing file '%s'" % origin_index_file_name)
     message.transformer.load_and_transform(**kwargs)
     message.transformer.save()
     return message
