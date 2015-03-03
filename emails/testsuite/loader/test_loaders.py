@@ -202,13 +202,23 @@ def test_split_template_path():
 
 def test_base_loader():
 
-    l = BaseLoader()
-    l.list_files = lambda **kw: ['a.html', 'b.html']
-    l.get_file = lambda obj, name: ('xxx', name) if name in obj.list_files() else (None, name)
+    # Prepare simple BaseLoader
+    class TestBaseLoader(BaseLoader):
+        _files = []
+        def list_files(self):
+            return self._files
+        def get_file(self, name):
+            return ('xxx', name) if name in self.list_files() else (None, name)
 
-    assert l.find_index_file() == l.list_files()[0]
+    l = TestBaseLoader()
+    l._files = ['__MACOSX/.index.html', 'a.html', 'b.html']
+    # Check index file search
+    assert l.find_index_file() == 'a.html'
 
-    # is no html file
-    l.list_files = lambda **kw: ['a.gif', ]
+    # Check .content works
+    assert l.content('a.html') == 'xxx'
+
+    # Raises exception when no html file
+    l._files = ['a.gif', '__MACOSX/.index.html']
     with pytest.raises(FileNotFound):
         print(l.find_index_file())
