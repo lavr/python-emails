@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import os
 
 import emails
-from emails.compat import StringIO
 from emails.template import JinjaTemplate
 
 TO_EMAIL = 'jbrown@hotmail.tld'
@@ -11,6 +10,9 @@ FROM_EMAIL = 'robot@company.tld'
 
 TRAVIS_CI = os.environ.get('TRAVIS')
 HAS_INTERNET_CONNECTION = not TRAVIS_CI
+
+ROOT = os.path.dirname(__file__)
+
 
 def common_email_data(**kw):
     T = JinjaTemplate
@@ -23,8 +25,8 @@ def common_email_data(**kw):
             'headers': {'X-Mailer': 'python-emails'},
             'message_id': emails.MessageID(),
             'attachments': [
-                {'data': 'aaa', 'filename': 'κατάσχεση.ics'},
-                {'data': 'bbb', 'filename': 'map.png'}
+                {'data': 'Sample text', 'filename': 'κατάσχεση.txt'},
+                {'data': open(os.path.join(ROOT, 'data/pushkin.jpg'), 'rb'), 'filename': 'Пушкин А.С.jpg'}
             ]}
     if kw:
         data.update(kw)
