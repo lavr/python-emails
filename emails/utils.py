@@ -1,6 +1,7 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 import emails
+from emails.compat import is_py3
 import requests
 from emails.exc import HTTPLoaderError
 
@@ -217,3 +218,19 @@ def encode_header(value, charset='utf-8'):
         return str(_r)
     else:
         return value
+
+
+def encode_filename(filename):
+
+    """
+    Encode filename for attachment.
+    """
+
+    try:
+        filename and filename.encode('ascii')
+    except UnicodeEncodeError:
+        if not is_py3:
+            filename = filename.encode('utf8')
+        filename = ('UTF8', '', filename)
+
+    return filename

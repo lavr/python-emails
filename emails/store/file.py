@@ -13,7 +13,7 @@ from email.encoders import encode_base64
 import emails
 from emails.compat import urlparse
 from emails.compat import string_types, to_bytes
-from emails.utils import fetch_url, encode_header
+from emails.utils import fetch_url, encode_filename
 
 
 # class FileNotFound(Exception):
@@ -151,11 +151,11 @@ class BaseFile(object):
             return None
         _mime = getattr(self, '_cached_mime', None)
         if _mime is None:
-            filename_header = encode_header(self.filename)
-            self._cached_mime = _mime = MIMEBase(*self.mime_type.split('/', 1), name=filename_header)
+            self._cached_mime = _mime = MIMEBase(*self.mime_type.split('/', 1))
             _mime.set_payload(to_bytes(self.data))
             encode_base64(_mime)
-            _mime.add_header('Content-Disposition', self.content_disposition, filename=filename_header)
+            _mime.add_header('Content-Disposition', self.content_disposition,
+                             filename=encode_filename(self.filename))
             if self.content_disposition == 'inline':
                 _mime.add_header('Content-ID', '<%s>' % self.content_id)
         return _mime

@@ -10,6 +10,7 @@ def test_message_build():
     kwargs = common_email_data()
     m = emails.Message(**kwargs)
     assert m.as_string()
+    open('_common_email_data.eml', 'wb').write(m.as_string())
 
 
 def test_property_works():

@@ -23,8 +23,9 @@ def common_email_data(**kw):
             'headers': {'X-Mailer': 'python-emails'},
             'message_id': emails.MessageID(),
             'attachments': [
-                {'data': 'aaa', 'filename': 'κατάσχεση.ics'},
-                {'data': 'bbb', 'filename': 'map.png'}
+                {'data': 'Sample text.', 'filename': 'κατάσχεση.txt'},
+                {'data': 'R0lGODdhAQABAIAAAAAAAAAAACwAAAAAAQABAAAIBQABAAgIADs='.decode('base64'),  # one-pixel gif
+                 'filename': 'pixel.gif'}
             ]}
     if kw:
         data.update(kw)
