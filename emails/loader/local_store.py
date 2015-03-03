@@ -83,8 +83,9 @@ class BaseLoader(object):
                 else:
                     html_files.append(filename)
 
-        if html_files:
-            return html_files[0]
+        # Ignore hidden files (filename started with dot)
+        for fn in filter(lambda p: not os.path.basename(p).startswith('.'), html_files):
+            return fn
 
         raise FileNotFound('index html')
 
