@@ -8,7 +8,7 @@ import email.charset
 from email import generator
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from email.header import Header, decode_header
+from email.header import Header, decode_header as decode_header_
 from email.utils import formataddr, parseaddr
 import requests
 
@@ -52,10 +52,10 @@ class CachedDnsName(object):
 DNS_NAME = CachedDnsName()
 
 
-def getheader(header_text, default="ascii"):
+def decode_header(header_text, default="ascii"):
     """Decode the specified header"""
-    headers = decode_header(header_text)
-    header_sections = [unicode(text, charset or default)
+    headers = decode_header_(header_text)
+    header_sections = [to_unicode(text, charset or default)
                        for text, charset in headers]
     return u"".join(header_sections)
 
@@ -115,7 +115,7 @@ def parse_name_and_email(obj, encoding='utf-8'):
     return _realname or None, _email or None
 
 
-def sanitize_address(addr, encoding):
+def sanitize_address(addr, encoding='ascii'):
     if isinstance(addr, string_types):
         addr = parseaddr(to_unicode(addr))
     nm, addr = addr
@@ -199,9 +199,8 @@ def fetch_url(url, valid_http_codes=(200, ), requests_args=None):
 
 
 def encode_header(value, charset='utf-8'):
-    value = to_unicode(value, charset=charset)
     if isinstance(value, string_types):
-        value = value.rstrip()
+        value = to_unicode(value, charset=charset).rstrip()
         _r = Header(value, charset)
         return str(_r)
     else:

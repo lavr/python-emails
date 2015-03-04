@@ -96,7 +96,7 @@ class SMTPBackend:
     def sendmail(self, from_addr, to_addrs, msg, mail_options=[], rcpt_options=[]):
 
         if not to_addrs:
-            return False
+            return []
 
         if not isinstance(to_addrs, (list, tuple)):
             to_addrs = [to_addrs, ]

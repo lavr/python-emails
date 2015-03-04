@@ -172,8 +172,8 @@ class BaseMessage(object):
     def render(self, **kwargs):
         self.render_data = kwargs
 
-    def set_date(self, value):
-        if isinstance(value, string_types):
+    def set_date(self, value, reformat_date=True):
+        if isinstance(value, string_types) and reformat_date:
             _d = dateutil_parse(value)
             value = time.mktime(_d.timetuple())
             value = formatdate(value, True)
