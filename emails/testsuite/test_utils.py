@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 import pytest
 from emails.utils import (parse_name_and_email,
-    encode_header, decode_header, sanitize_address, fetch_url)
+    encode_header, decode_header, sanitize_address, fetch_url, MessageID)
 from emails.exc import HTTPLoaderError
 
 def test_parse_name_and_email():
@@ -34,3 +34,21 @@ def test_fetch_url():
     with pytest.raises(HTTPLoaderError):
         fetch_url('http://google.com/nonexistent-no-page')
 
+
+def test_message_id():
+    # Test message-id generate
+    assert MessageID()()
+    assert '___xxx___' in MessageID(idstring='___xxx___')()
+    assert '___yyy___' in MessageID(domain='___yyy___')()
+
+    # Test message-id generate
+    _ids = set()
+    gen = MessageID()
+    for _ in range(100):
+        _id = gen()
+        if len(_ids) == 1:
+            _ids.add(_id)
+            continue
+        else:
+            assert _id not in _ids
+            _ids.add(_id)
