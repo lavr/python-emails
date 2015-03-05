@@ -130,26 +130,6 @@ class BaseMessage(object):
 
     text = property(get_text, set_text)
 
-    @classmethod
-    def from_loader(cls, loader, template_cls=None, **kwargs):
-        """
-        Get html and attachments from Loader
-        """
-
-        html = loader.html
-        if html and template_cls:
-            html = template_cls(html)
-
-        text = loader.text
-        if text and template_cls:
-            text = template_cls(text)
-
-        message = cls(html=html, text=text, **kwargs)
-
-        for attachment in loader.attachments:
-            message.attach(**attachment.as_dict())
-        return message
-
     @property
     @renderable
     def html_body(self):
