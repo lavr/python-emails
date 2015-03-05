@@ -16,9 +16,6 @@ before_install:
 install:
   - travis_retry pip install -r requirements/tests-$TRAVIS_PYTHON_VERSION.txt
 
-env:
-  - PIP_DOWNLOAD_CACHE=$HOME/.pip-cache
-
 cache:
   directories:
     - $HOME/.pip-cache/
