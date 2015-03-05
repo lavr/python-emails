@@ -1,23 +1,13 @@
 # encoding: utf-8
 from __future__ import unicode_literals
-from email.header import Header
-
 import uuid
-
 from os.path import basename
-
-import requests
 from mimetypes import guess_type
 from email.mime.base import MIMEBase
 from email.encoders import encode_base64
-import emails
 from emails.compat import urlparse
-from emails.compat import string_types, to_bytes
+from emails.compat import to_bytes
 from emails.utils import fetch_url, encode_header
-
-
-# class FileNotFound(Exception):
-#    pass
 
 MIMETYPE_UNKNOWN = 'application/unknown'
 
@@ -51,7 +41,6 @@ class BaseFile(object):
         self._headers = kwargs.get('headers')
         self._content_disposition = kwargs.get('content_disposition', 'attachment')
         self.subtype = kwargs.get('subtype')
-        self.local_loader = kwargs.get('local_loader')
 
     def as_dict(self, fields=None):
         fields = fields or ('uri', 'absolute_url', 'filename', 'data',
@@ -60,12 +49,9 @@ class BaseFile(object):
 
     def get_data(self):
         _data = getattr(self, '_data', None)
-        if isinstance(_data, string_types):
-            return _data
-        elif hasattr(_data, 'read'):
-            return _data.read()
-        else:
-            return _data
+        if hasattr(_data, 'read'):
+            _data = self._data = _data.read()
+        return _data
 
     def set_data(self, value):
         self._data = value
@@ -169,16 +155,16 @@ class BaseFile(object):
 
 class LazyHTTPFile(BaseFile):
 
-    def __init__(self, requests_args=None, **kwargs):
+    def __init__(self, requests_args=None, local_loader=None, **kwargs):
         BaseFile.__init__(self, **kwargs)
         self.requests_args = requests_args
+        self.local_loader = local_loader
         self._fetched = False
 
     def fetch(self):
         if (not self._fetched) and self.uri:
             if self.local_loader:
                 data = self.local_loader[self.uri]
-
                 if data:
                     self._fetched = True
                     self._data = data
