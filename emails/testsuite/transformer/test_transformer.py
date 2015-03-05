@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 from emails.transformer import Transformer, LocalPremailer
 import emails.loader
-from emails.loader.local_store import FileSystemLoader
+from emails.loader.local_store import FileSystemLoader, BaseLoader
 import os.path
 from emails.template import JinjaTemplate, StringTemplate, MakoTemplate
 
@@ -75,11 +75,36 @@ def test_add_content_type_meta():
     assert 'content="text/html; charset=utf-16"' in t.to_string()
 
 
+def test_image_inline():
+
+    class SimpleLoader(BaseLoader):
+        def __init__(self, data):
+            self.__data = data
+        def list_files(self):
+            return self.__data.keys()
+        def get_file(self, name):
+            return self.__data.get(name, None), name
+
+    t = Transformer(html="<div><img src='a.gif'></div>", local_loader=SimpleLoader(data={'a.gif': 'xxx'}))
+    t.load_and_transform()
+
+    t.attachment_store['a.gif'].content_disposition = 'inline'
+    t.synchronize_inline_images()
+    t.save()
+    assert "cid:a.gif" in t.html
+
+    t.attachment_store['a.gif'].content_disposition = None
+    t.synchronize_inline_images()
+    t.save()
+    assert '<img src="a.gif">' in t.html
+
+
 def test_absolute_url():
     t = Transformer(html="", base_url="https://host1.tld/a/b")
     assert t.get_absolute_url('c.gif') == 'https://host1.tld/a/b/c.gif'
     assert t.get_absolute_url('/c.gif') == 'https://host1.tld/c.gif'
     assert t.get_absolute_url('//host2.tld/x/y.png') == 'https://host2.tld/x/y.png'
+
 
 def test_template_transformer():
     """

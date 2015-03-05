@@ -95,6 +95,9 @@ def from_zip(zip_file, **kwargs):
 
 def from_rfc822(msg, message_params=None, **kw):
 
+    # Warning: from_rfc822 is for demo purposes only
+    # TODO: Implement attachment loading
+
     store = local_store.MsgLoader(msg=msg)
     text = store['__index.txt']
     html = store['__index.html']
