@@ -22,6 +22,7 @@ def test_header_encode():
 
 
 def test_sanitize_address():
+    assert sanitize_address('a <b>') == 'a <b>'
     assert sanitize_address('a@b.d') == 'a@b.d'
     assert sanitize_address('x y <a@b.d>') == 'x y <a@b.d>'
     assert sanitize_address('♤ <a@b.d>') == '=?utf-8?b?4pmk?= <a@b.d>'

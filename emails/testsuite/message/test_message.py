@@ -1,9 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals, print_function
+import datetime
+from dateutil.parser import parse as dateutil_parse
 import pytest
 import emails
 import emails.exc
-from emails.compat import to_unicode
+from emails.compat import to_unicode, NativeStringIO
 from .helpers import common_email_data
 
 
@@ -11,6 +13,30 @@ def test_message_build():
     kwargs = common_email_data()
     m = emails.Message(**kwargs)
     assert m.as_string()
+
+    with pytest.raises(ValueError):
+        emails.Message()._build_message()
+
+
+def test_html_file():
+    m = emails.Message(html=NativeStringIO('X'), text=NativeStringIO('Y'))
+    assert m.html == 'X'
+    assert m.text == 'Y'
+
+
+def test_date():
+
+    # default date is "current timestamp"
+    m = emails.Message()
+    assert dateutil_parse(m.message_date).replace(tzinfo=None) >= datetime.datetime.now() - datetime.timedelta(seconds=3)
+
+    # check date as constant
+    m.message_date = '2015-01-01'
+    assert m.message_date.startswith('Thu, 01 Jan 2015 00:00:00')
+
+    # check date as func
+    m.message_date = lambda **kw: 'D'
+    assert m.message_date == 'D'
 
 
 def test_property_works():
