@@ -5,7 +5,7 @@ from dateutil.parser import parse as dateutil_parse
 import pytest
 import emails
 import emails.exc
-from emails.compat import to_unicode, NativeStringIO
+from emails.compat import to_unicode, StringIO
 from .helpers import common_email_data
 
 
@@ -21,7 +21,7 @@ def test_message_build():
         emails.Message().as_string()
 
     # Test file-like html and text
-    m = emails.Message(html=NativeStringIO('X'), text=NativeStringIO('Y'))
+    m = emails.Message(html=StringIO('X'), text=StringIO('Y'))
     assert m.html == 'X'
     assert m.text == 'Y'
 
