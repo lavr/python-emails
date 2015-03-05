@@ -10,15 +10,17 @@ from .helpers import common_email_data
 
 
 def test_message_build():
+
+    # Test simple build
     kwargs = common_email_data()
     m = emails.Message(**kwargs)
     assert m.as_string()
 
+    # If no html or text - raises ValueError
     with pytest.raises(ValueError):
-        emails.Message()._build_message()
+        emails.Message().as_string()
 
-
-def test_html_file():
+    # Test file-like html and text
     m = emails.Message(html=NativeStringIO('X'), text=NativeStringIO('Y'))
     assert m.html == 'X'
     assert m.text == 'Y'
@@ -37,13 +39,6 @@ def test_date():
     # check date as func
     m.message_date = lambda **kw: 'D'
     assert m.message_date == 'D'
-
-
-def test_property_works():
-    m = emails.Message(subject='A')
-    assert m._subject == 'A'
-    m.subject = 'C'
-    assert m._subject == 'C'
 
 
 def test_after_build():
