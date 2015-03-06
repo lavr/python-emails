@@ -16,7 +16,7 @@ from emails.compat import to_bytes, to_native
 
 class DKIMSigner:
 
-    def __init__(self, selector, domain, privkey, ignore_sign_errors=True, **kwargs):
+    def __init__(self, selector, domain, privkey, ignore_sign_errors=False, **kwargs):
 
         self.ignore_sign_errors = ignore_sign_errors
         self._sign_params = kwargs
@@ -45,6 +45,7 @@ class DKIMSigner:
         except DKIMException:
             if self.ignore_sign_errors:
                 logging.exception('Error signing message')
+                return ''
             else:
                 raise
 
