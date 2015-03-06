@@ -67,10 +67,9 @@ def _from_filebased_source(store, index_file=None, message_params=None, **kwargs
     try:
         index_file_name = store.find_index_file(index_file)
     except FileNotFound:
-        # reraise another exception
         raise IndexFileNotFound('html file not found')
 
-    dirname, _ = os.path.split(index_file_name)
+    dirname, index_file_name = os.path.split(index_file_name)
     if dirname:
         store.base_path = dirname
 
@@ -81,16 +80,18 @@ def _from_filebased_source(store, index_file=None, message_params=None, **kwargs
                      **kwargs)
 
 
-def from_directory(directory, **kwargs):
-    return _from_filebased_source(store=local_store.FileSystemLoader(searchpath=directory), **kwargs)
+def from_directory(directory, loader_cls=None, **kwargs):
+    loader_cls = loader_cls or local_store.FileSystemLoader
+    return _from_filebased_source(store=loader_cls(searchpath=directory), **kwargs)
 
 
 def from_file(filename, **kwargs):
     return from_directory(directory=os.path.dirname(filename), index_file=os.path.basename(filename), **kwargs)
 
 
-def from_zip(zip_file, **kwargs):
-    return _from_filebased_source(store=local_store.ZipLoader(file=zip_file), **kwargs)
+def from_zip(zip_file, loader_cls=None, **kwargs):
+    loader_cls = loader_cls or local_store.ZipLoader
+    return _from_filebased_source(store=loader_cls(file=zip_file), **kwargs)
 
 
 def from_rfc822(msg, message_params=None, **kw):

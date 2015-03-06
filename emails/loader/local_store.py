@@ -145,11 +145,10 @@ class FileSystemLoader(BaseLoader):
 
 
 class ZipLoader(BaseLoader):
-    def __init__(self, file, encoding='utf-8', base_path=None, guess_encoding=True):
+    def __init__(self, file, encoding='utf-8', base_path=None):
         self.zipfile = ZipFile(file, 'r')
         self.encoding = encoding
         self.base_path = base_path
-        self.guess_encoding = guess_encoding
         self._filenames = None
 
     def _decode_zip_filename(self, name):

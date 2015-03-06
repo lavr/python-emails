@@ -177,7 +177,7 @@ def _test_mass_msgloader():
 
 def _get_loaders():
     # All loaders loads same data
-    yield FileSystemLoader(os.path.join(ROOT, "data/html_import/oldornament/oldornament/"))
+    yield FileSystemLoader(os.path.join(ROOT, "data/html_import/./oldornament/oldornament"))
     yield ZipLoader(open(os.path.join(ROOT, "data/html_import/oldornament/oldornament.zip"), 'rb'))
 
 
