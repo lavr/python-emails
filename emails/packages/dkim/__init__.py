@@ -401,10 +401,15 @@ class DKIM(object):
   #: formed.
   def sign(self, selector, domain, privkey, identity=None,
         canonicalize=(b'relaxed',b'simple'), include_headers=None, length=False):
-    try:
-        pk = parse_pem_private_key(privkey)
-    except UnparsableKeyError as e:
-        raise KeyFormatError(str(e))
+
+    if isinstance(privkey, dict):
+        # Dirty patch by github:lavr to use pre-compiled key
+        pk = privkey
+    else:
+        try:
+            pk = parse_pem_private_key(privkey)
+        except UnparsableKeyError as e:
+            raise KeyFormatError(str(e))
 
     if identity is not None and not identity.endswith(domain):
         raise ParameterError("identity must end with domain")

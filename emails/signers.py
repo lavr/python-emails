@@ -24,10 +24,9 @@ class DKIMSigner:
         if privkey and hasattr(privkey, 'read'):
             privkey = privkey.read()
 
-        privkey = to_bytes(privkey)
-        # Check private key
+        # Compile private key
         try:
-            parse_pem_private_key(privkey)
+            privkey = parse_pem_private_key(to_bytes(privkey))
         except UnparsableKeyError as exc:
             raise DKIMException(exc)
 
