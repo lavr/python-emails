@@ -81,6 +81,7 @@ class MemoryFileStore(FileStore):
             self.remove(uri)
             value.filename = self.unique_filename(value.filename, uri=uri)
             self._files[uri] = value
+
         return value
 
     def by_uri(self, uri):
@@ -90,11 +91,6 @@ class MemoryFileStore(FileStore):
         uri = self._filenames.get(filename)
         if uri:
             return self.by_uri(uri)
-
-    def by_content_id(self, content_id):
-        parsed = self.file_cls.parse_content_id(content_id)
-        if parsed:
-            return self.by_filename(parsed['filename'])
 
     def __getitem__(self, uri):
         return self.by_uri(uri) or self.by_filename(uri)

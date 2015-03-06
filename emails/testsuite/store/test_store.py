@@ -35,6 +35,7 @@ def test_store_unique_name():
     assert f1.filename == 'c.gif'
     f2 = store.add({'uri': '/a/b/c.gif'})
     assert f2.filename == 'c-2.gif'
+    assert f1.content_id != f2.content_id
 
 
 def test_store_commons2():
@@ -43,7 +44,6 @@ def test_store_commons2():
     assert f1.filename
     assert f1.content_id
     assert f1 in store and f1.uri in store  # tests __contains__
-    assert store.by_content_id(f1.content_id) == f1
     assert len(store) == 1  # tests __len__
     assert len(list(store.as_dict())) == 1
     with pytest.raises(ValueError):
