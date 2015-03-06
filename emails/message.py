@@ -130,26 +130,6 @@ class BaseMessage(object):
 
     text = property(get_text, set_text)
 
-    @classmethod
-    def from_loader(cls, loader, template_cls=None, **kwargs):
-        """
-        Get html and attachments from Loader
-        """
-
-        html = loader.html
-        if html and template_cls:
-            html = template_cls(html)
-
-        text = loader.text
-        if text and template_cls:
-            text = template_cls(text)
-
-        message = cls(html=html, text=text, **kwargs)
-
-        for attachment in loader.attachments:
-            message.attach(**attachment.as_dict())
-        return message
-
     @property
     @renderable
     def html_body(self):
@@ -172,8 +152,8 @@ class BaseMessage(object):
     def render(self, **kwargs):
         self.render_data = kwargs
 
-    def set_date(self, value):
-        if isinstance(value, string_types):
+    def set_date(self, value, reformat_date=True):
+        if isinstance(value, string_types) and reformat_date:
             _d = dateutil_parse(value)
             value = time.mktime(_d.timetuple())
             value = formatdate(value, True)

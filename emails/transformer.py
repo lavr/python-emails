@@ -155,6 +155,9 @@ class HTMLParser(object):
         meta.set('content', '%s; charset=%s' % (content_type, charset))
         meta.set('http-equiv', "Content-Type")
 
+    def save(self, **kwargs):
+        self._html = self.to_string(**kwargs)
+
 
 class BaseTransformer(HTMLParser):
 
@@ -321,17 +324,7 @@ class BaseTransformer(HTMLParser):
 
 
 class Transformer(BaseTransformer):
-
-    @staticmethod
-    def from_message(cls, message, **kw):
-        return cls(html=message.html, attachment_store=message.attachments, **kw)
-
-    def to_message(self, message=None):
-        if message is None:
-            message = emails.Message()
-        message.html_body = self.to_string()
-        # TODO: Copy attachments may be.
-        message._attachments = self.attachment_store
+    pass
 
 
 class MessageTransformer(BaseTransformer):

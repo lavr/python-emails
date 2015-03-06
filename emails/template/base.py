@@ -31,7 +31,7 @@ class StringTemplate(BaseTemplate):
     string.Template based engine.
     """
     def compile_template(self):
-        safe_substitute = self.kwargs.get('safe_substitute')
+        safe_substitute = self.kwargs.get('safe_substitute', True)
         t = string.Template(self.template_text)
         if safe_substitute:
             return t.safe_substitute

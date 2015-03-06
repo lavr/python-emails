@@ -1,7 +1,11 @@
 # encoding: utf-8
 from __future__ import unicode_literals, print_function
 from emails.store.file import fix_content_type
-from emails.loader.helpers import guess_charset, decode_text
+from emails.loader.helpers import (guess_charset, guess_text_charset, decode_text, guess_html_charset, RULES_U)
+
+
+def test_re_rules():
+    assert RULES_U.re_is_http_equiv.findall('http-equiv="Content-Type" content="text/html; charset=UTF-8"')
 
 
 def test_guess_charset():
@@ -11,14 +15,11 @@ def test_guess_charset():
 
     html = """<html><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />"""
     assert guess_charset(headers=None, html=html) == 'UTF-8'
+    assert guess_text_charset(html, is_html=True) == 'UTF-8'
+    assert guess_html_charset(html) == 'UTF-8'
 
     html = """Шла Саша по шоссе и сосала сушку"""
     assert guess_charset(headers=None, html=html.encode('utf-8')) == 'utf-8'
-
-
-def test_fix_content_type():
-    assert fix_content_type('x') == 'x'
-    assert fix_content_type('') == 'image/unknown'
 
 
 def test_decode_text():

@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 import os
 import logging
+import pytest
 import emails
 from emails.backend.smtp import SMTPBackend
 
@@ -13,6 +14,7 @@ HAS_INTERNET_CONNECTION = not TRAVIS_CI
 def test_send_to_unknow_host():
     server = SMTPBackend(host='invalid-server.invalid-domain-42.com', port=25)
     response = server.sendmail(to_addrs='s@lavr.me', from_addr='s@lavr.me',  msg='...')[0]
+    server.close()
     assert response.status_code is None
     assert response.error is not None
     assert isinstance(response.error, IOError)
@@ -40,8 +42,26 @@ def test_smtp_reconnect(smtp_server):
     response = server.sendmail(to_addrs='s@lavr.me',
                                from_addr='s@lavr.me',
                                msg=emails.html(**SAMPLE_MESSAGE))
+    server.close()
     print(response)
 
+
+def test_smtp_init_error(smtp_server):
+
+    with pytest.raises(ValueError):
+        SMTPBackend(host=smtp_server.host,
+                     port=smtp_server.port,
+                     debug=1,
+                     ssl=True,
+                     tls=True)
+
+
+def test_smtp_empty_sendmail(smtp_server):
+    server = SMTPBackend(host=smtp_server.host,
+                         port=smtp_server.port,
+                         debug=1)
+    response = server.sendmail(to_addrs=[], from_addr='a@b.com', msg='')
+    assert not response
 
 def test_smtp_dict1(smtp_server):
     response = emails.html(**SAMPLE_MESSAGE).send(smtp=smtp_server.as_dict())

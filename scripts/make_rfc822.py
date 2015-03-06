@@ -61,13 +61,12 @@ class MakeRFC822:
         else:
             message_id = None
 
-        loader = emails.loader.from_url(url=options.url, images_inline=options.inline_images)
-        message = emails.Message.from_loader(loader=loader,
-                                             headers=self._headers_from_command_line(),
-                                             template_cls=T,
-                                             mail_from=(options.from_name, options.from_email),
-                                             subject=T(unicode(options.subject, 'utf-8')),
-                                             message_id=message_id)
+        message_params = dict(headers=self._headers_from_command_line(),
+                    template_cls=T,
+                    mail_from=(options.from_name, options.from_email),
+                    subject=T(unicode(options.subject, 'utf-8')),
+                    message_id=message_id)
+        message = emails.loader.from_url(url=options.url, images_inline=options.inline_images, message_params=message_params)
         return message
 
     def _send_test_email(self, message):

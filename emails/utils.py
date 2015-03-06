@@ -1,14 +1,14 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 import socket
-import time
+from datetime import datetime
 import os
-import random
+from random import randrange
 import email.charset
 from email import generator
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from email.header import Header, decode_header
+from email.header import Header, decode_header as decode_header_
 from email.utils import formataddr, parseaddr
 import requests
 
@@ -52,10 +52,10 @@ class CachedDnsName(object):
 DNS_NAME = CachedDnsName()
 
 
-def getheader(header_text, default="ascii"):
+def decode_header(header_text, default="ascii"):
     """Decode the specified header"""
-    headers = decode_header(header_text)
-    header_sections = [unicode(text, charset or default)
+    headers = decode_header_(header_text)
+    header_sections = [to_unicode(text, charset or default)
                        for text, charset in headers]
     return u"".join(header_sections)
 
@@ -69,24 +69,19 @@ class MessageID:
     """
 
     def __init__(self, domain=None, idstring=None):
-        self.domain = domain or DNS_NAME
-        self.idstring = idstring
-
-    def __call__(self):
-        timeval = time.time()
-        utcdate = time.strftime('%Y%m%d%H%M%S', time.gmtime(timeval))
+        self.domain = str(domain or DNS_NAME)
         try:
             pid = os.getpid()
         except AttributeError:
-            # No getpid() in Jython, for example.
+            # No getpid() in Jython.
             pid = 1
-        randint = random.randrange(100000)
-        if self.idstring is None:
-            idstring = ''
-        else:
-            idstring = '.' + self.idstring
-        msgid = '<%s.%s.%s%s@%s>' % (utcdate, pid, randint, idstring, self.domain)
-        return msgid
+        self.idstring = ".".join([str(idstring or randrange(10000)), str(pid)])
+
+    def __call__(self):
+        r = ".".join([datetime.now().strftime("%Y%m%d%H%M%S.%f"),
+                      str(randrange(100000)),
+                      self.idstring])
+        return "".join(['<', r, '@', self.domain, '>'])
 
 
 def parse_name_and_email(obj, encoding='utf-8'):
@@ -115,7 +110,7 @@ def parse_name_and_email(obj, encoding='utf-8'):
     return _realname or None, _email or None
 
 
-def sanitize_address(addr, encoding):
+def sanitize_address(addr, encoding='ascii'):
     if isinstance(addr, string_types):
         addr = parseaddr(to_unicode(addr))
     nm, addr = addr
@@ -199,9 +194,8 @@ def fetch_url(url, valid_http_codes=(200, ), requests_args=None):
 
 
 def encode_header(value, charset='utf-8'):
-    value = to_unicode(value, charset=charset)
     if isinstance(value, string_types):
-        value = value.rstrip()
+        value = to_unicode(value, charset=charset).rstrip()
         _r = Header(value, charset)
         return str(_r)
     else:

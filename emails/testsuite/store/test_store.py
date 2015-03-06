@@ -3,6 +3,13 @@ from __future__ import unicode_literals
 import pytest
 import emails
 import emails.store
+from emails.store.file import fix_content_type
+
+
+def test_fix_content_type():
+    assert fix_content_type('x') == 'x'
+    assert fix_content_type('') == 'image/unknown'
+
 
 def test_lazy_http():
     IMG_URL = 'http://lavr.github.io/python-emails/tests/python-logo.gif'
@@ -21,6 +28,7 @@ def test_store_commons():
         for (k, v) in orig_file.items():
             assert v == getattr(stored_file, k)
 
+
 def test_store_unique_name():
     store = emails.store.MemoryFileStore()
     f1 = store.add({'uri': '/a/c.gif'})
@@ -28,7 +36,8 @@ def test_store_unique_name():
     f2 = store.add({'uri': '/a/b/c.gif'})
     assert f2.filename == 'c-2.gif'
 
-def test_store_commons():
+
+def test_store_commons2():
     store = emails.store.MemoryFileStore()
     f1 = store.add({'uri': '/a/c.gif'})
     assert f1.filename

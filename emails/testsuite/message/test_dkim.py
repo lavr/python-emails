@@ -1,8 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 import os
+import pytest
 import emails
 from emails.compat import NativeStringIO, to_bytes, to_native
+from emails.exc import DKIMException
+from .helpers import common_email_data
 
 
 TRAVIS_CI = os.environ.get('TRAVIS')
@@ -70,3 +73,15 @@ def test_dkim():
         # check that DKIM header exist
         assert message.as_message()['DKIM-Signature']
         assert 'DKIM-Signature: ' in message.as_string()
+        # TODO: check dkim valid
+
+
+def test_dkim_errors():
+
+    m = emails.html(**common_email_data())
+    invalid_key = 'X'
+    with pytest.raises(DKIMException):
+        m.dkim(privkey=invalid_key,
+               selector='_dkim',
+               domain='somewhere.net',
+               ignore_sign_errors=False)

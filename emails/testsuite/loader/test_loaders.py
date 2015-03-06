@@ -163,6 +163,9 @@ def test_msgloader():
     assert loader['__index.html'] == data['html']
     assert loader['__index.txt'] == data['text']
 
+    assert emails.loader.from_rfc822(msg=msg).as_string()
+    # TODO: more tests
+
 
 def _test_mass_msgloader():
     ROOT = os.path.dirname(__file__)
