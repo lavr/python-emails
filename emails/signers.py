@@ -1,14 +1,16 @@
 # encoding: utf-8
-
 # This module use pydkim for DKIM signature
 
-# Special note for python2.4 users:
+# For python2.4:
 #  - use dkimpy v0.3 from http://hewgill.com/pydkim/
 #  - install hashlib (https://pypi.python.org/pypi/hashlib/20081119) and dnspython
+
 from __future__ import unicode_literals
 import logging
 
 from emails.packages import dkim
+from emails.packages.dkim import DKIMException, UnparsableKeyError
+from emails.packages.dkim.crypto import parse_pem_private_key
 from emails.compat import to_bytes, to_native
 
 
@@ -22,36 +24,36 @@ class DKIMSigner:
         if privkey and hasattr(privkey, 'read'):
             privkey = privkey.read()
 
-        self._sign_params.update({'privkey': to_bytes(privkey), 'domain': to_bytes(domain),
+        privkey = to_bytes(privkey)
+        # Check private key
+        try:
+            parse_pem_private_key(privkey)
+        except UnparsableKeyError as exc:
+            raise DKIMException(exc)
+
+        self._sign_params.update({'privkey': privkey,
+                                  'domain': to_bytes(domain),
                                   'selector': to_bytes(selector)})
 
     def get_sign_string(self, message):
-
-        dkim_header = None
 
         try:
             # pydkim module parses message and privkey on each signing
             # this is not optimal for mass operations
             # TODO: patch pydkim or use another signing module
-            dkim_header = dkim.sign(message=message, **self._sign_params)
-        except:
+            return to_native(dkim.sign(message=message, **self._sign_params))
+        except DKIMException:
             if self.ignore_sign_errors:
                 logging.exception('Error signing message')
             else:
                 raise
 
-        return to_native(dkim_header)
-
     def get_sign_header(self, message):
-
-        dkim_header_str = self.get_sign_string(message)
-
-        if dkim_header_str:
-            # pydkim returns string, so we should split
-            (header, value) = dkim_header_str.split(': ', 1)
-            if value.endswith("\r\n"):
-                value = value[:-2]
-            return header, value
+        # pydkim returns string, so we should split
+        (header, value) = self.get_sign_string(message).split(': ', 1)
+        if value.endswith("\r\n"):
+            value = value[:-2]
+        return header, value
 
     def sign_message(self, msg):
         """
@@ -66,7 +68,4 @@ class DKIMSigner:
         """
         Insert DKIM header to message string
         """
-        dkim_line = self.get_sign_string(to_bytes(message_string))
-        if dkim_line:
-            return dkim_line + message_string
-        return message_string
+        return self.get_sign_string(to_bytes(message_string)) + message_string
