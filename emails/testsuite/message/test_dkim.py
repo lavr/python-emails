@@ -76,8 +76,9 @@ def test_dkim():
         # TODO: check dkim valid
 
 
-def test_dkim_errors():
+def test_dkim_error():
 
+    # Error in invalid key
     m = emails.html(**common_email_data())
     invalid_key = 'X'
     with pytest.raises(DKIMException):
@@ -85,3 +86,24 @@ def test_dkim_errors():
                selector='_dkim',
                domain='somewhere.net',
                ignore_sign_errors=False)
+
+    # Error on invalid dkim parameters
+
+
+    m.dkim(privkey=_generate_privkey(),
+           selector='_dkim',
+           domain='somewhere.net',
+           include_headers=['To'])
+
+    with pytest.raises(DKIMException):
+        # include_heades must contain 'From'
+        m.as_string()
+
+    # Skip error on ignore_sign_errors=True
+    m.dkim(privkey=_generate_privkey(),
+           selector='_dkim',
+           domain='somewhere.net',
+           ignore_sign_errors=True,
+           include_headers=['To'])
+
+    m.as_string()
