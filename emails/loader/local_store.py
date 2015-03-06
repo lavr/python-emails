@@ -188,6 +188,7 @@ class ZipLoader(BaseLoader):
         return sorted(self._filenames)
 
 
+
 class MsgLoader(BaseLoader):
     """
     Load files from email.Message
@@ -205,10 +206,11 @@ class MsgLoader(BaseLoader):
         else:
             self.msg = msg
         self.base_path = base_path
-        self._html_files = []
-        self._text_files = []
+        self._html_parts = []
+        self._text_parts = []
         self._files = {}
-
+        self._content_ids = {}
+        self._parsed = False
 
     def decode_text(self, text, charset=None):
         if charset:
@@ -234,39 +236,37 @@ class MsgLoader(BaseLoader):
         return self.decode_text(part.get_payload(decode=True), charset=part.get_param('charset'))[0]
 
     def add_html_part(self, part):
-        name = '__index.html'
-        self._files[name] = {'data': self.extract_part_text(part),
-                             'filename': name,
-                             'content_type': part.get_content_type()}
+        self._html_parts.append({'data': self.extract_part_text(part),
+                                 'content_type': part.get_content_type()})
 
     def add_text_part(self, part):
-        name = '__index.txt'
-        self._files[name] = {'data': self.extract_part_text(part),
-                             'filename': name,
-                             'content_type': part.get_content_type()}
+        self._text_parts.append({'data': self.extract_part_text(part),
+                             'content_type': part.get_content_type()})
 
-    def add_another_part(self, part):
+    def add_attachment_part(self, part):
         counter = 1
         f = {}
+
+        filename = part.get_filename()
+        if not filename:
+            ext = mimetypes.guess_extension(part.get_content_type())
+            if not ext:
+                # Use a generic bag-of-bits extension
+                ext = '.bin'
+            filename = 'part-%03d%s' % (counter, ext)
+            counter += 1
+        f['filename'] = filename
+        f['content_type'] = part.get_content_type()
+
         content_id = part['Content-ID']
         if content_id:
-            f['filename'] = self.clean_content_id(content_id)
+            f['content_id'] = self.clean_content_id(content_id)
             f['inline'] = True
-        else:
-            filename = part.get_filename()
-            if not filename:
-                ext = mimetypes.guess_extension(part.get_content_type())
-                if not ext:
-                    # Use a generic bag-of-bits extension
-                    ext = '.bin'
-                filename = 'part-%03d%s' % (counter, ext)
-                counter += 1
-            f['filename'] = filename
-        f['content_type'] = part.get_content_type()
+            self._content_ids[f['content_id']] = f['filename']
         f['data'] = part.get_payload(decode=True)
         self._files[f['filename']] = f
 
-    def _parse_msg(self):
+    def _parse(self):
         for part in self.msg.walk():
             content_type = part.get_content_type()
 
@@ -281,14 +281,40 @@ class MsgLoader(BaseLoader):
                 self.add_text_part(part)
                 continue
 
-            self.add_another_part(part)
+            self.add_attachment_part(part)
+
+    def parse(self):
+        if not self._parsed:
+            self._parse()
+        self._parsed = True
 
     def get_file(self, name):
-        self._parse_msg()
+        #print("MsgLoader.get_file", name)
+        self.parse()
+        if name.startswith('cid:'):
+            name = self._content_ids.get(name[4:])
         f = self._files.get(name)
         if f:
             return f['data'], name
         raise FileNotFound(name)
 
     def list_files(self):
+        self.parse()
         return self._files
+
+    @property
+    def attachments(self):
+        self.parse()
+        return self._files.values()
+
+    @property
+    def html(self):
+        self.parse()
+        return self._html_parts and self._html_parts[0]['data'] or None
+
+    @property
+    def text(self):
+        self.parse()
+        return self._text_parts and self._text_parts[0]['data'] or None
+
+

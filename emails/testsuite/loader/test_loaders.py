@@ -144,37 +144,6 @@ def test_external_urls():
             pass
 
 
-def test_msgloader():
-
-    data = {'charset': 'utf-8',
-            'subject': 'Что-то по-русски',
-            'mail_from': ('Максим Иванов', 'ivanov@ya.ru'),
-            'mail_to': ('Полина Сергеева', 'polina@mail.ru'),
-            'html': '<h1>Привет!</h1><p>В первых строках...',
-            'text': 'Привет!\nВ первых строках...',
-            'headers': {'X-Mailer': 'python-emails'},
-            'attachments': [{'data': 'aaa', 'filename': 'Event.ics'},],
-            'message_id': 'message_id'}
-
-    msg = emails.Message(**data).as_string()
-    loader = MsgLoader(msg=msg)
-    loader._parse_msg()
-    assert 'Event.ics' in loader.list_files()
-    assert loader['__index.html'] == data['html']
-    assert loader['__index.txt'] == data['text']
-
-    assert emails.loader.from_rfc822(msg=msg).as_string()
-    # TODO: more tests
-
-
-def _test_mass_msgloader():
-    ROOT = os.path.dirname(__file__)
-    for filename in glob.glob(os.path.join(ROOT, "data/msg/*.eml")):
-        msg = email.message_from_string(open(filename).read())
-        msgloader = MsgLoader(msg=msg)
-        msgloader._parse_msg()
-
-
 def _get_loaders():
     # All loaders loads same data
     yield FileSystemLoader(os.path.join(ROOT, "data/html_import/./oldornament/oldornament"))

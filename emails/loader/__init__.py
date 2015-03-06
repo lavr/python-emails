@@ -95,22 +95,10 @@ def from_zip(zip_file, loader_cls=None, **kwargs):
 
 
 def from_rfc822(msg, message_params=None, **kw):
-
     # Warning: from_rfc822 is for demo purposes only
-    # TODO: Implement attachment loading
-
-    store = local_store.MsgLoader(msg=msg)
-    text = store['__index.txt']
-    html = store['__index.html']
-
+    loader = local_store.MsgLoader(msg=msg)
     message_params = message_params or {}
-    message = Message(html=html, text=text, **message_params)
-    if html:
-        message.create_transformer(local_loader=store, **kw)
-        message.transformer.load_and_transform()
-        message.transformer.save()
-    else:
-        # TODO: add attachments for text-only message
-        pass
-
+    message = Message(html=loader.html, text=loader.text, **message_params)
+    for att in loader.attachments:
+        message.attachments.add(att)
     return message
