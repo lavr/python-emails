@@ -22,21 +22,20 @@ OLDORNAMENT_URLS = dict(from_url='campaignmonitor-samples/oldornament/index.html
                         from_zip='data/html_import/oldornament/oldornament.zip')
 
 
-def load_messages(from_url=None, from_file=None, from_zip=None, from_directory=None, **kw):
+def load_messages(from_url=None, from_file=None, from_zip=None, from_directory=None, skip_text=False, **kw):
     # Ususally all loaders loads same data
     if from_url:
         print("emails.loader.from_url", BASE_URL + from_url, kw)
         yield emails.loader.from_url(BASE_URL + from_url, **kw)
     if from_file:
         print("emails.loader.from_file", os.path.join(ROOT, from_file), kw)
-        yield emails.loader.from_file(os.path.join(ROOT, from_file), **kw)
+        yield emails.loader.from_file(os.path.join(ROOT, from_file), skip_text=skip_text, **kw)
     if from_directory:
         print("emails.loader.from_directory", os.path.join(ROOT, from_directory), kw)
-        yield emails.loader.from_directory(os.path.join(ROOT, from_directory), **kw)
+        yield emails.loader.from_directory(os.path.join(ROOT, from_directory), skip_text=skip_text, **kw)
     if from_zip:
         print("emails.loader.from_zip", os.path.join(ROOT, from_zip), kw)
-        yield emails.loader.from_zip(open(os.path.join(ROOT, from_zip), 'rb'), **kw)
-
+        yield emails.loader.from_zip(open(os.path.join(ROOT, from_zip), 'rb'), skip_text=skip_text, **kw)
 
 
 def test_loaders():
@@ -160,6 +159,8 @@ def test_local_store1():
             loader.get_file('-nonexistent-file')
         with pytest.raises(FileNotFound):
             loader.find_index_file('-nonexistent-file')
+        assert loader.find_index_html()
+        assert not loader.find_index_text()
         files_list = list(loader.list_files())
         assert 'images/arrow.png' in files_list
         assert len(files_list) in [15, 16]
