@@ -7,7 +7,9 @@ Simple utility that imports html from url ang print generated rfc822 message to 
 
 Example usage:
 
-    $ python make_rfc822.py --url=http://lavr.github.io/python-emails/tests/campaignmonitor-samples/sample-template/template-widgets.html \
+    $ python make_rfc822.py \
+            --url=http://lavr.github.io/python-emails/tests/campaignmonitor-samples/sample-template/template-widgets.html \
+            --inline-images \
             --subject="Some subject" \
             --from-name="Sergey Lavrinenko" \
             --from-email=s@lavr.me \
@@ -25,7 +27,6 @@ Copyright 2013  Sergey Lavrinenko <s@lavr.me>
 import sys
 import logging
 import json
-
 import argparse
 
 import emails
@@ -61,12 +62,24 @@ class MakeRFC822:
         else:
             message_id = None
 
-        message_params = dict(headers=self._headers_from_command_line(),
-                    template_cls=T,
-                    mail_from=(options.from_name, options.from_email),
-                    subject=T(unicode(options.subject, 'utf-8')),
-                    message_id=message_id)
-        message = emails.loader.from_url(url=options.url, images_inline=options.inline_images, message_params=message_params)
+        args = dict(images_inline=options.inline_images,
+                    message_params=dict(headers=self._headers_from_command_line(),
+                                        mail_from=(options.from_name, options.from_email),
+                                        subject=T(unicode(options.subject, 'utf-8')),
+                                        message_id=message_id),
+                    template_cls=T)
+        if options.url:
+            message = emails.loader.from_url(url=options.url, **args)
+        elif options.from_directory:
+            message = emails.loader.from_directory(options.from_directory, **args)
+        elif options.from_file:
+            message = emails.loader.from_file(options.from_file, **args)
+        elif options.from_zipfile:
+            message = emails.loader.from_zip(options.from_zipfile, **args)
+        else:
+            logging.error('No message source specified.')
+            sys.exit(1)
+
         return message
 
     def _send_test_email(self, message):
@@ -108,7 +121,6 @@ class MakeRFC822:
                 except ValueError:
                     # If it is not json, we expect one word with '@' sign
                     assert len(l.split()) == 1
-                    print l
                     login, domain = l.split('@')  # ensure there is something email-like
                     yield {'to': l}
 
@@ -144,7 +156,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Imports html from url ang generate rfc822 message.')
 
-    parser.add_argument("-u", "--url", metavar="URL", dest="url", action="store", default=None, required=True)
+    parser.add_argument("-u", "--url", metavar="URL", dest="url", action="store", default=None)
+    parser.add_argument("--source-directory", dest="from_directory", action="store", default=None)
+    parser.add_argument("--source-file", dest="from_file", action="store", default=None)
+    parser.add_argument("--source-zipfile", dest="from_zipfile", action="store", default=None)
 
     parser.add_argument("-f", "--from-email", metavar="EMAIL", dest="from_email", default=None, required=True)
     parser.add_argument("-n", "--from-name", metavar="NAME", dest="from_name", default=None, required=True)

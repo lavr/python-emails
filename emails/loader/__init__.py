@@ -22,10 +22,18 @@ class InvalidHtmlFile(LoadError):
     pass
 
 
-def from_html(html, source_filename=None, base_url=None, message_params=None, local_loader=None, **kwargs):
+def from_html(html, text=None, base_url=None, message_params=None, local_loader=None,
+              template_cls=None, message_cls=None, source_filename=None, requests_params=None,
+              **kwargs):
+
+    if template_cls:
+        html = template_cls(html)
+    if template_cls and text:
+        text = template_cls(text)
+
     message_params = message_params or {}
-    message = Message(html=html, **message_params)
-    message.create_transformer(requests_params=kwargs.pop('requests_params', None),
+    message = (message_cls or Message)(html=html, text=text, **message_params)
+    message.create_transformer(requests_params=requests_params,
                                base_url=base_url,
                                local_loader=local_loader)
     if message.transformer.tree is None:

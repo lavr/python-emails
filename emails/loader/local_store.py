@@ -289,7 +289,6 @@ class MsgLoader(BaseLoader):
         self._parsed = True
 
     def get_file(self, name):
-        #print("MsgLoader.get_file", name)
         self.parse()
         if name.startswith('cid:'):
             name = self._content_ids.get(name[4:])
