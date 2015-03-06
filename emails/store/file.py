@@ -35,8 +35,6 @@ class BaseFile(object):
     Store base "attachment-file" information.
     """
 
-    content_id_suffix = '@python.emails'
-
     def __init__(self, **kwargs):
         """
         uri and filename are connected properties.
@@ -49,6 +47,7 @@ class BaseFile(object):
         self.data = kwargs.get('data', None)
         self._mime_type = kwargs.get('mime_type')
         self._headers = kwargs.get('headers')
+        self._content_id = kwargs.get('content_id')
         self._content_disposition = kwargs.get('content_disposition', 'attachment')
         self.subtype = kwargs.get('subtype')
         self.local_loader = kwargs.get('local_loader')
@@ -136,14 +135,9 @@ class BaseFile(object):
 
     @property
     def content_id(self):
-        return "{0}{1}".format(self.filename, self.content_id_suffix)
-
-    @classmethod
-    def parse_content_id(cls, content_id):
-        if content_id.endswith(cls.content_id_suffix):
-            return {'filename': content_id[:-len(cls.content_id_suffix)]}
-        else:
-            return None
+        if self._content_id is None:
+            self._content_id = self.filename
+        return self._content_id
 
     @property
     def mime(self):

@@ -16,7 +16,7 @@ from emails.compat import to_bytes, to_native
 
 class DKIMSigner:
 
-    def __init__(self, selector, domain, privkey, ignore_sign_errors=True, **kwargs):
+    def __init__(self, selector, domain, privkey, ignore_sign_errors=False, **kwargs):
 
         self.ignore_sign_errors = ignore_sign_errors
         self._sign_params = kwargs
@@ -24,10 +24,9 @@ class DKIMSigner:
         if privkey and hasattr(privkey, 'read'):
             privkey = privkey.read()
 
-        privkey = to_bytes(privkey)
-        # Check private key
+        # Compile private key
         try:
-            parse_pem_private_key(privkey)
+            privkey = parse_pem_private_key(to_bytes(privkey))
         except UnparsableKeyError as exc:
             raise DKIMException(exc)
 
@@ -41,7 +40,7 @@ class DKIMSigner:
             # pydkim module parses message and privkey on each signing
             # this is not optimal for mass operations
             # TODO: patch pydkim or use another signing module
-            return to_native(dkim.sign(message=message, **self._sign_params))
+            return dkim.sign(message=message, **self._sign_params)
         except DKIMException:
             if self.ignore_sign_errors:
                 logging.exception('Error signing message')
@@ -50,10 +49,12 @@ class DKIMSigner:
 
     def get_sign_header(self, message):
         # pydkim returns string, so we should split
-        (header, value) = self.get_sign_string(message).split(': ', 1)
-        if value.endswith("\r\n"):
-            value = value[:-2]
-        return header, value
+        s = self.get_sign_string(message)
+        if s:
+            (header, value) = to_native(s).split(': ', 1)
+            if value.endswith("\r\n"):
+                value = value[:-2]
+            return header, value
 
     def sign_message(self, msg):
         """
@@ -68,4 +69,5 @@ class DKIMSigner:
         """
         Insert DKIM header to message string
         """
-        return self.get_sign_string(to_bytes(message_string)) + message_string
+        s = self.get_sign_string(to_bytes(message_string))
+        return s and s + message_string or message_string
