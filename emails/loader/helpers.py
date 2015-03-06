@@ -8,19 +8,12 @@ import charade
 from emails.compat import to_unicode, to_native
 
 
-def fix_content_type(content_type, t='image'):
-    if not content_type:
-        return "%s/unknown" % t
-    else:
-        return content_type
-
-
 # HTML page charset stuff
 
 class ReRules:
     re_meta = b"(?i)(?<=<meta).*?(?=>)"
     re_is_http_equiv = b"http-equiv=\"?'?content-type\"?'?"
-    re_parse_http_equiv = b"http-equiv=\"?'?content-type\"?'?"
+    re_parse_http_equiv = b"content=\"?'?([^\"'>]+)"
     re_charset = b"charset=\"?'?([\w-]+)\"?'?"
 
     def __init__(self, conv=None):
@@ -28,7 +21,7 @@ class ReRules:
             conv = lambda x: x
         for k in dir(self):
             if k.startswith('re_'):
-                setattr(self, k, re.compile(conv(getattr(self, k))))
+                setattr(self, k, re.compile(conv(getattr(self, k)), re.I + re.S + re.M))
 
 RULES_U = ReRules(conv=to_unicode)
 RULES_B = ReRules()
