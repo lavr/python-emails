@@ -1,9 +1,9 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 import socket
-import time
+from datetime import datetime
 import os
-import random
+from random import randrange
 import email.charset
 from email import generator
 from email.mime.text import MIMEText
@@ -69,24 +69,19 @@ class MessageID:
     """
 
     def __init__(self, domain=None, idstring=None):
-        self.domain = domain or DNS_NAME
-        self.idstring = idstring
-
-    def __call__(self):
-        timeval = time.time()
-        utcdate = time.strftime('%Y%m%d%H%M%S', time.gmtime(timeval))
+        self.domain = str(domain or DNS_NAME)
         try:
             pid = os.getpid()
         except AttributeError:
-            # No getpid() in Jython, for example.
+            # No getpid() in Jython.
             pid = 1
-        randint = random.randrange(100000)
-        if self.idstring is None:
-            idstring = ''
-        else:
-            idstring = '.' + self.idstring
-        msgid = '<%s.%s.%s%s@%s>' % (utcdate, pid, randint, idstring, self.domain)
-        return msgid
+        self.idstring = ".".join([str(idstring or randrange(10000)), str(pid)])
+
+    def __call__(self):
+        r = ".".join([datetime.now().strftime("%Y%m%d%H%M%S.%f"),
+                      str(randrange(100000)),
+                      self.idstring])
+        return "".join(['<', r, '@', self.domain, '>'])
 
 
 def parse_name_and_email(obj, encoding='utf-8'):
