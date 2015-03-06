@@ -7,7 +7,7 @@ from functools import wraps
 from dateutil.parser import parse as dateutil_parse
 from email.header import Header
 from email.utils import formatdate, getaddresses
-from emails.compat import string_types, to_unicode, is_callable, to_bytes
+from emails.compat import string_types, to_unicode, is_callable, to_bytes, to_native
 from .utils import (SafeMIMEText, SafeMIMEMultipart, sanitize_address,
                     parse_name_and_email, load_email_charsets,
                     encode_header as encode_header_)
@@ -404,15 +404,22 @@ class MessageDKIMMixin(object):
         return message_string
 
     def as_message(self, message_cls=None):
-        msg = self.dkim_sign_message(self._build_message(message_cls=message_cls))
-        return msg
+        return self.dkim_sign_message(self._build_message(message_cls=message_cls))
 
     message = as_message
 
     def as_string(self, message_cls=None):
-        # self.as_string() is not equialent self.message().as_string()
-        # self.as_string() needs one less message-to-string conversions for dkim
-        return self.dkim_sign_string(self._build_message(message_cls=message_cls).as_string())
+        """
+        Returns message as string.
+
+        Note: this method costs one less message-to-string conversions
+        for dkim in compare to self.as_message().as_string()
+
+        Changes:
+        v0.4.2: now returns bytes, not native string
+        """
+
+        return self.dkim_sign_string(to_bytes(self._build_message(message_cls=message_cls).as_string()))
 
 
 class Message(MessageSendMixin, MessageTransformerMixin, MessageDKIMMixin, BaseMessage):

@@ -8,7 +8,7 @@ import errno
 from zipfile import ZipFile
 import email
 
-from emails.compat import to_unicode, string_types
+from emails.compat import to_unicode, string_types, to_native
 from emails.loader.helpers import guess_html_charset, decode_text
 
 
@@ -201,6 +201,8 @@ class MsgLoader(BaseLoader):
     def __init__(self, msg, base_path=None):
         if isinstance(msg, string_types):
             self.msg = email.message_from_string(msg)
+        elif isinstance(msg, bytes):
+            self.msg = email.message_from_string(to_native(msg))
         else:
             self.msg = msg
         self.base_path = base_path

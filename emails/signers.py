@@ -41,20 +41,21 @@ class DKIMSigner:
             # pydkim module parses message and privkey on each signing
             # this is not optimal for mass operations
             # TODO: patch pydkim or use another signing module
-            return to_native(dkim.sign(message=message, **self._sign_params))
+            return dkim.sign(message=message, **self._sign_params)
         except DKIMException:
             if self.ignore_sign_errors:
                 logging.exception('Error signing message')
-                return ''
             else:
                 raise
 
     def get_sign_header(self, message):
         # pydkim returns string, so we should split
-        (header, value) = self.get_sign_string(message).split(': ', 1)
-        if value.endswith("\r\n"):
-            value = value[:-2]
-        return header, value
+        s = self.get_sign_string(message)
+        if s:
+            (header, value) = to_native(s).split(': ', 1)
+            if value.endswith("\r\n"):
+                value = value[:-2]
+            return header, value
 
     def sign_message(self, msg):
         """
@@ -69,4 +70,5 @@ class DKIMSigner:
         """
         Insert DKIM header to message string
         """
-        return self.get_sign_string(to_bytes(message_string)) + message_string
+        s = self.get_sign_string(to_bytes(message_string))
+        return s and s + message_string or message_string

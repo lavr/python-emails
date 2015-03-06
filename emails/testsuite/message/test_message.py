@@ -5,15 +5,29 @@ from dateutil.parser import parse as dateutil_parse
 import pytest
 import emails
 import emails.exc
-from emails.compat import to_unicode, StringIO
+from emails.compat import to_unicode, StringIO, is_py2, is_py3
 from .helpers import common_email_data
+
+
+def test_message_types():
+
+    if is_py2:
+        bytes_types = (str, )
+        native_string = (unicode, )
+    else:
+        bytes_types = (bytes, )
+        native_string = (str, )
+
+    m = emails.Message(**common_email_data())
+    print(type(m.as_string()))
+    #assert isinstance(m.as_message().as_string(), native_string)
+    assert isinstance(m.as_string(), bytes_types)
 
 
 def test_message_build():
 
     # Test simple build
-    kwargs = common_email_data()
-    m = emails.Message(**kwargs)
+    m = emails.Message(**common_email_data())
     assert m.as_string()
 
     # If no html or text - raises ValueError
