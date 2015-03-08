@@ -54,6 +54,9 @@ class BaseLoader(object):
     def get_file(self, name):
         raise NotImplementedError
 
+    def list_files(self):
+        raise NotImplementedError
+
     def content(self, filename, is_html=False, decode=True, guess_charset=False, charset='utf-8'):
         data = self[filename]
         if decode:
@@ -64,30 +67,43 @@ class BaseLoader(object):
                                          fallback_charset=charset)
         return data
 
-    def find_index_file(self, filename=None):
+    def find_index_file(self, filename=None, extensions=('.html', '.htm'), stop_names=('index', ), raise_if_not_found=True):
+
         if filename:
             if self[filename]:
                 return filename
             else:
                 raise FileNotFound(filename)
 
-        html_files = []
+        found_files = []
 
         for filename in self.list_files():
 
-            f = path.basename(filename).lower()
+            bn = os.path.basename(filename)
+            if bn.startswith('.'):
+                # ignore hidden files
+                continue
+            name, ext = os.path.splitext(bn)
 
-            if f.endswith('.htm') or f.endswith('.html'):
-                if f.startswith('index.'):
+            if ext in extensions:
+                if stop_names and name in stop_names:
                     return filename
-                else:
-                    html_files.append(filename)
+                found_files.append(filename)
 
-        # Ignore hidden files (filename started with dot)
-        for fn in filter(lambda p: not os.path.basename(p).startswith('.'), html_files):
-            return fn
+        # Return first found file
+        if found_files:
+            return found_files[0]
+        elif raise_if_not_found:
+            raise FileNotFound('index %s' % "|".join(extensions))
 
-        raise FileNotFound('index html')
+    def find_index_html(self, filename=None):
+        return self.find_index_file(filename=filename)
+
+    def find_index_text(self, filename=None):
+        return self.find_index_file(filename=filename,
+                                    extensions=('.txt', ),
+                                    stop_names=('index', ),
+                                    raise_if_not_found=False)
 
 
 # FileSystemLoader from jinja2.loaders
@@ -289,7 +305,6 @@ class MsgLoader(BaseLoader):
         self._parsed = True
 
     def get_file(self, name):
-        #print("MsgLoader.get_file", name)
         self.parse()
         if name.startswith('cid:'):
             name = self._content_ids.get(name[4:])

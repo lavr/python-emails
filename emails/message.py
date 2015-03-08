@@ -17,7 +17,6 @@ from .backend.smtp import SMTPBackend
 from .store import MemoryFileStore, BaseFile
 from .signers import DKIMSigner
 
-
 load_email_charsets()  # sic!
 
 
@@ -352,31 +351,28 @@ class MessageSendMixin(object):
 class MessageTransformerMixin(object):
 
     transformer_cls = None
+    _transformer = None
 
-    def create_transformer(self, **kw):
-        cls = self.transformer_cls
+    def create_transformer(self, transformer_cls=None, **kw):
+        cls = transformer_cls or self.transformer_cls
         if cls is None:
-            from emails.transformer import MessageTransformer
+            from .transformer import MessageTransformer  # avoid cyclic import
             cls = MessageTransformer
-
         self._transformer = cls(message=self, **kw)
-        return self._transformer
 
     def destroy_transformer(self):
         self._transformer = None
 
     @property
     def transformer(self):
-        t = getattr(self, '_transformer', None)
-        if t is None:
-            t = self.create_transformer()
-        return t
+        if self._transformer is None:
+            self.create_transformer()
+        return self._transformer
 
     def set_html(self, **kw):
         # When html set, remove old transformer
         self.destroy_transformer()
         BaseMessage.set_html(self, **kw)
-
 
 
 class MessageDKIMMixin(object):
