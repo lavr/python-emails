@@ -10,6 +10,7 @@ html_sidebars = {
 html_theme_options = {
     'github_user': 'lavr',
     'github_repo': 'python-emails',
+    'github_banner': True,
     'travis_button': True,
     'code_font_size': '0.8em'
 }

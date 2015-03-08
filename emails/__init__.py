@@ -1,26 +1,41 @@
 # coding: utf-8
-from __future__ import unicode_literals
 """
-python emails library
-~~~~~~~~~~~~~~~~~~~~~
+python-emails
+~~~~~~~~~~~~~
 
-emails is a python library for dealing with html-emails.
+Modern python library for email.
 
-Usage:
+Build message:
 
    >>> import emails
    >>> message = emails.html(html="<p>Hi!<br>Here is your receipt...",
                           subject="Your receipt No. 567098123",
                           mail_from=('Some Store', 'store@somestore.com'))
-   >>> message.send( to = 's@lavr.me', smtp={ 'host': 'aspmx.l.google.com' } )
+   >>> message.attach(data=open('bill.pdf'), filename='bill.pdf')
+
+send message and get response from smtp server:
+
+   >>> r = message.send(to='s@lavr.me', smtp={'host': 'aspmx.l.google.com', 'timeout': 5})
+   >>> assert r.status_code == 250
+
+and more:
+
+ * DKIM signature
+ * Render body from template
+ * Flask extension and Django integration
+ * Message body transformation methods
+ * Load message from url or from file
 
 
-More examples is at <https://github.com/lavr/python-emails/README.rst>.
+Links
+`````
 
-:copyright: (c) 2013 by Sergey Lavrinenko.
-:license: Apache 2.0, see LICENSE for more details.
+* `documentation <http://python-emails.readthedocs.org/>`_
+* `source code <http://github.com/lavr/python-emails>`_
 
 """
+
+from __future__ import unicode_literals
 
 __title__ = 'emails'
 __version__ = '0.4.2'

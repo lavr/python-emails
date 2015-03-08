@@ -36,3 +36,5 @@ but it is still more elegant, can be used in django environment and has html tra
 .. include:: todo.rst
 
 .. include:: howtohelp.rst
+
+.. include:: links.rst
