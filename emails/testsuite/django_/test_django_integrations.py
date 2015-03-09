@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 import emails
 import emails.message
-import emails.django_
+from emails.django import DjangoMessage
 
 
 def test_django_message_proxy(django_email_backend):
@@ -25,7 +25,7 @@ def test_django_message_send(django_email_backend):
     message_params = {'html': '<p>Test from python-emails',
                       'mail_from': 's@lavr.me',
                       'subject': 'Test from python-emails'}
-    msg = emails.django_.DjangoMessage(**message_params)
+    msg = DjangoMessage(**message_params)
     assert not msg.recipients()
 
     TO = 'ivan@petrov.com'
@@ -47,7 +47,7 @@ def test_django_message_commons():
           'mail_from': 's@lavr.me',
           'mail_to': 'jsmith@company.tld',
           'charset': 'XXX-Y'}
-    msg = emails.django_.DjangoMessage(**mp)
+    msg = DjangoMessage(**mp)
 
     assert msg.encoding == mp['charset']
 

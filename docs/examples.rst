@@ -78,10 +78,10 @@ DjangoMessage helper sends via django configured email backend:
 
 .. code-block:: python
 
-    from emails.django_ import DjangoMessage as Message
+    from emails.django import DjangoMessage as Message
     message = Message(...)
     message.send(mail_to=('John Brown', 'jbrown@gmail.com'),
-                 context={'field1': 'X'})
+                 context={'name': 'John'})
 
 Flask
 -----
