@@ -38,6 +38,7 @@ is_py33 = (is_py3 and _ver[1] == 3)
 
 #: Python 3.4.x
 is_py34 = (is_py3 and _ver[1] == 4)
+is_py34_plus = (is_py3 and _ver[1] >= 4)
 
 #: Python 2.7.x
 is_py27 = (is_py2 and _ver[1] == 7)

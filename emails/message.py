@@ -3,19 +3,19 @@ from __future__ import unicode_literals
 
 import time
 from functools import wraps
+from email.utils import formatdate, getaddresses
 
 from dateutil.parser import parse as dateutil_parse
-from email.header import Header
-from email.utils import formatdate, getaddresses
-from emails.compat import string_types, to_unicode, is_callable, to_bytes, to_native
+
+from .compat import (string_types, is_callable, to_bytes)
 from .utils import (SafeMIMEText, SafeMIMEMultipart, sanitize_address,
                     parse_name_and_email, load_email_charsets,
                     encode_header as encode_header_)
 from .exc import BadHeaderError
-from .backend import ObjectFactory
-from .backend.smtp import SMTPBackend
+from .backend import ObjectFactory, SMTPBackend
 from .store import MemoryFileStore, BaseFile
 from .signers import DKIMSigner
+
 
 load_email_charsets()  # sic!
 
@@ -46,6 +46,7 @@ class BaseMessage(object):
 
     attachment_cls = BaseFile
     filestore_cls = MemoryFileStore
+    policy = None
 
     def __init__(self,
                  charset=None,
@@ -221,6 +222,10 @@ class MessageBuildMixin(object):
     def _build_root_message(self, message_cls=None):
 
         msg = (message_cls or SafeMIMEMultipart)()
+
+        if self.policy:
+            msg.policy = self.policy
+
         msg.preamble = self.ROOT_PREAMBLE
         self.set_header(msg, 'Date', self.message_date, encode=False)
         self.set_header(msg, 'Message-ID', self.message_id(), encode=False)
