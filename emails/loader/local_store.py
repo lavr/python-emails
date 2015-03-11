@@ -8,8 +8,8 @@ import errno
 from zipfile import ZipFile
 import email
 
-from emails.compat import to_unicode, string_types, to_native
-from emails.loader.helpers import guess_html_charset, decode_text
+from ..compat import to_unicode, string_types, to_native
+from ..loader.helpers import decode_text
 
 
 class FileNotFound(Exception):

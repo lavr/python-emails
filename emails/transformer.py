@@ -1,17 +1,16 @@
 # encoding: utf-8
 from __future__ import unicode_literals
-import posixpath
-import os.path
 import logging
+import posixpath
 import re
 import warnings
+
 from cssutils import CSSParser
 from lxml import etree
 from premailer import Premailer
 from premailer.premailer import ExternalNotFoundError
 
-import emails
-from .compat import urlparse, to_unicode, to_bytes, text_type
+from .compat import urlparse, to_unicode
 from .store import MemoryFileStore, LazyHTTPFile
 from .template.base import BaseTemplate
 from .loader.local_store import FileNotFound

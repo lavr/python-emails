@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import time
-from functools import wraps
 from email.utils import formatdate, getaddresses
 
 from dateutil.parser import parse as dateutil_parse
@@ -10,7 +9,8 @@ from dateutil.parser import parse as dateutil_parse
 from .compat import (string_types, is_callable, to_bytes)
 from .utils import (SafeMIMEText, SafeMIMEMultipart, sanitize_address,
                     parse_name_and_email, load_email_charsets,
-                    encode_header as encode_header_)
+                    encode_header as encode_header_,
+                    renderable)
 from .exc import BadHeaderError
 from .backend import ObjectFactory, SMTPBackend
 from .store import MemoryFileStore, BaseFile
@@ -18,24 +18,6 @@ from .signers import DKIMSigner
 
 
 load_email_charsets()  # sic!
-
-
-def renderable(f):
-    @wraps(f)
-    def wrapper(self, *args, **kwargs):
-        r = f(self, *args, **kwargs)
-        render = getattr(r, 'render', None)
-        if render:
-            d = render(**(self.render_data or {}))
-            return d
-        else:
-            return r
-
-    return wrapper
-
-
-class IncompleteMessage(Exception):
-    pass
 
 
 class BaseMessage(object):

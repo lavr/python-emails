@@ -1,13 +1,13 @@
 # encoding: utf-8
 import os
 import os.path
-from emails.loader.local_store import FileNotFound
-from emails.compat import to_unicode
-from emails.compat import urlparse
-from emails import Message
-from emails.utils import fetch_url
-from emails.loader import local_store
-from emails.loader.helpers import guess_charset
+
+from .local_store import (FileSystemLoader, ZipLoader, MsgLoader, FileNotFound)
+from .helpers import guess_charset
+from ..compat import to_unicode
+from ..compat import urlparse
+from ..message import Message
+from ..utils import fetch_url
 
 
 class LoadError(Exception):
@@ -100,7 +100,7 @@ def _from_filebased_source(store, html_filename=None, skip_text=True, text_filen
 
 
 def from_directory(directory, loader_cls=None, **kwargs):
-    loader_cls = loader_cls or local_store.FileSystemLoader
+    loader_cls = loader_cls or FileSystemLoader
     return _from_filebased_source(store=loader_cls(searchpath=directory), **kwargs)
 
 
@@ -109,13 +109,13 @@ def from_file(filename, **kwargs):
 
 
 def from_zip(zip_file, loader_cls=None, **kwargs):
-    loader_cls = loader_cls or local_store.ZipLoader
+    loader_cls = loader_cls or ZipLoader
     return _from_filebased_source(store=loader_cls(file=zip_file), **kwargs)
 
 
 def from_rfc822(msg, message_params=None):
     # Warning: from_rfc822 is for demo purposes only
-    loader = local_store.MsgLoader(msg=msg)
+    loader = MsgLoader(msg=msg)
     message_params = message_params or {}
     message = Message(html=loader.html, text=loader.text, **message_params)
     for att in loader.attachments:

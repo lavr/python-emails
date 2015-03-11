@@ -5,7 +5,8 @@ __all__ = ['guess_charset', 'fix_content_type']
 import re
 import cgi
 import charade
-from emails.compat import to_unicode, to_native
+
+from ..compat import to_unicode, to_native
 
 
 # HTML page charset stuff

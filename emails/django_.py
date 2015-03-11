@@ -2,4 +2,4 @@
 import warnings
 warnings.warn("emails.django_ module moved to emails.django", DeprecationWarning)
 
-from emails.django import *
+from .django import *

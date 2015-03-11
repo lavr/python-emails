@@ -1,23 +1,15 @@
 # encoding: utf-8
 from __future__ import unicode_literals
-from email.header import Header
 
 import uuid
-
-from os.path import basename
-
-import requests
 from mimetypes import guess_type
 from email.mime.base import MIMEBase
 from email.encoders import encode_base64
-import emails
-from emails.compat import urlparse
-from emails.compat import string_types, to_bytes
-from emails.utils import fetch_url, encode_header
+from os.path import basename
 
+from ..compat import urlparse, string_types, to_bytes
+from ..utils import fetch_url, encode_header
 
-# class FileNotFound(Exception):
-#    pass
 
 MIMETYPE_UNKNOWN = 'application/unknown'
 

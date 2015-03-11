@@ -8,10 +8,10 @@
 from __future__ import unicode_literals
 import logging
 
-from emails.packages import dkim
-from emails.packages.dkim import DKIMException, UnparsableKeyError
-from emails.packages.dkim.crypto import parse_pem_private_key
-from emails.compat import to_bytes, to_native
+from .packages import dkim
+from .packages.dkim import DKIMException, UnparsableKeyError
+from .packages.dkim.crypto import parse_pem_private_key
+from .compat import to_bytes, to_native
 
 
 class DKIMSigner:

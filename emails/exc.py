@@ -1,9 +1,15 @@
 # encoding: utf-8
 
-from emails.packages.dkim import DKIMException
+from .packages.dkim import DKIMException
+
 
 class HTTPLoaderError(Exception):
     pass
 
+
 class BadHeaderError(ValueError):
+    pass
+
+
+class IncompleteMessage(ValueError):
     pass
