@@ -201,9 +201,9 @@ class MessageBuildMixin(object):
 
         msg[key] = encode and self.encode_header(value) or value
 
-    def _build_root_message(self, message_cls=None):
+    def _build_root_message(self, message_cls=None, **kw):
 
-        msg = (message_cls or SafeMIMEMultipart)()
+        msg = (message_cls or SafeMIMEMultipart)(**kw)
 
         if self.policy:
             msg.policy = self.policy
