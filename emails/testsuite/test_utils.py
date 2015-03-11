@@ -52,3 +52,9 @@ def test_message_id():
         else:
             assert _id not in _ids
             _ids.add(_id)
+
+
+def test_url_fix():
+    # Check url with unicode and spaces
+    r = fetch_url('http://lavr.github.io/python-emails/tests/url-fix/Пушкин А.С.jpg')
+    assert len(r.content) == 12910
