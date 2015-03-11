@@ -2,40 +2,22 @@
 from __future__ import unicode_literals
 
 import time
-from functools import wraps
+from email.utils import formatdate, getaddresses
 
 from dateutil.parser import parse as dateutil_parse
-from email.header import Header
-from email.utils import formatdate, getaddresses
-from emails.compat import string_types, to_unicode, is_callable, to_bytes, to_native
+
+from .compat import (string_types, is_callable, to_bytes)
 from .utils import (SafeMIMEText, SafeMIMEMultipart, sanitize_address,
                     parse_name_and_email, load_email_charsets,
-                    encode_header as encode_header_)
+                    encode_header as encode_header_,
+                    renderable)
 from .exc import BadHeaderError
-from .backend import ObjectFactory
-from .backend.smtp import SMTPBackend
+from .backend import ObjectFactory, SMTPBackend
 from .store import MemoryFileStore, BaseFile
 from .signers import DKIMSigner
 
+
 load_email_charsets()  # sic!
-
-
-def renderable(f):
-    @wraps(f)
-    def wrapper(self, *args, **kwargs):
-        r = f(self, *args, **kwargs)
-        render = getattr(r, 'render', None)
-        if render:
-            d = render(**(self.render_data or {}))
-            return d
-        else:
-            return r
-
-    return wrapper
-
-
-class IncompleteMessage(Exception):
-    pass
 
 
 class BaseMessage(object):
@@ -44,15 +26,9 @@ class BaseMessage(object):
     Base email message with html part, text part and attachments.
     """
 
-    ROOT_PREAMBLE = 'This is a multi-part message in MIME format.\n'
-
-    # Header names that contain structured address data (RFC #5322)
-    ADDRESS_HEADERS = set(['from', 'sender', 'reply-to', 'to', 'cc', 'bcc',
-                           'resent-from', 'resent-sender', 'resent-to',
-                           'resent-cc', 'resent-bcc'])
-
     attachment_cls = BaseFile
     filestore_cls = MemoryFileStore
+    policy = None
 
     def __init__(self,
                  charset=None,
@@ -77,7 +53,6 @@ class BaseMessage(object):
         self.set_html(html=html)
         self.set_text(text=text)
         self.render_data = {}
-        self.after_build = None
 
         if attachments:
             for a in attachments:
@@ -177,6 +152,29 @@ class BaseMessage(object):
             return None
         return is_callable(mid) and mid() or mid
 
+    @property
+    def attachments(self):
+        if self._attachments is None:
+            self._attachments = self.filestore_cls(self.attachment_cls)
+        return self._attachments
+
+    def attach(self, **kwargs):
+        if 'content_disposition' not in kwargs:
+            kwargs['content_disposition'] = 'attachment'
+        self.attachments.add(kwargs)
+
+
+class MessageBuildMixin(object):
+
+    ROOT_PREAMBLE = 'This is a multi-part message in MIME format.\n'
+
+    # Header names that contain structured address data (RFC #5322)
+    ADDRESS_HEADERS = set(['from', 'sender', 'reply-to', 'to', 'cc', 'bcc',
+                           'resent-from', 'resent-sender', 'resent-to',
+                           'resent-cc', 'resent-bcc'])
+
+    after_build = None
+
     def encode_header(self, value):
         return encode_header_(value, self.charset)
 
@@ -203,24 +201,14 @@ class BaseMessage(object):
 
         msg[key] = encode and self.encode_header(value) or value
 
-    @property
-    def attachments(self):
-        if self._attachments is None:
-            self._attachments = self.filestore_cls(self.attachment_cls)
-        return self._attachments
+    def _build_root_message(self, message_cls=None):
 
-    def attach(self, **kwargs):
-        if 'content_disposition' not in kwargs:
-            kwargs['content_disposition'] = 'attachment'
-        self.attachments.add(kwargs)
+        msg = (message_cls or SafeMIMEMultipart)()
 
-    def _build_message(self, message_cls=None):
-
-        message_cls = message_cls or SafeMIMEMultipart
-        msg = message_cls()
+        if self.policy:
+            msg.policy = self.policy
 
         msg.preamble = self.ROOT_PREAMBLE
-
         self.set_header(msg, 'Date', self.message_date, encode=False)
         self.set_header(msg, 'Message-ID', self.message_id(), encode=False)
 
@@ -238,33 +226,49 @@ class BaseMessage(object):
         mail_to = self._mail_to and self.encode_name_header(*self._mail_to[0]) or None
         self.set_header(msg, 'To', mail_to, encode=False)
 
-        msgrel = SafeMIMEMultipart('related')
-        msg.attach(msgrel)
+        return msg
 
-        msgalt = SafeMIMEMultipart('alternative')
-        msgrel.attach(msgalt)
+    def _build_html_part(self):
+        text = self.html_body
+        if text:
+            p = SafeMIMEText(text, 'html', charset=self.charset)
+            p.set_charset(self.charset)
+            return p
 
-        _text = self.text_body
-        _html = self.html_body
+    def _build_text_part(self):
+        text = self.text_body
+        if text:
+            p = SafeMIMEText(text, 'plain', charset=self.charset)
+            p.set_charset(self.charset)
+            return p
+
+    def build_message(self, message_cls=None):
+
+        msg = self._build_root_message(message_cls)
+
+        rel = SafeMIMEMultipart('related')
+        msg.attach(rel)
+
+        alt = SafeMIMEMultipart('alternative')
+        rel.attach(alt)
+
+        _text = self._build_text_part()
+        _html = self._build_html_part()
 
         if not (_html or _text):
-            raise ValueError("Message must contain 'html' or 'text' part")
+            raise ValueError("Message must contain 'html' or 'text'")
 
         if _text:
-            msgtext = SafeMIMEText(_text, 'plain', charset=self.charset)
-            msgtext.set_charset(self.charset)
-            msgalt.attach(msgtext)
+            alt.attach(_text)
 
         if _html:
-            msghtml = SafeMIMEText(_html, 'html', charset=self.charset)
-            msghtml.set_charset(self.charset)
-            msgalt.attach(msghtml)
+            alt.attach(_html)
 
         for f in self.attachments:
             part = f.mime
             if part:
                 if f.is_inline:
-                    msgrel.attach(part)
+                    rel.attach(part)
                 else:
                     msg.attach(part)
 
@@ -272,6 +276,8 @@ class BaseMessage(object):
             self.after_build(self, msg)
 
         return msg
+
+    _build_message = build_message
 
 
 class MessageSendMixin(object):
@@ -400,7 +406,7 @@ class MessageDKIMMixin(object):
         return message_string
 
     def as_message(self, message_cls=None):
-        return self.dkim_sign_message(self._build_message(message_cls=message_cls))
+        return self.dkim_sign_message(self.build_message(message_cls=message_cls))
 
     message = as_message
 
@@ -415,10 +421,10 @@ class MessageDKIMMixin(object):
         v0.4.2: now returns bytes, not native string
         """
 
-        return self.dkim_sign_string(to_bytes(self._build_message(message_cls=message_cls).as_string()))
+        return self.dkim_sign_string(to_bytes(self.build_message(message_cls=message_cls).as_string()))
 
 
-class Message(MessageSendMixin, MessageTransformerMixin, MessageDKIMMixin, BaseMessage):
+class Message(MessageSendMixin, MessageTransformerMixin, MessageDKIMMixin, MessageBuildMixin, BaseMessage):
     """
     Email message with:
     - DKIM signer

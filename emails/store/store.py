@@ -1,8 +1,8 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 from os.path import splitext
-from emails.compat import OrderedDict, string_types
 
+from ..compat import OrderedDict, string_types
 from .file import BaseFile
 
 

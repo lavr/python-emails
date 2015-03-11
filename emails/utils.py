@@ -1,20 +1,24 @@
 # encoding: utf-8
 from __future__ import unicode_literals
+import os
 import socket
 from datetime import datetime
-import os
 from random import randrange
+from functools import wraps
+
 import email.charset
 from email import generator
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header, decode_header as decode_header_
 from email.utils import formataddr, parseaddr
+
 import requests
 
-import emails
-from emails.compat import string_types, to_unicode, NativeStringIO, is_py2, BytesIO
-from emails.exc import HTTPLoaderError
+from . import USER_AGENT
+from .compat import string_types, to_unicode, NativeStringIO, is_py2, BytesIO
+from .exc import HTTPLoaderError
+
 
 _charsets_loaded = False
 
@@ -180,7 +184,7 @@ class SafeMIMEMultipart(MIMEMixin, MIMEMultipart):
 
 DEFAULT_REQUESTS_PARAMS = dict(allow_redirects=True,
                              verify=False, timeout=10,
-                             headers={'User-Agent': emails.USER_AGENT})
+                             headers={'User-Agent': USER_AGENT})
 
 
 def fetch_url(url, valid_http_codes=(200, ), requests_args=None):
@@ -200,3 +204,17 @@ def encode_header(value, charset='utf-8'):
         return str(_r)
     else:
         return value
+
+
+def renderable(f):
+    @wraps(f)
+    def wrapper(self, *args, **kwargs):
+        r = f(self, *args, **kwargs)
+        render = getattr(r, 'render', None)
+        if render:
+            d = render(**(self.render_data or {}))
+            return d
+        else:
+            return r
+
+    return wrapper

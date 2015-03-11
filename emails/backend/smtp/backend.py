@@ -8,9 +8,10 @@ import logging
 from functools import wraps
 
 from .client import SMTPResponse, SMTPClientWithResponse, SMTPClientWithResponse_SSL
-from emails.compat import to_bytes
+from ...compat import to_bytes
 
 logger = logging.getLogger(__name__)
+
 
 class SMTPBackend:
 
