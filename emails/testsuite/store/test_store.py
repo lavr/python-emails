@@ -19,6 +19,12 @@ def test_lazy_http():
     assert len(f.data) == 2549
 
 
+def test_attachment_headers():
+    f = emails.store.BaseFile(data='x', filename='1.txt', headers={'X-Header': 'X'})
+    part = f.mime.as_string()
+    assert 'X-Header: X' in part
+
+
 def test_store_commons():
     FILES = [{'data': 'aaa', 'filename': 'aaa.txt'}, {'data': 'bbb', 'filename': 'bbb.txt'}, ]
     store = emails.store.MemoryFileStore()

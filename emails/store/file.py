@@ -38,7 +38,7 @@ class BaseFile(object):
         self.filename = kwargs.get('filename', None)
         self.data = kwargs.get('data', None)
         self._mime_type = kwargs.get('mime_type')
-        self._headers = kwargs.get('headers')
+        self._headers = kwargs.get('headers', {})
         self._content_id = kwargs.get('content_id')
         self._content_disposition = kwargs.get('content_disposition', 'attachment')
         self.subtype = kwargs.get('subtype')
@@ -133,18 +133,23 @@ class BaseFile(object):
 
     @property
     def mime(self):
-        if self.content_disposition is None:
+        content_disposition = self.content_disposition
+        if content_disposition is None:
             return None
-        _mime = getattr(self, '_cached_mime', None)
-        if _mime is None:
+        p = getattr(self, '_cached_part', None)
+        if p is None:
             filename_header = encode_header(self.filename)
-            self._cached_mime = _mime = MIMEBase(*self.mime_type.split('/', 1), name=filename_header)
-            _mime.set_payload(to_bytes(self.data))
-            encode_base64(_mime)
-            _mime.add_header('Content-Disposition', self.content_disposition, filename=filename_header)
-            if self.content_disposition == 'inline':
-                _mime.add_header('Content-ID', '<%s>' % self.content_id)
-        return _mime
+            p = MIMEBase(*self.mime_type.split('/', 1), name=filename_header)
+            p.set_payload(to_bytes(self.data))
+            encode_base64(p)
+            if 'content-disposition' not in self._headers:
+                p.add_header('Content-Disposition', self.content_disposition, filename=filename_header)
+            if content_disposition == 'inline' and 'content-id' not in self._headers:
+                p.add_header('Content-ID', '<%s>' % self.content_id)
+            for (k, v) in self._headers.items():
+                p.add_header(k, v)
+            self._cached_part = p
+        return p
 
     def reset_mime(self):
         self._mime = None
