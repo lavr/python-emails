@@ -1,7 +1,7 @@
 # encoding: utf-8
 from __future__ import absolute_import
 from django.core.mail import get_connection
-from .. message import MessageTransformerMixin, MessageDKIMMixin, BaseMessage
+from .. message import MessageTransformerMixin, MessageDKIMMixin, MessageBuildMixin, BaseMessage
 
 __all__ = ['DjangoMessageMixin', 'DjangoMessage']
 
@@ -56,7 +56,7 @@ class DjangoMessageMixin(object):
         connection.send_messages([self, ])
 
 
-class DjangoMessage(DjangoMessageMixin, MessageTransformerMixin, MessageDKIMMixin, BaseMessage):
+class DjangoMessage(DjangoMessageMixin, MessageTransformerMixin, MessageDKIMMixin, MessageBuildMixin, BaseMessage):
     """
     Send via django email smtp backend
     """
