@@ -115,6 +115,7 @@ settings.update(
     url='https://github.com/lavr/python-emails',
     packages=['emails',
               'emails.compat',
+              'emails.django',
               'emails.loader',
               'emails.store',
               'emails.backend',
