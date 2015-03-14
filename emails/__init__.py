@@ -38,7 +38,7 @@ Links
 from __future__ import unicode_literals
 
 __title__ = 'emails'
-__version__ = '0.4.6'
+__version__ = '0.4.7'
 __author__ = 'Sergey Lavrinenko'
 __license__ = 'Apache 2.0'
 __copyright__ = 'Copyright 2013-2015 Sergey Lavrinenko'
