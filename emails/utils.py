@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 import os
 import socket
+from time import mktime
 from datetime import datetime
 from random import randrange
 from functools import wraps
@@ -11,7 +12,7 @@ from email import generator
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header, decode_header as decode_header_
-from email.utils import formataddr, parseaddr
+from email.utils import formataddr, parseaddr, formatdate
 
 import requests
 
@@ -218,3 +219,15 @@ def renderable(f):
             return r
 
     return wrapper
+
+
+def format_date_header(v, localtime=True):
+    if isinstance(v, datetime):
+        return formatdate(mktime(v.timetuple()), localtime)
+    elif isinstance(v, float):
+        # probably timestamp
+        return formatdate(v, localtime)
+    elif v is None:
+        return formatdate(None, localtime)
+    else:
+        return v

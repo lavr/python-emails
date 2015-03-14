@@ -1,8 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
-
-import time
-from email.utils import formatdate, getaddresses
+from time import mktime
+from email.utils import getaddresses
 
 from dateutil.parser import parse as dateutil_parse
 
@@ -10,7 +9,7 @@ from .compat import (string_types, is_callable, to_bytes)
 from .utils import (SafeMIMEText, SafeMIMEMultipart, sanitize_address,
                     parse_name_and_email, load_email_charsets,
                     encode_header as encode_header_,
-                    renderable)
+                    renderable, format_date_header)
 from .exc import BadHeaderError
 from .backend import ObjectFactory, SMTPBackend
 from .store import MemoryFileStore, BaseFile
@@ -126,25 +125,21 @@ class BaseMessage(object):
     def render(self, **kwargs):
         self.render_data = kwargs
 
-    def set_date(self, value, reformat_date=True):
-        if isinstance(value, string_types) and reformat_date:
-            _d = dateutil_parse(value)
-            value = time.mktime(_d.timetuple())
-            value = formatdate(value, True)
+    def set_date(self, value):
         self._date = value
 
     def get_date(self):
-        if self._date is False:
+        v = self._date
+        if v is False:
             return None
-        timeval = self._date
-        if timeval:
-            if is_callable(timeval):
-                timeval = timeval()
-        elif timeval is None:
-            timeval = formatdate(None, True)
-        return timeval
+        if is_callable(v):
+            v = v()
+        if not isinstance(v, string_types):
+            v = format_date_header(v)
+        return v
 
-    message_date = property(get_date, set_date)
+    date = property(get_date, set_date)
+    message_date = date
 
     def message_id(self):
         mid = self._message_id
@@ -209,7 +204,7 @@ class MessageBuildMixin(object):
             msg.policy = self.policy
 
         msg.preamble = self.ROOT_PREAMBLE
-        self.set_header(msg, 'Date', self.message_date, encode=False)
+        self.set_header(msg, 'Date', self.date, encode=False)
         self.set_header(msg, 'Message-ID', self.message_id(), encode=False)
 
         if self._headers:

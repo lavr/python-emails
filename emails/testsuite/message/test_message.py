@@ -45,15 +45,24 @@ def test_date():
 
     # default date is "current timestamp"
     m = emails.Message()
-    assert dateutil_parse(m.message_date).replace(tzinfo=None) >= datetime.datetime.now() - datetime.timedelta(seconds=3)
+    assert dateutil_parse(m.date).replace(tzinfo=None) >= datetime.datetime.utcnow() - datetime.timedelta(seconds=3)
 
     # check date as constant
-    m.message_date = '2015-01-01'
-    assert m.message_date.startswith('Thu, 01 Jan 2015 00:00:00')
+    m.date = '2015-01-01'
+    assert m.date == '2015-01-01'
+    assert m.message_date == m.date  # message_date is legacy
 
-    # check date as func
-    m.message_date = lambda **kw: 'D'
-    assert m.message_date == 'D'
+    # check date as func with string result
+    m.date = lambda **kw: 'D'
+    assert m.date == 'D'
+
+    # check date as func with time result
+    m.date = lambda **kw: 1426339147.572459
+    assert 'Mar 2015' in m.date
+
+    # check date as func with datetime result
+    m.date = lambda **kw: datetime.datetime(2015, 1, 1)
+    assert m.date.startswith('Thu, 01 Jan 2015 00:00:00')
 
 
 def test_after_build():

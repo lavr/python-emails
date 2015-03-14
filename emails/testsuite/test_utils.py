@@ -1,8 +1,10 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 import pytest
-from emails.utils import (parse_name_and_email,
-    encode_header, decode_header, sanitize_address, fetch_url, MessageID)
+import datetime
+import time
+from emails.utils import (parse_name_and_email, encode_header, decode_header, sanitize_address, fetch_url,
+                          MessageID, format_date_header)
 from emails.exc import HTTPLoaderError
 
 def test_parse_name_and_email():
@@ -58,3 +60,10 @@ def test_url_fix():
     # Check url with unicode and spaces
     r = fetch_url('http://lavr.github.io/python-emails/tests/url-fix/Пушкин А.С.jpg')
     assert len(r.content) == 12910
+
+
+def test_format_date():
+    current_year = str(datetime.datetime.now().year)
+    assert current_year in format_date_header(None)
+    assert current_year in format_date_header(datetime.datetime.now())
+    assert current_year in format_date_header(time.time())
