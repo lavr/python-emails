@@ -168,6 +168,7 @@ class MessageBuildMixin(object):
                            'resent-from', 'resent-sender', 'resent-to',
                            'resent-cc', 'resent-bcc'])
 
+    before_build = None
     after_build = None
 
     def encode_header(self, value):
@@ -238,6 +239,9 @@ class MessageBuildMixin(object):
             return p
 
     def build_message(self, message_cls=None):
+
+        if self.before_build:
+            self.before_build(self)
 
         msg = self._build_root_message(message_cls)
 

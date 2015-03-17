@@ -81,6 +81,18 @@ def test_after_build():
     assert AFTER_BUILD_HEADER in to_unicode(s, 'utf-8')
 
 
+def test_before_build():
+
+    def my_before_build(message):
+        message.render_data['x-before-build'] = 1
+
+    m = emails.Message(**common_email_data())
+    m.before_build = my_before_build
+
+    s = m.as_string()
+    assert m.render_data['x-before-build'] == 1
+
+
 def test_sanitize_header():
     for header, value in (
             ('subject', 'test\n'),
