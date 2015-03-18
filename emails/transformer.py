@@ -61,9 +61,10 @@ class HTMLParser(object):
 
     _cdata_regex = re.compile(r'\<\!\[CDATA\[(.*?)\]\]\>', re.DOTALL)
 
-    def __init__(self, html, method="html"):
+    def __init__(self, html, method="html", output_method="xml"):
         self._html = html
         self._method = method
+        self._output_method = output_method
         self._tree = None
 
     @property
@@ -80,8 +81,11 @@ class HTMLParser(object):
         return self._tree
 
     def to_string(self, encoding='utf-8', **kwargs):
-        out = etree.tostring(self.tree, encoding=encoding, method=self._method, **kwargs).decode(encoding)
-        if self._method == 'xml':
+        if self.tree is None:
+            return ""
+        method = self._output_method
+        out = etree.tostring(self.tree, encoding=encoding, method=method, **kwargs).decode(encoding)
+        if method == 'xml':
             out = self._cdata_regex.sub(
                 lambda m: '/*<![CDATA[*/%s/*]]>*/' % m.group(1),
                 out

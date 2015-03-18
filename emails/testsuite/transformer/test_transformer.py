@@ -1,22 +1,23 @@
 # encoding: utf-8
 from __future__ import unicode_literals
-from emails.transformer import Transformer, LocalPremailer
+import os.path
 import emails.loader
 from emails.loader.local_store import FileSystemLoader, BaseLoader
-import os.path
 from emails.template import JinjaTemplate, StringTemplate, MakoTemplate
+from emails.transformer import Transformer, LocalPremailer, BaseTransformer, HTMLParser
+
 
 def test_image_apply():
 
     pairs = [
-        ("""<div style="background: url(3.png);"></div>""",
-         """<div style="background: url(A/3.png)"></div>"""),
+        ("""<div style="background: url(3.png);">x</div>""",
+         """<div style="background: url(A/3.png)">x</div>"""),
 
-        ("""<img src="4.png">""",
-         """<img src="A/4.png">"""),
+        ("""<img src="4.png"/>""",
+         """<img src="A/4.png"/>"""),
 
-        ("""<table background="5.png">""",
-         """<table background="A/5.png">""")
+        ("""<table background="5.png"/>""",
+         """<table background="A/5.png"/>""")
     ]
 
     def func(uri, **kw):
@@ -32,8 +33,8 @@ def test_image_apply():
 def test_link_apply():
 
     pairs = [
-        ("""<a href="1"></a>""",
-         """<a href="A/1"></a>"""),
+        ("""<a href="1">_</a>""",
+         """<a href="A/1">_</a>"""),
     ]
 
     def func(uri, **kw):
@@ -96,7 +97,7 @@ def test_image_inline():
     t.attachment_store['a.gif'].content_disposition = None
     t.synchronize_inline_images()
     t.save()
-    assert '<img src="a.gif">' in t.html
+    assert '<img src="a.gif"' in t.html
 
 
 def test_absolute_url():
@@ -106,14 +107,30 @@ def test_absolute_url():
     assert t.get_absolute_url('//host2.tld/x/y.png') == 'https://host2.tld/x/y.png'
 
 
+def test_html_parser_with_templates():
+    for _, html in (
+            (JinjaTemplate, '{{ name }} <a href="{{ link }}">_</a>'),
+            (StringTemplate, '${name} <a href="${link}">_</a>'),
+            (MakoTemplate, '${name} <a href="${link}">_</a>')
+    ):
+        # Test that html parser doesn't break template code
+        t = HTMLParser(html=html, method='html')
+        assert html in t.to_string()
+
+
 def test_template_transformer():
     """
-    Test that transformer doesn't break template
+    Test that transformer works with templates
     """
-    for template_cls in (JinjaTemplate, StringTemplate, MakoTemplate):
-        m = emails.Message(html=template_cls('{{ name }} ${name}'))
+    for template_cls, tmpl in (
+            (JinjaTemplate, '{{ name }} <a href="{{ link }}">_</a>'),
+            (StringTemplate, '${name} <a href="${link}">_</a>'),
+            (MakoTemplate, '${name} <a href="${link}">_</a>')
+    ):
+        m = emails.Message(html=template_cls(tmpl))
         m.transformer.premailer.transform()
         m.transformer.save()
-        m.render(name='XXX')
+        m.render(name='NAME', link='LINK')
         assert '<html>' in m.html_body
-        assert 'XXX' in m.html_body
+        assert 'NAME' in m.html_body
+        assert '<a href="LINK">_</a>' in m.html_body
