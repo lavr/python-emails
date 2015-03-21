@@ -1,9 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
-from time import mktime
-from email.utils import getaddresses
 
-from dateutil.parser import parse as dateutil_parse
+from email.utils import getaddresses, formataddr
 
 from .compat import (string_types, is_callable, to_bytes)
 from .utils import (SafeMIMEText, SafeMIMEMultipart, sanitize_address,
@@ -79,7 +77,7 @@ class BaseMessage(object):
     mail_to = property(get_mail_to, set_mail_to)
 
     def set_headers(self, headers):
-        self._headers = headers
+        self._headers = headers or {}
 
     def set_html(self, html, url=None):
         if hasattr(html, 'read'):
@@ -172,14 +170,15 @@ class MessageBuildMixin(object):
     after_build = None
 
     def encode_header(self, value):
-        return encode_header_(value, self.charset)
-
-    def encode_name_header(self, realname, email):
-        if realname:
-            r = "%s <%s>" % (self.encode_header(realname), email)
-            return r
+        if value:
+            return encode_header_(value, self.charset)
         else:
-            return email
+            return value
+
+    def encode_address_header(self, name, email):
+        return formataddr((self.encode_header(name or ''), email))
+
+    encode_name_header = encode_address_header
 
     def set_header(self, msg, key, value, encode=True):
 
@@ -216,10 +215,10 @@ class MessageBuildMixin(object):
         if subject is not None:
             self.set_header(msg, 'Subject', subject)
 
-        mail_from = self._mail_from and self.encode_name_header(*self._mail_from) or None
+        mail_from = self._mail_from and self.encode_address_header(*self._mail_from) or None
         self.set_header(msg, 'From', mail_from, encode=False)
 
-        mail_to = self._mail_to and self.encode_name_header(*self._mail_to[0]) or None
+        mail_to = self._mail_to and self.encode_address_header(*self._mail_to[0]) or None
         self.set_header(msg, 'To', mail_to, encode=False)
 
         return msg
