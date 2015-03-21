@@ -2,11 +2,11 @@
 from __future__ import unicode_literals, print_function
 import glob
 import email
+
 import os.path
 from emails.compat import to_native
 import emails.loader
 from emails.loader.local_store import MsgLoader
-#from emails.loader.helpers import guess_charset
 
 ROOT = os.path.dirname(__file__)
 
@@ -64,25 +64,48 @@ def test_msgloader():
     map_cid = "cid:%s" % source_message.attachments['Map.png'].content_id
     assert loader.content(map_cid) == 'Y'
 
-    assert emails.loader.from_rfc822(msg=source_message.as_string()).as_string()
+    m2 = emails.loader.from_rfc822(msg=source_message.as_string(), parse_headers=True)
+    assert m2.subject == data['subject']
+    assert m2.as_string()
     # TODO: more tests
 
 
-def _try_decode(s):
-    for charset in ['utf-8', 'cp1251']:
+def _try_decode(s, charsets=('utf-8', 'koi8-r', 'cp1251')):
+    for charset in charsets:
         try:
-            return to_native(s, charset)
+            return to_native(s, charset), charset
         except UnicodeDecodeError:
             pass
+    return None, None
+
+
+"""
+def test_relaxed_header_parser():
+
+    # Test broken address header without email
+    from email.header import Header
+    text = u'웃'
+    assert list(_relaxed_parse_address_header(str(Header(text, 'utf-8'))))[0] == text
+
+    # Test broken encoding
+    #assert _try_decode(b'"\xc0\xed\xe3\xe5\xed\xee\xe2\xe0"', ['utf-8', 'koi8-r', 'cp1251', 'latin-1']) == ('', 'koi8')
+    #assert list(_relaxed_parse_address_header(b'"\xc0\xed\xe3\xe5\xed\xee\xe2\xe0" <a@b.tld>'))[0] == ''
+"""
 
 def test_mass_msgloader():
+    import encodings
+    encodings.aliases.aliases['win_1251'] = 'cp1251'  # data-specific
     ROOT = os.path.dirname(__file__)
     for filename in glob.glob(os.path.join(ROOT, "data/msg/*.eml")):
-        msg = _try_decode(open(filename, 'rb').read())
+        msg, charset = _try_decode(open(filename, 'rb').read())
         if msg is None:
             print("can not read filename=", filename)
             continue
-        #msg = email.message_from_string(open(filename).read())
-        msgloader = MsgLoader(msg=msg)
-        print(len(msgloader.attachments))
+        #msgloader = MsgLoader(msg=msg)
+        print(filename)
+        message = emails.loader.from_rfc822(msg=msg, parse_headers=True)
+        if message._headers:
+            print(message._headers)
+        #message.as_string()
+        #print(len(msgloader.attachments))
 

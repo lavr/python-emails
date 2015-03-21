@@ -17,7 +17,7 @@ from email.utils import formataddr, parseaddr, formatdate
 import requests
 
 from . import USER_AGENT
-from .compat import string_types, to_unicode, NativeStringIO, is_py2, BytesIO, to_bytes
+from .compat import string_types, to_unicode, NativeStringIO, is_py2, BytesIO, to_bytes, to_native
 from .exc import HTTPLoaderError
 
 
@@ -59,13 +59,8 @@ DNS_NAME = CachedDnsName()
 
 def decode_header(value, default="utf-8", errors='strict'):
     """Decode the specified header value"""
-    return u"".join([to_unicode(text, charset or default, errors) for text, charset in decode_header_(value)])
-
-
-def parse_addresses_header(value, errors='strict'):
-    for token in value.split(b','):
-        name, email = parseaddr(token.strip())
-        yield decode_header(name, errors=errors), email
+    value = to_native(value, charset=default, errors=errors)
+    return "".join([to_unicode(text, charset or default, errors) for text, charset in decode_header_(value)])
 
 
 class MessageID:
