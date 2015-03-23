@@ -10,7 +10,8 @@ import errno
 from zipfile import ZipFile
 import email
 
-from ..compat import to_unicode, string_types, to_native
+from ..compat import to_unicode, string_types, to_native, formataddr as compat_formataddr
+
 from ..loader.helpers import decode_text
 from ..message import Message
 from ..utils import decode_header
@@ -207,22 +208,6 @@ class ZipLoader(BaseLoader):
         return sorted(self._filenames)
 
 
-def _human_formataddr(pair):
-    """Takes a 2-tuple of the form (realname, email_address) and returns RFC2822-like string.
-    Does not encode non-ascii realname.
-    The same code in python2 email.utils.formataddr
-    """
-    from email.utils import escapesre, specialsre
-    name, address = pair
-    if name:
-        quotes = ''
-        if specialsre.search(name):
-            quotes = '"'
-        name = escapesre.sub(r'\\\g<0>', name)
-        return '%s%s%s <%s>' % (quotes, name, quotes, address)
-    return address
-
-
 class MsgLoader(BaseLoader):
     """
     Load files from email.Message
@@ -368,7 +353,7 @@ class MsgLoader(BaseLoader):
                 if not skip_invalid:
                     r.append(decode_header(email))
             else:
-                r.append(_human_formataddr([decode_header(name), email]))
+                r.append(compat_formataddr([decode_header(name), email]))
 
         return r
 

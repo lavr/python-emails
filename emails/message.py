@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from email.utils import getaddresses, formataddr
 
-from .compat import (string_types, is_callable, to_bytes)
+from .compat import (string_types, is_callable, to_bytes, formataddr as compat_formataddr)
 from .utils import (SafeMIMEText, SafeMIMEMultipart, sanitize_address,
                     parse_name_and_email, load_email_charsets,
                     encode_header as encode_header_,
@@ -175,10 +175,13 @@ class MessageBuildMixin(object):
         else:
             return value
 
-    def encode_address_header(self, name, email):
-        return formataddr((self.encode_header(name or ''), email))
+    def encode_address_header(self, pair):
+        if not pair:
+            return None
+        name, email = pair
+        return compat_formataddr((name or '', email))
 
-    encode_name_header = encode_address_header
+    encode_name_header = encode_address_header  # legacy name
 
     def set_header(self, msg, key, value, encode=True):
 
@@ -215,11 +218,8 @@ class MessageBuildMixin(object):
         if subject is not None:
             self.set_header(msg, 'Subject', subject)
 
-        mail_from = self._mail_from and self.encode_address_header(*self._mail_from) or None
-        self.set_header(msg, 'From', mail_from, encode=False)
-
-        mail_to = self._mail_to and self.encode_address_header(*self._mail_to[0]) or None
-        self.set_header(msg, 'To', mail_to, encode=False)
+        self.set_header(msg, 'From', self.encode_address_header(self._mail_from), encode=False)
+        self.set_header(msg, 'To', self._mail_to and self.encode_address_header(self._mail_to[0]) or None, encode=False)
 
         return msg
 

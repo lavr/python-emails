@@ -113,6 +113,8 @@ if is_py2:
             return x.encode(charset, errors)
         raise TypeError('Expected bytes')
 
+    from email.utils import formataddr
+
 
 elif is_py3:
     import urllib.parse as urlparse
@@ -141,6 +143,25 @@ elif is_py3:
         if isinstance(x, str):
             return x.encode(charset, errors)
         raise TypeError('Expected bytes')
+
+    from email.utils import escapesre, specialsre
+
+    def formataddr(pair):
+        """
+        This code is copy of python2 email.utils.formataddr.
+        Takes a 2-tuple of the form (realname, email_address) and returns RFC2822-like string.
+        Does not encode non-ascii realname.
+
+        Python3 email.utils.formataddr do encode realname.
+        """
+        name, address = pair
+        if name:
+            quotes = ''
+            if specialsre.search(name):
+                quotes = '"'
+            name = escapesre.sub(r'\\\g<0>', name)
+            return '%s%s%s <%s>' % (quotes, name, quotes, address)
+        return address
 
 
 def to_unicode(x, charset=sys.getdefaultencoding(), errors='strict',
