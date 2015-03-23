@@ -2,14 +2,13 @@
 from __future__ import unicode_literals, print_function
 import glob
 import email
-
+import datetime
 import os.path
 from emails.compat import to_native
 import emails.loader
 from emails.loader.local_store import MsgLoader
 
 ROOT = os.path.dirname(__file__)
-
 
 def _get_message():
     m = emails.loader.from_zip(open(os.path.join(ROOT, "data/html_import/oldornament/oldornament.zip"), 'rb'))
@@ -92,6 +91,26 @@ def test_relaxed_header_parser():
     #assert list(_relaxed_parse_address_header(b'"\xc0\xed\xe3\xe5\xed\xee\xe2\xe0" <a@b.tld>'))[0] == ''
 """
 
+
+def _check_date(s):
+    from dateutil.parser import parse as dateutil_parse
+    if not s:
+        return False
+    try:
+        message_date = dateutil_parse(s)
+    except ValueError:
+        return False
+    return message_date.replace(tzinfo=None) > datetime.datetime(2013, 1, 1)
+
+def _format_addr(data, one=True):
+    if not data:
+        return None
+    if one:
+        data = [data, ]
+
+    return ",".join([email.utils.formataddr(pair) for pair in data])
+
+
 def test_mass_msgloader():
     import encodings
     encodings.aliases.aliases['win_1251'] = 'cp1251'  # data-specific
@@ -101,11 +120,22 @@ def test_mass_msgloader():
         if msg is None:
             print("can not read filename=", filename)
             continue
+
+        if not _check_date(email.message_from_string(msg)['date']):
+            continue
+
         #msgloader = MsgLoader(msg=msg)
-        print(filename)
+        #print(filename)
         message = emails.loader.from_rfc822(msg=msg, parse_headers=True)
         if message._headers:
             print(message._headers)
         #message.as_string()
         #print(len(msgloader.attachments))
+        print()
+        print("filename:%s" % filename)
+        print("subject:%s" % message._subject)
+        print("from:{0}".format(_format_addr(message.mail_from, one=True)))
+        print("to:{0}".format(_format_addr(message.mail_to, one=False)))
+        assert message.html or message.text
+    #assert 0
 
