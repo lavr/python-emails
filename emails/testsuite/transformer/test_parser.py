@@ -28,3 +28,8 @@ def test_parser_inputs():
         r = HTMLParser(html=html).to_string()
         print("html=", html.__repr__(), "result=", r.__repr__(), sep='')
         assert _cleaned_body(r) == result
+
+
+def test_breaking_title():
+    # xml-styled <title/> breaks html rendering (#43)
+    assert '<title/>' not in HTMLParser(html="<title></title>").to_string()

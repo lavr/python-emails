@@ -60,6 +60,7 @@ class LocalPremailer(Premailer):
 class HTMLParser(object):
 
     _cdata_regex = re.compile(r'\<\!\[CDATA\[(.*?)\]\]\>', re.DOTALL)
+    _xml_title_regex = re.compile(r'\<title(.*?)\/\>', re.IGNORECASE)
 
     def __init__(self, html, method="html", output_method="xml"):
         self._html = html
@@ -90,6 +91,8 @@ class HTMLParser(object):
                 lambda m: '/*<![CDATA[*/%s/*]]>*/' % m.group(1),
                 out
             )
+            # Remove empty "<title/>" which breaks html rendering (Fixes #43)
+            out = self._xml_title_regex.sub('', out)
         return out
 
     def apply_to_images(self, func, images=True, backgrounds=True, styles_uri=True):
