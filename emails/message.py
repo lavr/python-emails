@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from email.utils import getaddresses, formataddr
 
-from .compat import (string_types, is_callable, to_bytes, formataddr as compat_formataddr)
+from .compat import (string_types, is_callable, to_bytes, formataddr as compat_formataddr, to_unicode)
 from .utils import (SafeMIMEText, SafeMIMEMultipart, sanitize_address,
                     parse_name_and_email, load_email_charsets,
                     encode_header as encode_header_,
@@ -188,6 +188,9 @@ class MessageBuildMixin(object):
         if value is None:
             # TODO: may be remove header here ?
             return
+
+        if not isinstance(value, string_types):
+            value = to_unicode(value)
 
         # Prevent header injection
         if '\n' in value or '\r' in value:
