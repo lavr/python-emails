@@ -3,22 +3,14 @@ from __future__ import print_function
 from emails.transformer import HTMLParser
 
 
-def print_parser_methods():
-    html = '<a href="{{ x }}">_</a> \r\n'
-    for method in ['xml', 'html']:
-        for output_method in ['xml', 'html']:
-            print("method=", method, " output_method=", output_method, sep='')
-            print(HTMLParser(html=html, method=method, output_method=output_method).to_string())
-    print(HTMLParser('<a href="a&b">_</a>', method="html", output_method="html").to_string())
-    print(HTMLParser('<html><!-- comment -->', method="html", output_method="html").to_string())
-
-
 def test_parser_inputs():
 
     def _cleaned_body(s):
         for el in ('html', 'body'):
             s = s.replace('<%s>' % el, '').replace('</%s>' % el, '')
         return s
+
+    # This is a fixation of de-facto rendering results
 
     for html, result in (
             ("<html><!-- comment -->", "<!-- comment -->"),
@@ -31,5 +23,5 @@ def test_parser_inputs():
 
 
 def test_breaking_title():
-    # xml-styled <title/> breaks html rendering (#43)
+    # xml-styled <title/> breaks html rendering, we should remove it (#43)
     assert '<title/>' not in HTMLParser(html="<title></title>").to_string()

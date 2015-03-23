@@ -1,6 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals, print_function
-from emails.store.file import fix_content_type
+
 from emails.loader.helpers import (guess_charset, guess_text_charset, decode_text, guess_html_charset, RULES_U)
 
 

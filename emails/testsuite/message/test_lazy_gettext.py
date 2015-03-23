@@ -4,6 +4,7 @@ import gettext
 from emails import Message
 from emails.utils import decode_header
 
+
 def lazy_string(func, string, **variables):
     from speaklater import make_lazy_string
     return make_lazy_string(func, string, **variables)

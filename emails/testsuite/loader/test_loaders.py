@@ -1,8 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals, print_function
-import glob
 import os.path
-import email
 import pytest
 from requests import ConnectionError
 import emails
@@ -55,7 +53,6 @@ def test_loaders():
     message_params = {'subject': 'X', 'mail_to': 'a@b.net'}
 
     htmls = []
-    rfc_strings = []
 
     for message in load_messages(message_params=message_params, **OLDORNAMENT_URLS):
         # Check loaded images

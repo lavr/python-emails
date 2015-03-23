@@ -17,7 +17,7 @@ from email.utils import formataddr, parseaddr, formatdate
 import requests
 
 from . import USER_AGENT
-from .compat import string_types, to_unicode, NativeStringIO, is_py2, BytesIO, to_bytes, to_native
+from .compat import string_types, to_unicode, NativeStringIO, is_py2, BytesIO, to_native
 from .exc import HTTPLoaderError
 
 

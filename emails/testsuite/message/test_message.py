@@ -1,7 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals, print_function
 import datetime
-from email.utils import parseaddr, formataddr
+from email.utils import parseaddr
 from dateutil.parser import parse as dateutil_parse
 import pytest
 
@@ -110,7 +110,7 @@ def test_sanitize_header():
 def test_address_header_not_double_encoded():
     msg = {}
     m = Message()
-    TEXT = 'Пушкин А.С.'
+    TEXT = '웃'
 
     m.mail_from = (TEXT, 'a@b.c')
     m.html = '...'

@@ -6,10 +6,7 @@ import re
 import cgi
 import charade
 
-from ..message import Message
-from ..utils import decode_header
 from ..compat import to_native, to_unicode
-
 
 # HTML page charset stuff
 
