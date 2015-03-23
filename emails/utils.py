@@ -17,7 +17,7 @@ from email.utils import formataddr, parseaddr, formatdate
 import requests
 
 from . import USER_AGENT
-from .compat import string_types, to_unicode, NativeStringIO, is_py2, BytesIO
+from .compat import string_types, to_unicode, NativeStringIO, is_py2, BytesIO, to_bytes, to_native
 from .exc import HTTPLoaderError
 
 
@@ -57,12 +57,10 @@ class CachedDnsName(object):
 DNS_NAME = CachedDnsName()
 
 
-def decode_header(header_text, default="ascii"):
-    """Decode the specified header"""
-    headers = decode_header_(header_text)
-    header_sections = [to_unicode(text, charset or default)
-                       for text, charset in headers]
-    return u"".join(header_sections)
+def decode_header(value, default="utf-8", errors='strict'):
+    """Decode the specified header value"""
+    value = to_native(value, charset=default, errors=errors)
+    return "".join([to_unicode(text, charset or default, errors) for text, charset in decode_header_(value)])
 
 
 class MessageID:
@@ -93,26 +91,17 @@ def parse_name_and_email(obj, encoding='utf-8'):
     # In:  'john@smith.me' or  '"John Smith" <john@smith.me>' or ('John Smith', 'john@smith.me')
     # Out: (u'John Smith', u'john@smith.me')
 
-    _realname = ''
-    _email = ''
-
     if isinstance(obj, (list, tuple)):
         if len(obj) == 2:
-            _realname, _email = obj
-
+            name, email = obj
+        else:
+            raise ValueError("Can not parse_name_and_email from %s" % obj)
     elif isinstance(obj, string_types):
-        _realname, _email = parseaddr(obj)
-
+        name, email = parseaddr(obj)
     else:
         raise ValueError("Can not parse_name_and_email from %s" % obj)
 
-    if isinstance(_realname, bytes):
-        _realname = to_unicode(_realname, encoding)
-
-    if isinstance(_email, bytes):
-        _email = to_unicode(_email, encoding)
-
-    return _realname or None, _email or None
+    return to_unicode(name, encoding) or None, to_unicode(email, encoding) or None
 
 
 def sanitize_address(addr, encoding='ascii'):

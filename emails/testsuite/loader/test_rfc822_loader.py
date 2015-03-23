@@ -2,14 +2,13 @@
 from __future__ import unicode_literals, print_function
 import glob
 import email
+import datetime
 import os.path
 from emails.compat import to_native
 import emails.loader
 from emails.loader.local_store import MsgLoader
-#from emails.loader.helpers import guess_charset
 
 ROOT = os.path.dirname(__file__)
-
 
 def _get_message():
     m = emails.loader.from_zip(open(os.path.join(ROOT, "data/html_import/oldornament/oldornament.zip"), 'rb'))
@@ -64,25 +63,79 @@ def test_msgloader():
     map_cid = "cid:%s" % source_message.attachments['Map.png'].content_id
     assert loader.content(map_cid) == 'Y'
 
-    assert emails.loader.from_rfc822(msg=source_message.as_string()).as_string()
+    m2 = emails.loader.from_rfc822(msg=source_message.as_string(), parse_headers=True)
+    assert m2.subject == data['subject']
+    assert m2.as_string()
     # TODO: more tests
 
 
-def _try_decode(s):
-    for charset in ['utf-8', 'cp1251']:
+def _try_decode(s, charsets=('utf-8', 'koi8-r', 'cp1251')):
+    for charset in charsets:
         try:
-            return to_native(s, charset)
+            return to_native(s, charset), charset
         except UnicodeDecodeError:
             pass
+    return None, None
+
+
+"""
+def test_relaxed_header_parser():
+
+    # Test broken address header without email
+    from email.header import Header
+    text = u'웃'
+    assert list(_relaxed_parse_address_header(str(Header(text, 'utf-8'))))[0] == text
+
+    # Test broken encoding
+    #assert _try_decode(b'"\xc0\xed\xe3\xe5\xed\xee\xe2\xe0"', ['utf-8', 'koi8-r', 'cp1251', 'latin-1']) == ('', 'koi8')
+    #assert list(_relaxed_parse_address_header(b'"\xc0\xed\xe3\xe5\xed\xee\xe2\xe0" <a@b.tld>'))[0] == ''
+"""
+
+
+def _check_date(s):
+    from dateutil.parser import parse as dateutil_parse
+    if not s:
+        return False
+    try:
+        message_date = dateutil_parse(s)
+    except ValueError:
+        return False
+    return message_date.replace(tzinfo=None) > datetime.datetime(2013, 1, 1)
+
+def _format_addr(data, one=True):
+    if not data:
+        return None
+    if one:
+        data = [data, ]
+
+    return ",".join([email.utils.formataddr(pair) for pair in data])
+
 
 def test_mass_msgloader():
+    import encodings
+    encodings.aliases.aliases['win_1251'] = 'cp1251'  # data-specific
     ROOT = os.path.dirname(__file__)
     for filename in glob.glob(os.path.join(ROOT, "data/msg/*.eml")):
-        msg = _try_decode(open(filename, 'rb').read())
+        msg, charset = _try_decode(open(filename, 'rb').read())
         if msg is None:
             print("can not read filename=", filename)
             continue
-        #msg = email.message_from_string(open(filename).read())
-        msgloader = MsgLoader(msg=msg)
-        print(len(msgloader.attachments))
+
+        if not _check_date(email.message_from_string(msg)['date']):
+            continue
+
+        #msgloader = MsgLoader(msg=msg)
+        #print(filename)
+        message = emails.loader.from_rfc822(msg=msg, parse_headers=True)
+        if message._headers:
+            print(message._headers)
+        #message.as_string()
+        #print(len(msgloader.attachments))
+        print()
+        print("filename:%s" % filename)
+        print("subject:%s" % message._subject)
+        print("from:{0}".format(_format_addr(message.mail_from, one=True)))
+        print("to:{0}".format(_format_addr(message.mail_to, one=False)))
+        assert message.html or message.text
+    #assert 0
 

@@ -1,16 +1,20 @@
 # encoding: utf-8
 from __future__ import unicode_literals
+from email.utils import parseaddr
 import logging
 import mimetypes
+
 import os
 from os import path
 import errno
 from zipfile import ZipFile
 import email
 
-from ..compat import to_unicode, string_types, to_native
-from ..loader.helpers import decode_text
+from ..compat import to_unicode, string_types, to_native, formataddr as compat_formataddr
 
+from ..loader.helpers import decode_text
+from ..message import Message
+from ..utils import decode_header
 
 class FileNotFound(Exception):
     pass
@@ -204,12 +208,9 @@ class ZipLoader(BaseLoader):
         return sorted(self._filenames)
 
 
-
 class MsgLoader(BaseLoader):
     """
     Load files from email.Message
-    Thanks to
-    http://blog.magiksys.net/parsing-email-using-python-content
     """
 
     common_charsets = ['ascii', 'utf-8', 'utf-16', 'windows-1252', 'cp850', 'windows-1251']
@@ -227,6 +228,7 @@ class MsgLoader(BaseLoader):
         self._files = {}
         self._content_ids = {}
         self._parsed = False
+        self.headers = {}
 
     def decode_text(self, text, charset=None):
         if charset:
@@ -331,5 +333,78 @@ class MsgLoader(BaseLoader):
     def text(self):
         self.parse()
         return self._text_parts and self._text_parts[0]['data'] or None
+
+    def decode_header_value(self, v):
+        if isinstance(v, bytes):
+            v = self.decode_text(v)[0]
+        return decode_header(v)
+
+    def decode_address_header_value(self, value, skip_invalid=True):
+
+        r = []
+
+        if isinstance(value, bytes):
+            value = self.decode_text(value)[0]
+
+        for token in value.split(','):
+            name, email = parseaddr(token.strip())
+            if not name and '@' not in email:
+                # invalid address header content - name without email
+                if not skip_invalid:
+                    r.append(decode_header(email))
+            else:
+                r.append(compat_formataddr([decode_header(name), email]))
+
+        return r
+
+    def get_decoded_header_value(self, name):
+        v = self.msg[name]
+        if name in Message.ADDRESS_HEADERS:
+            return self.decode_address_header_value(v)
+        else:
+            return self.decode_header_value(v)
+
+
+    def filter_header(self, name):
+        return name == 'subject' or name in Message.ADDRESS_HEADERS
+
+
+    def copy_header_to_message(self, message, name, value):
+        """
+        Set header in email.Message
+
+        :param message: message to set header to
+        :param name: header name
+        :param value: header value
+        :return:
+        """
+        if name == 'subject':
+            message.subject = self.decode_header_value(value)
+        elif name == 'to':
+            r = self.decode_address_header_value(value)
+            if r:
+                message.mail_to = r[0]
+        elif name == 'from':
+            r = self.decode_address_header_value(value)
+            if r:
+                message.mail_from = r[0]
+        elif name in Message.ADDRESS_HEADERS:
+            message._headers[name] = ",".join(self.decode_address_header_value(value))
+        else:
+            message._headers[name] = self.decode_header_value(value)
+
+
+    def copy_headers_to_message(self, message):
+        """
+        Decode headers from loaded email.Message object and copy them to emails.Message object
+
+        :param message: emails.Message object to copy headers to
+        :param headers: list of headers to parse. if None, parse 'Subject' header and all 'address headers'
+        :return: None
+        """
+        for k, v in self.msg.items():
+            k = k.lower()
+            if self.filter_header(k):
+                self.copy_header_to_message(message, k, v)
 
 

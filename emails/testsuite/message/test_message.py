@@ -1,12 +1,16 @@
 # coding: utf-8
 from __future__ import unicode_literals, print_function
 import datetime
+from email.utils import parseaddr, formataddr
 from dateutil.parser import parse as dateutil_parse
 import pytest
+
 import emails
 from emails import Message
 import emails.exc
 from emails.compat import to_unicode, StringIO, is_py2, is_py34_plus
+from emails.utils import decode_header, sanitize_address
+
 from .helpers import common_email_data
 
 
@@ -101,6 +105,17 @@ def test_sanitize_header():
         with pytest.raises(emails.exc.BadHeaderError):
             print('header {0}'.format(header))
             emails.Message(html='...', **{header: value}).as_message()
+
+
+def test_address_header_not_double_encoded():
+    msg = {}
+    m = Message()
+    TEXT = 'Пушкин А.С.'
+
+    m.mail_from = (TEXT, 'a@b.c')
+    m.html = '...'
+    msg = m.as_message()
+    assert decode_header(parseaddr(msg['From'])[0]) == TEXT
 
 
 def test_message_policy():
