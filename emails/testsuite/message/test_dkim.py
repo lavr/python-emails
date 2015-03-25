@@ -57,9 +57,15 @@ def test_dkim():
 
     priv_key, pub_key = _generate_key(length=1024)
 
-    DKIM_PARAMS = [dict(privkey=NativeStringIO(to_native(priv_key)),
+    DKIM_PARAMS = [dict(key=NativeStringIO(to_native(priv_key)),
                         selector='_dkim',
                         domain='somewhere.net'),
+
+                   dict(key=priv_key,
+                        selector='_dkim',
+                        domain='somewhere.net'),
+
+                   # legacy key argument name
                    dict(privkey=priv_key,
                         selector='_dkim',
                         domain='somewhere.net'),
@@ -77,18 +83,26 @@ def test_dkim():
 
 def test_dkim_error():
 
-    # Error in invalid key
     m = emails.html(**common_email_data())
+
+    # No key
+    with pytest.raises(TypeError):
+        m.dkim(selector='_dkim',
+               domain='somewhere.net',
+               ignore_sign_errors=False)
+
+
+    # Error in invalid key
     invalid_key = 'X'
     with pytest.raises(DKIMException):
-        m.dkim(privkey=invalid_key,
+        m.dkim(key=invalid_key,
                selector='_dkim',
                domain='somewhere.net',
                ignore_sign_errors=False)
 
     # Error on invalid dkim parameters
 
-    m.dkim(privkey=PRIV_KEY,
+    m.dkim(key=PRIV_KEY,
            selector='_dkim',
            domain='somewhere.net',
            include_headers=['To'])
@@ -98,7 +112,7 @@ def test_dkim_error():
         m.as_string()
 
     # Skip error on ignore_sign_errors=True
-    m.dkim(privkey=PRIV_KEY,
+    m.dkim(key=PRIV_KEY,
            selector='_dkim',
            domain='somewhere.net',
            ignore_sign_errors=True,
@@ -106,3 +120,18 @@ def test_dkim_error():
 
     m.as_string()
     m.as_message()
+
+
+def test_dkim_sign_twice():
+
+    # Test #44:
+    # " if you put the open there and send more than one messages it fails
+    #   (the first works but the next will not if you dont seek(0) the dkim file first)"
+    # Actually not.
+
+    priv_key, pub_key = _generate_key(length=1024)
+    message = Message(**common_email_data())
+    message.dkim(key=NativeStringIO(to_native(priv_key)), selector='_dkim', domain='somewhere.net')
+    for n in range(2):
+        message.subject = 'Test %s' % n
+        assert _check_dkim(message, pub_key)

@@ -16,10 +16,15 @@ from .compat import to_bytes, to_native
 
 class DKIMSigner:
 
-    def __init__(self, selector, domain, privkey, ignore_sign_errors=False, **kwargs):
+    def __init__(self, selector, domain, key=None, ignore_sign_errors=False, **kwargs):
 
         self.ignore_sign_errors = ignore_sign_errors
         self._sign_params = kwargs
+
+        privkey = key or kwargs.pop('privkey', None)  # privkey is legacy synonym for `key`
+
+        if not privkey:
+            raise TypeError("DKIMSigner.__init__() requires 'key' argument")
 
         if privkey and hasattr(privkey, 'read'):
             privkey = privkey.read()
