@@ -280,6 +280,29 @@ class MessageBuildMixin(object):
 
     _build_message = build_message
 
+    def as_message(self, message_cls=None):
+        msg = self.build_message(message_cls=message_cls)
+        if self._signer:
+            msg = self.sign_message(msg)
+        return msg
+
+    message = as_message
+
+    def as_string(self, message_cls=None):
+        """
+        Returns message as string.
+
+        Note: this method costs one less message-to-string conversions
+        for dkim in compare to self.as_message().as_string()
+
+        Changes:
+        v0.4.2: now returns bytes, not native string
+        """
+        r = to_bytes(self.build_message(message_cls=message_cls).as_string())
+        if self._signer:
+            r = self.sign_string(r)
+        return r
+
 
 class MessageSendMixin(object):
 
@@ -382,50 +405,30 @@ class MessageTransformerMixin(object):
         BaseMessage.set_html(self, **kw)
 
 
-class MessageDKIMMixin(object):
+class MessageSignMixin(object):
 
-    dkim_cls = DKIMSigner
-    _dkim_signer = None
+    signer_cls = DKIMSigner
+    _signer = None
 
-    def dkim(self, **kwargs):
-        self._dkim_signer = self.dkim_cls(**kwargs)
+    def sign(self, **kwargs):
+        self._signer = self.signer_cls(**kwargs)
 
-    def dkim_sign_message(self, msg):
+    dkim = sign
+
+    def sign_message(self, msg):
         """
-        Add DKIM header
+        Add sign header to email.Message
         """
-        if self._dkim_signer:
-            return self._dkim_signer.sign_message(msg)
-        return msg
+        return self._signer.sign_message(msg)
 
-    def dkim_sign_string(self, message_string):
+    def sign_string(self, message_string):
         """
-        Add DKIM header
+        Add sign header to message-as-a-string
         """
-        if self._dkim_signer:
-            return self._dkim_signer.sign_message_string(message_string)
-        return message_string
-
-    def as_message(self, message_cls=None):
-        return self.dkim_sign_message(self.build_message(message_cls=message_cls))
-
-    message = as_message
-
-    def as_string(self, message_cls=None):
-        """
-        Returns message as string.
-
-        Note: this method costs one less message-to-string conversions
-        for dkim in compare to self.as_message().as_string()
-
-        Changes:
-        v0.4.2: now returns bytes, not native string
-        """
-
-        return self.dkim_sign_string(to_bytes(self.build_message(message_cls=message_cls).as_string()))
+        return self._signer.sign_message_string(message_string)
 
 
-class Message(MessageSendMixin, MessageTransformerMixin, MessageDKIMMixin, MessageBuildMixin, BaseMessage):
+class Message(MessageSendMixin, MessageTransformerMixin, MessageSignMixin, MessageBuildMixin, BaseMessage):
     """
     Email message with:
     - DKIM signer
