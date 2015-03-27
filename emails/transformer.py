@@ -253,6 +253,7 @@ class BaseTransformer(HTMLParser):
                 parent = el.getparent()
                 if parent is not None:
                     parent.remove(el)
+        return self
 
     def load_and_transform(self,
                            css_inline=True,
@@ -295,10 +296,13 @@ class BaseTransformer(HTMLParser):
         if load_images and images_inline:
             self.make_all_images_inline()
 
+        return self
+
     def make_all_images_inline(self):
         for a in self.attachment_store:
             a.is_inline = True
         self.synchronize_inline_images()
+        return self
 
     def synchronize_inline_images(self, inline_names=None, non_inline_names=None):
         """
@@ -328,6 +332,7 @@ class BaseTransformer(HTMLParser):
 
         self.apply_to_images(_src_update_func)
 
+        return self
 
 class Transformer(BaseTransformer):
     pass

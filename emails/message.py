@@ -389,6 +389,7 @@ class MessageTransformerMixin(object):
             from .transformer import MessageTransformer  # avoid cyclic import
             cls = MessageTransformer
         self._transformer = cls(message=self, **kw)
+        return self._transformer
 
     def destroy_transformer(self):
         self._transformer = None
@@ -412,6 +413,7 @@ class MessageSignMixin(object):
 
     def sign(self, **kwargs):
         self._signer = self.signer_cls(**kwargs)
+        return self
 
     dkim = sign
 
