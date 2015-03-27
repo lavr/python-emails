@@ -339,7 +339,7 @@ class MsgLoader(BaseLoader):
             v = self.decode_text(v)[0]
         return decode_header(v)
 
-    def decode_address_header_value(self, value, skip_invalid=True):
+    def decode_address_header_value(self, value, skip_invalid=False):
 
         r = []
 
@@ -357,17 +357,8 @@ class MsgLoader(BaseLoader):
 
         return r
 
-    def get_decoded_header_value(self, name):
-        v = self.msg[name]
-        if name in Message.ADDRESS_HEADERS:
-            return self.decode_address_header_value(v)
-        else:
-            return self.decode_header_value(v)
-
-
     def filter_header(self, name):
         return name == 'subject' or name in Message.ADDRESS_HEADERS
-
 
     def copy_header_to_message(self, message, name, value):
         """

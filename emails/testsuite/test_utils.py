@@ -15,6 +15,8 @@ def test_parse_name_and_email():
            ('John Smith', 'john@smith.me')
     with pytest.raises(ValueError):
         parse_name_and_email(1)
+    with pytest.raises(ValueError):
+        parse_name_and_email([42,])
 
 
 def test_header_encode():
@@ -67,3 +69,4 @@ def test_format_date():
     assert current_year in format_date_header(None)
     assert current_year in format_date_header(datetime.datetime.now())
     assert current_year in format_date_header(time.time())
+    assert 'X' == format_date_header('X')

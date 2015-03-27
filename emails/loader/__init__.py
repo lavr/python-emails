@@ -49,7 +49,7 @@ def from_html(html, text=None, base_url=None, message_params=None, local_loader=
     _param_html = message_params.pop('html', None)
     _param_text = message_params.pop('text', None)
 
-    message = (message_cls or Message)(html=template_cls(html or _param_html),
+    message = (message_cls or Message)(html=template_cls(html or _param_html or ''),
                                        text=template_cls(text or _param_text),
                                        **message_params)
     message.create_transformer(requests_params=requests_params,

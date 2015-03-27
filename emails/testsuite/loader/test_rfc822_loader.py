@@ -46,13 +46,17 @@ def test_msgloader():
             'mail_to': ('Полина Сергеева', 'polina@mail.ru'),
             'html': '<h1>Привет!</h1><p>В первых строках...',
             'text': 'Привет!\nВ первых строках...',
-            'headers': {'X-Mailer': 'python-emails'},
+            'headers': {'X-Mailer': 'python-emails',
+                        'Sender': '웃'},
             'attachments': [{'data': 'X', 'filename': 'Event.ics'},
                             {'data': 'Y', 'filename': 'Map.png', 'content_disposition': 'inline'},],
             'message_id': 'message_id'}
 
     source_message = emails.Message(**data)
-    loader = MsgLoader(msg=source_message.as_string())
+    message = emails.loader.from_rfc822(source_message.as_string(), parse_headers=True)
+
+    loader = message._loader
+
     assert loader.html == data['html']
     assert loader.text == data['text']
 
@@ -63,9 +67,12 @@ def test_msgloader():
     map_cid = "cid:%s" % source_message.attachments['Map.png'].content_id
     assert loader.content(map_cid) == 'Y'
 
-    m2 = emails.loader.from_rfc822(msg=source_message.as_string(), parse_headers=True)
-    assert m2.subject == data['subject']
-    assert m2.as_string()
+    assert message.subject == data['subject']
+    print(message._headers)
+    assert message._headers['sender'] == '웃'
+
+    assert message.as_string()
+
 
 
 def _try_decode(s, charsets=('utf-8', 'koi8-r', 'cp1251')):

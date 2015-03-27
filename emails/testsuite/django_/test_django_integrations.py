@@ -74,3 +74,12 @@ def test_django_message_commons():
     msg._set_emails(mail_from='c@c.com', set_mail_from=True)
     assert msg.from_email == 'c@c.com'
     assert msg.mail_from[1] == 'c@c.com'
+
+
+def test_legacy_import():
+    """
+    Test legacy django_ module exists and works
+    """
+    from emails.django_ import DjangoMessage as DjangoMessageLegacy
+    assert DjangoMessageLegacy == DjangoMessage
+

@@ -1,6 +1,7 @@
 # encoding: utf-8
 from __future__ import unicode_literals, print_function
 import os.path
+from lxml.etree import XMLSyntaxError
 import pytest
 from requests import ConnectionError
 import emails
@@ -18,6 +19,16 @@ BASE_URL = 'http://lavr.github.io/python-emails/tests/'
 OLDORNAMENT_URLS = dict(from_url='campaignmonitor-samples/oldornament/index.html',
                         from_file='data/html_import/oldornament/oldornament/index.html',
                         from_zip='data/html_import/oldornament/oldornament.zip')
+
+
+def test__from_html():
+
+    with pytest.raises(XMLSyntaxError):
+        emails.loader.from_html(html='')
+
+    assert '-X-' in emails.loader.from_html(html='-X-').html
+
+    # TODO: more tests for from_html func
 
 
 def load_messages(from_url=None, from_file=None, from_zip=None, from_directory=None, skip_text=False, **kw):
