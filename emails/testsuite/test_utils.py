@@ -4,8 +4,9 @@ import pytest
 import datetime
 import time
 from emails.utils import (parse_name_and_email, encode_header, decode_header, sanitize_address, fetch_url,
-                          MessageID, format_date_header)
+                          MessageID, format_date_header, parse_name_and_email_list)
 from emails.exc import HTTPLoaderError
+
 
 def test_parse_name_and_email():
     assert parse_name_and_email('john@smith.me') == (None, 'john@smith.me')
@@ -17,6 +18,13 @@ def test_parse_name_and_email():
         parse_name_and_email(1)
     with pytest.raises(ValueError):
         parse_name_and_email([42,])
+
+
+def test_parse_name_and_list():
+    assert parse_name_and_email_list(['a@b.c', 'd@e.f']) == [(None, 'a@b.c'), (None, 'd@e.f')]
+    assert parse_name_and_email_list(('a@b.c', 'd@e.f')) == [('a@b.c', 'd@e.f'), ]
+    assert parse_name_and_email_list(['a@b.c']) == [(None, 'a@b.c')]
+    assert parse_name_and_email_list("♤ <a@b.c>") == [("♤", 'a@b.c'), ]
 
 
 def test_header_encode():

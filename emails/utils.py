@@ -87,6 +87,38 @@ class MessageID:
         return "".join(['<', r, '@', self.domain, '>'])
 
 
+def parse_name_and_email_list(elements, encoding='utf-8'):
+    """
+    Parse a list of address-like elements, i.e.:
+     * "name <email>"
+     * "email"
+     * (name, email)
+
+    :param elements: one element or list of elements
+    :param encoding: element encoding, if bytes
+    :return: list of pairs (name, email)
+    """
+    if not elements:
+        return []
+
+    if isinstance(elements, string_types):
+        return [parse_name_and_email(elements, encoding), ]
+
+    if not isinstance(elements, (list, tuple)):
+        raise TypeError("Can not parse_name_and_email_list from %s" % elements.__repr__())
+
+    if len(elements) == 2:
+        # Oops, it may be pair (name, email) or pair of emails [email1, email2]
+        # Let's do some guesses
+        if isinstance(elements, tuple):
+            n, e = elements
+            if isinstance(e, string_types) and (not n or isinstance(e, string_types)):
+                # It is probably a pair (name, email)
+                return [parse_name_and_email(elements, encoding), ]
+
+    return [parse_name_and_email(x, encoding) for x in elements]
+
+
 def parse_name_and_email(obj, encoding='utf-8'):
     # In:  'john@smith.me' or  '"John Smith" <john@smith.me>' or ('John Smith', 'john@smith.me')
     # Out: (u'John Smith', u'john@smith.me')

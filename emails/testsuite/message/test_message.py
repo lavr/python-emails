@@ -107,15 +107,36 @@ def test_sanitize_header():
             emails.Message(html='...', **{header: value}).as_message()
 
 
-def test_address_header_not_double_encoded():
-    msg = {}
-    m = Message()
+def test_headers_not_double_encoded():
+
     TEXT = '웃'
 
+    m = Message()
     m.mail_from = (TEXT, 'a@b.c')
+    m.mail_to = (TEXT, 'a@b.c')
+    m.subject = TEXT
     m.html = '...'
     msg = m.as_message()
     assert decode_header(parseaddr(msg['From'])[0]) == TEXT
+    assert decode_header(parseaddr(msg['To'])[0]) == TEXT
+    assert decode_header(msg['Subject']) == TEXT
+
+
+def test_message_addresses():
+
+    m = Message()
+
+    m.mail_from = "웃 <b@c.d>"
+    assert m.mail_from == ("웃", "b@c.d")
+
+    m.mail_from = ["웃", "b@c.d"]
+    assert m.mail_from == ("웃", "b@c.d")
+
+    m.mail_to = ("웃", "b@c.d")
+    assert m.mail_to == [("웃", "b@c.d"), ]
+
+    m.mail_to = [("웃", "b@c.d"), "e@f.g"]
+    assert m.mail_to == [("웃", "b@c.d"), (None, "e@f.g")]
 
 
 def test_message_policy():

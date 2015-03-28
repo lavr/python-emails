@@ -7,7 +7,7 @@ from .compat import (string_types, is_callable, to_bytes, formataddr as compat_f
 from .utils import (SafeMIMEText, SafeMIMEMultipart, sanitize_address,
                     parse_name_and_email, load_email_charsets,
                     encode_header as encode_header_,
-                    renderable, format_date_header)
+                    renderable, format_date_header, parse_name_and_email_list)
 from .exc import BadHeaderError
 from .backend import ObjectFactory, SMTPBackend
 from .store import MemoryFileStore, BaseFile
@@ -66,10 +66,7 @@ class BaseMessage(object):
     mail_from = property(get_mail_from, set_mail_from)
 
     def set_mail_to(self, mail_to):
-        # Now we parse only one to-addr
-        # TODO: parse list of to-addrs
-        mail_to = mail_to and parse_name_and_email(mail_to)
-        self._mail_to = mail_to and [mail_to, ] or []
+        self._mail_to = parse_name_and_email_list(mail_to)
 
     def get_mail_to(self):
         return self._mail_to
