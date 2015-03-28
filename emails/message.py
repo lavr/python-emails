@@ -365,17 +365,10 @@ class MessageSendMixin(object):
         if not from_addr:
             raise ValueError('No "from" addr')
 
-        params = dict(from_addr=from_addr,
-                      to_addrs=[to_addr, ],
-                      msg=self)
-        if smtp_mail_options:
-            params['mail_options'] = smtp_mail_options
+        params = dict(from_addr=from_addr, to_addrs=[to_addr, ], msg=self,
+                      mail_options=smtp_mail_options, rcpt_options=smtp_rcpt_options)
 
-        if smtp_rcpt_options:
-            params['rcpt_options'] = smtp_rcpt_options
-
-        response = smtp.sendmail(**params)
-        return response[0]
+        return smtp.sendmail(**params)
 
 
 class MessageTransformerMixin(object):

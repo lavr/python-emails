@@ -1,14 +1,14 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-__all__ = ['SMTPBackend']
+__all__ = ['SMTPBackend', ]
 
 import smtplib
 import logging
 from functools import wraps
-
-from .client import SMTPResponse, SMTPClientWithResponse, SMTPClientWithResponse_SSL
-from ...compat import to_bytes
+from ..response import SMTPResponse
+from .client import SMTPClientWithResponse, SMTPClientWithResponse_SSL
+from ...utils import DNS_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +16,7 @@ logger = logging.getLogger(__name__)
 class SMTPBackend:
 
     """
-    SMTPSender is a wrapper for smtplib.SMTP class.
-    Differences are:
-    a) it transparently uses SSL or no-SSL connection
-    b) sendmail method sends only one message, but returns more information
-       about server response (i.e. response code)
+    SMTPBackend manages a smtp connection.
     """
 
     DEFAULT_SOCKET_TIMEOUT = 5
@@ -29,11 +25,7 @@ class SMTPBackend:
     connection_ssl_cls = SMTPClientWithResponse_SSL
     response_cls = SMTPResponse
 
-
-    def __init__(self,
-                 ssl=False,
-                 fail_silently=True,
-                 **kwargs):
+    def __init__(self, ssl=False, fail_silently=True, **kwargs):
 
         self.smtp_cls = ssl and self.connection_ssl_cls or self.connection_cls
 
@@ -44,82 +36,83 @@ class SMTPBackend:
                 "ssl/tls are mutually exclusive, so only set "
                 "one of those settings to True.")
 
-        if 'timeout' not in kwargs:
-            kwargs['timeout'] = self.DEFAULT_SOCKET_TIMEOUT
+        kwargs.setdefault('timeout', self.DEFAULT_SOCKET_TIMEOUT)
+        kwargs.setdefault('local_hostname', DNS_NAME.get_fqdn())
+
         self.smtp_cls_kwargs = kwargs
 
         self.host = kwargs.get('host')
         self.port = kwargs.get('port')
         self.fail_silently = fail_silently
-        self.connection = None
-        #self.local_hostname=DNS_NAME.get_fqdn()
 
-    def open(self):
-        if self.connection is None:
-            self.connection = self.smtp_cls(parent=self, **self.smtp_cls_kwargs)
-            self.connection.initialize()
-        return self.connection
+        self._client = None
+
+    def get_client(self):
+        if self._client is None:
+            self._client = self.smtp_cls(parent=self, **self.smtp_cls_kwargs)
+        return self._client
 
     def close(self):
-        """Closes the connection to the email server."""
 
-        if self.connection is None:
-            return
+        """
+        Closes the connection to the email server.
+        """
 
-        try:
-            self.connection.close()
-        except:
-                if self.fail_silently:
-                    return
-                raise
-        finally:
-            self.connection = None
+        if self._client:
+            try:
+                self._client.close()
+            except:
+                    if self.fail_silently:
+                        return
+                    raise
+            finally:
+                self._client = None
 
     def make_response(self, exception=None):
-        return self.response_cls(host=self.host, port=self.port, exception=exception)
+        return self.response_cls(backend=self, exception=exception)
 
     def retry_on_disconnect(self, func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except smtplib.SMTPServerDisconnected as e:
-                # If server disconected, just connect again
+            except smtplib.SMTPServerDisconnected:
+                # If server disconected, clear old client
                 logging.debug('SMTPServerDisconnected, retry once')
                 self.close()
-                self.open()
                 return func(*args, **kwargs)
         return wrapper
 
-    def _sendmail_on_connection(self, *args, **kwargs):
-        return self.connection.sendmail(*args, **kwargs)
+    def _send(self, **kwargs):
 
-    def sendmail(self, from_addr, to_addrs, msg, mail_options=[], rcpt_options=[]):
+        try:
+            client = self.get_client()
+        except (IOError, smtplib.SMTPException) as exc:
+            logger.exception("Error connecting smtp server")
+            response = self.make_response(exception=exc)
+            if not self.fail_silently:
+                response.raise_if_needed()
+            return response
+
+        return client.sendmail(**kwargs)
+
+    def sendmail(self, from_addr, to_addrs, msg, mail_options=None, rcpt_options=None):
 
         if not to_addrs:
-            return []
+            return None
 
         if not isinstance(to_addrs, (list, tuple)):
             to_addrs = [to_addrs, ]
 
-        try:
-            self.open()
-        except (IOError, smtplib.SMTPException) as e:
-            logger.exception("Error connecting smtp server")
-            response = self.make_response(exception=e)
-            if not self.fail_silently:
-                response.raise_if_needed()
-            return [response, ]
+        send = self.retry_on_disconnect(self._send)
 
-        _sendmail = self.retry_on_disconnect(self._sendmail_on_connection)
-
-        response = _sendmail(from_addr=from_addr,
-                             to_addrs=to_addrs,
-                             msg=to_bytes(msg.as_string(), 'utf-8'),
-                             mail_options=mail_options,
-                             rcpt_options=rcpt_options)
+        response = send(from_addr=from_addr,
+                        to_addrs=to_addrs,
+                        msg=msg.as_string(),
+                        mail_options=mail_options,
+                        rcpt_options=rcpt_options)
 
         if not self.fail_silently:
-            [r.raise_if_needed() for r in response]
+            response.raise_if_needed()
 
         return response
