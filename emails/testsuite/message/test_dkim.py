@@ -10,9 +10,6 @@ import emails.packages.dkim
 from .helpers import common_email_data
 
 
-TRAVIS_CI = os.environ.get('TRAVIS')
-HAS_INTERNET_CONNECTION = not TRAVIS_CI
-
 
 PRIV_KEY = b"""-----BEGIN RSA PRIVATE KEY-----
 MIICXAIBAAKBgQDKHKzbg7LwpSJVfy9h8YQciVuIiexJ6OKJcCc6akJuLx+qPJGr

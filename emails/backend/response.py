@@ -40,6 +40,7 @@ class SMTPResponse(Response):
         self.status_code = None
         self.status_text = None
         self.last_command = None
+        self.refused_recipient = {}
 
     def set_status(self, command, code, text, **kwargs):
         self.responses.append([command, code, text, kwargs])

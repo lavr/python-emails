@@ -1,10 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
-
+import time
+import random
 import emails
 import emails.loader
 
-from .helpers import HAS_INTERNET_CONNECTION, common_email_data
+from .helpers import common_email_data
+
 
 def test_send_attachment(smtp_servers):
     """
@@ -13,19 +15,19 @@ def test_send_attachment(smtp_servers):
     URL = 'http://lavr.github.io/python-emails/tests/campaignmonitor-samples/sample-template/images/gallery.png'
     data = common_email_data(subject='Single attachment', attachments=[emails.store.LazyHTTPFile(uri=URL), ])
     m = emails.html(**data)
-    if HAS_INTERNET_CONNECTION:
-        for d in smtp_servers:
-            d.patch_message(m)
-            r = m.send(smtp=d.params)
+    for tag, server in smtp_servers.items():
+        server.patch_message(m)
+        r = m.send(smtp=server.params)
+        server.sleep()
 
 
 def test_send_with_render(smtp_servers):
-    data = common_email_data(subject='Render with name=John')
-    m = emails.html(**data)
-    if HAS_INTERNET_CONNECTION:
-        for d in smtp_servers:
-            d.patch_message(m)
-            r = m.send(render={'name': u'John'}, smtp=d.params)
+
+    for tag, server in smtp_servers.items():
+        m = emails.html(**common_email_data(subject='Render with name=John'))
+        server.patch_message(m)
+        r = m.send(render={'name': u'John'}, smtp=server.params)
+        server.sleep()
 
 
 def test_send_with_inline_images(smtp_servers):
@@ -33,7 +35,8 @@ def test_send_with_inline_images(smtp_servers):
     data = common_email_data(subject='Sample html with inline images')
     del data['html']
     m = emails.loader.from_url(url=url, message_params=data, images_inline=True)
-    if HAS_INTERNET_CONNECTION:
-        for d in smtp_servers:
-            d.patch_message(m)
-            r = m.send(smtp=d.params)
+
+    for tag, server in smtp_servers.items():
+        server.patch_message(m)
+        r = m.send(smtp=server.params)
+        server.sleep()

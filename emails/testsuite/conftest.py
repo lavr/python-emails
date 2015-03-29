@@ -1,118 +1,17 @@
 # encoding: utf-8
-import subprocess
-import shlex
-import time
 import logging
-import threading
-import os
-import os.path
 import datetime
 import pytest
+import base64
+import time
+import random
+import sys
+import platform
 
+from emails.compat import to_native, is_py3, to_unicode
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
-
-TEST_SMTP_PORT = 25125
-
-class TestSmtpServer:
-
-    def __init__(self, host=None, port=None):
-        self._process = None
-        self.host = host or 'localhost'
-        self.port = port or TEST_SMTP_PORT
-        self.lock = threading.Lock()
-
-    def get_server(self):
-
-        if self._process is None:
-            CMD = 'python -m smtpd -d -n -c DebuggingServer %s:%s' % (self.host, self.port)
-            self._process = subprocess.Popen(shlex.split(CMD), shell=False, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-            logger.error('Started test smtp server "%s", pid: %s', CMD, self._process.pid)
-            #print('Started test smtp server "{0}", pid: {1}'.format(CMD, self._process.pid))
-            time.sleep(1)
-        return self
-
-    def stop(self):
-        if self._process:
-            logger.error('kill process...')
-            self._process.terminate()
-
-
-class SecureSMTPDServer(object):
-
-    def __init__(self):
-        self._cwd = os.path.join(os.path.dirname(__file__), 'contrib/local-smtpd')
-        self._process = None
-        self.host = 'localhost'
-        self.user = 'A'
-        self.password = 'B'
-        self.argv = None
-
-    def as_dict(self):
-        r = {'host': self.host, 'port': self.port, 'fail_silently': False, 'debug': 1}
-        argv = self.argv or []
-        if 'ssl' in argv:
-            r['ssl'] = True
-        if 'auth' in argv:
-            r.update({'user': self.user, 'password': self.password})
-        return r
-
-    def get_server(self, argv=None):
-        if self._process is None:
-            self.argv = argv or []
-            if 'ssl' in self.argv:
-                self.port = 25126
-            elif 'auth' in self.argv:
-                self.port = 25127
-            else:
-                self.port = 25125
-            cmd = '/bin/sh ./run-smtpd.sh'.split(' ')
-            if argv:
-                cmd.extend(argv)
-            self._process = subprocess.Popen(cmd, shell=False, cwd=self._cwd)
-            logger.error('Started test smtp server "%s", pid: %s', cmd, self._process.pid)
-            #print('Started test smtp server "{0}", pid: {1}'.format(CMD, self._process.pid))
-            time.sleep(1)
-        return self
-
-    def stop(self):
-        if self._process:
-            logger.error('kill process...')
-            self._process.terminate()
-            time.sleep(1)
-
-
-@pytest.fixture(scope="module")
-def smtp_server(request):
-    logger.debug('smtp_server...')
-    ext_server = SecureSMTPDServer()
-    def fin():
-        print ("stopping ext_server")
-        ext_server.stop()
-    request.addfinalizer(fin)
-    return ext_server.get_server()
-
-@pytest.fixture(scope="module")
-def smtp_server_with_auth(request):
-    logger.debug('smtp_server with auth...')
-    ext_server = SecureSMTPDServer()
-    def fin():
-        print ("stopping ext_server with auth")
-        ext_server.stop()
-    request.addfinalizer(fin)
-    return ext_server.get_server(['auth'])
-
-
-@pytest.fixture(scope="module")
-def smtp_server_with_ssl(request):
-    logger.debug('smtp_server with ssl...')
-    ext_server = SecureSMTPDServer()
-    def fin():
-        print ("stopping ext_server with auth")
-        ext_server.stop()
-    request.addfinalizer(fin)
-    return ext_server.get_server(['ssl'])
 
 
 @pytest.fixture(scope='module')
@@ -125,76 +24,87 @@ def django_email_backend(request):
     return get_connection()
 
 
+def obsfucate(key, clear):
+    enc = []
+    for i in range(len(clear)):
+        key_c = key[i % len(key)]
+        enc_c = chr((ord(clear[i]) + ord(key_c)) % 256)
+        enc.append(enc_c)
+    return base64.urlsafe_b64encode("".join(enc))
+
+
+def deobsfucate(key, enc):
+    dec = []
+    key = to_native(key)
+    enc = base64.urlsafe_b64decode(enc)
+    for i in range(len(enc)):
+        key_c = key[i % len(key)]
+        if is_py3:
+            c1 = enc[i]
+        else:
+            c1 = ord(enc[i])
+        dec_c = chr((256 + c1 - ord(key_c)) % 256)
+        dec.append(dec_c)
+    return "".join(dec)
+    assert 0
+
+
 class SMTPTestParams:
 
-    subject_prefix = '[test-python-emails]'
+    subject_prefix = '[python-emails]'
 
     def __init__(self, from_email=None, to_email=None, defaults=None, **kw):
-        params = {}
+        params = {'fail_silently': True, 'debug': 1, 'timeout': 25}
         params.update(defaults or {})
         params.update(kw)
-        params['debug'] = 1
-        params['timeout'] = 15
         self.params = params
-
+        pwd = params.get('password')
+        if pwd and pwd.startswith('#e:'):
+            user = params.get('user')
+            params['password'] = deobsfucate(user, pwd[3:])
         self.from_email = from_email
         self.to_email = to_email
 
     def patch_message(self, message):
-        # Some SMTP requires from and to emails
+        """
+        Some SMTP requires from and to emails
+        """
 
         if self.from_email:
-            message._mail_from = (message._mail_from[0], self.from_email)
+            message.mail_from = (message.mail_from[0], self.from_email)
 
         if self.to_email:
             message.mail_to = self.to_email
 
-        # TODO: this code breaks template in subject; deal with this
-        message.subject = " ".join([self.subject_prefix, datetime.datetime.now().strftime('%H:%M:%S'),
-                                    message.subject])
+        # TODO: this code breaks template in subject; fix it
+        if not to_unicode(message.subject).startswith(self.subject_prefix) :
+            message.subject = " ".join([self.subject_prefix, message.subject,
+                                        'py%s' % sys.version[:3]])
+
+        message._headers['X-Test-Date'] = datetime.datetime.utcnow().isoformat()
+        message._headers['X-Python-Version'] = "%s/%s" % (platform.python_version(), platform.platform())
+
+        return message
 
     def __str__(self):
-        return u'SMTPTestParams(host={0}, port={1}, user={2})'.format(self.params.get('host'),
-                                                                      self.params.get('port'),
-                                                                      self.params.get('user'))
+        return u'SMTPTestParams({user}@{host}:{port})'.format(host=self.params.get('host'),
+                                                              port=self.params.get('port'),
+                                                              user=self.params.get('user', ''))
 
+    def sleep(self):
+        if 'mailtrap' in self.params.get('host', ''):
+            t = 2 + random.randint(0, 2)
+        else:
+            t = 0.5
+        time.sleep(t)
 
 
 @pytest.fixture(scope='module')
 def smtp_servers(request):
 
-    r = []
-
-    """
-    r.append(SMTPTestParams(from_email='drlavr@yandex.ru',
-                         to_email='drlavr@yandex.ru',
-                         fail_silently=False,
-                         **{'host': 'mx.yandex.ru', 'port': 25, 'ssl': False}))
-
-    r.append(SMTPTestParams(from_email='drlavr+togmail@yandex.ru',
-                            to_email='s.lavrinenko@gmail.com',
-                            fail_silently=False,
-                            **{'host': 'gmail-smtp-in.l.google.com', 'port': 25, 'ssl': False}))
-
-
-    r.append(SMTPTestParams(from_email='drlavr@yandex.ru',
-                            to_email='s.lavrinenko@me.com',
-                            fail_silently=False,
-                            **{'host': 'mx3.mail.icloud.com', 'port': 25, 'ssl': False}))
-    """
-
-    r.append(SMTPTestParams(from_email='drlavr@yandex.ru',
-                            to_email='lavr@outlook.com',
-                            fail_silently=False,
-                            **{'host': 'mx1.hotmail.com', 'port': 25, 'ssl': False}))
-
     try:
-        from .local_smtp_settings import SMTP_SETTINGS_WITH_AUTH, FROM_EMAIL, TO_EMAIL
-        r.append(SMTPTestParams(from_email=FROM_EMAIL,
-                             to_email=TO_EMAIL,
-                             fail_silently=False,
-                             **SMTP_SETTINGS_WITH_AUTH))
+        from .local_smtp_severs import SERVERS
     except ImportError:
-        pass
+        from .smtp_servers import SERVERS
 
-    return r
+    return dict([(k, SMTPTestParams(**v)) for k, v in SERVERS.items()])

@@ -1,5 +1,5 @@
 local_settings.py
-local_*_settings.py
+local_*.py
 *.py[cod]
 
 # C extensions

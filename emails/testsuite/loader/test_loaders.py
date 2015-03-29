@@ -11,6 +11,7 @@ from emails.loader.local_store import (MsgLoader, FileSystemLoader, FileNotFound
                                        split_template_path, BaseLoader)
 from emails.compat import text_type
 from emails.loader.helpers import guess_charset
+from emails.exc import HTTPLoaderError
 
 ROOT = os.path.dirname(__file__)
 
@@ -148,6 +149,9 @@ def test_external_urls():
             emails.loader.from_url(url)
         except ConnectionError:
             # Nevermind if external site does not respond
+            pass
+        except HTTPLoaderError:
+            # Skip if external site does responds 500
             pass
 
 

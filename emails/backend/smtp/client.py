@@ -95,7 +95,7 @@ class SMTPClientWithResponse(SMTP):
         if len(response.refused_recipients) == len(to_addrs):
             # the server refused all our recipients
             self._rset()
-            exc = smtplib.SMTPRecipientsRefused(response.refused_recipient)
+            exc = smtplib.SMTPRecipientsRefused(response.refused_recipients)
             response.set_exception(exc)
             return response
 
