@@ -9,7 +9,7 @@ import emails
 from emails import Message
 import emails.exc
 from emails.compat import to_unicode, StringIO, is_py2, is_py34_plus
-from emails.utils import decode_header, sanitize_address
+from emails.utils import decode_header, MessageID
 
 from .helpers import common_email_data
 
@@ -159,3 +159,20 @@ def test_message_policy():
         # WTF: This check fails.
         # assert max([len(l) for l in m1.as_string().split(b'\n')]) <= 60
         # TODO: another policy checks
+
+
+def test_message_id():
+
+    params = dict(html='...', mail_from='a@b.c', mail_to='d@e.f')
+
+    # Check message-id not exists by default
+    m = Message(**params)
+    assert not m.as_message()['Message-ID']
+
+    # Check message-id exists when argument specified
+    m = Message(message_id=MessageID(), **params)
+    assert m.as_message()['Message-ID']
+
+    m = Message(message_id='XXX', **params)
+    assert m.as_message()['Message-ID'] == 'XXX'
+
