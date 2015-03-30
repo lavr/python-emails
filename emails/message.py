@@ -1,9 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from email.utils import getaddresses, formataddr
+from email.utils import getaddresses
 
-from .compat import (string_types, is_callable, to_bytes, formataddr as compat_formataddr, to_unicode)
+from .compat import (string_types, is_callable, formataddr as compat_formataddr, to_unicode, to_native)
 from .utils import (SafeMIMEText, SafeMIMEMultipart, sanitize_address,
                     parse_name_and_email, load_email_charsets,
                     encode_header as encode_header_,
@@ -295,7 +295,7 @@ class MessageBuildMixin(object):
         Changes:
         v0.4.2: now returns bytes, not native string
         """
-        r = to_bytes(self.build_message(message_cls=message_cls).as_string())
+        r = to_native(self.build_message(message_cls=message_cls).as_string())
         if self._signer:
             r = self.sign_string(r)
         return r

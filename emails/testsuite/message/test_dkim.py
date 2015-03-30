@@ -1,11 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 import os
+import email
 import pytest
 import emails
 from emails import Message
-from emails.compat import NativeStringIO, to_bytes, to_native
+from emails.compat import NativeStringIO, to_bytes, to_native, is_py26
 from emails.exc import DKIMException
+from emails.utils import load_email_charsets
 import emails.packages.dkim
 from .helpers import common_email_data
 
@@ -46,7 +48,8 @@ def _generate_key(length=1024):
 def _check_dkim(message, pub_key=PUB_KEY):
     def _plain_public_key(s):
         return b"".join([l for l in s.split(b'\n') if not l.startswith(b'---')])
-    o = emails.packages.dkim.DKIM(message=message.as_string())
+    message = message.as_string()
+    o = emails.packages.dkim.DKIM(message=to_bytes(message))
     return o.verify(dnsfunc=lambda name: b"".join([b"v=DKIM1; p=", _plain_public_key(pub_key)]))
 
 
@@ -56,17 +59,20 @@ def test_dkim():
 
     DKIM_PARAMS = [dict(key=NativeStringIO(to_native(priv_key)),
                         selector='_dkim',
-                        domain='somewhere.net'),
+                        domain='somewhere1.net'),
 
                    dict(key=priv_key,
                         selector='_dkim',
-                        domain='somewhere.net'),
+                        domain='somewhere2.net'),
 
                    # legacy key argument name
                    dict(privkey=priv_key,
                         selector='_dkim',
-                        domain='somewhere.net'),
+                        domain='somewhere3.net'),
                    ]
+
+    if is_py26:
+        load_email_charsets()
 
     for dkimparams in DKIM_PARAMS:
         message = Message(**common_email_data())
@@ -74,8 +80,17 @@ def test_dkim():
         # check DKIM header exist
         assert message.as_message()['DKIM-Signature']
         #print(__name__, "type message.as_string()==", type(message.as_string()))
-        assert b'DKIM-Signature: ' in message.as_string()
+        #print(message.as_string())
+        #print(type(message.as_string()))
+        #print(email.__file__)
+        #print(email.charset.CHARSETS)
+        #print('adding utf-8 charset...')
+        #email.charset.add_charset('utf-8', email.charset.BASE64, email.charset.BASE64)
+        #print(email.charset.CHARSETS)
+        assert 'DKIM-Signature: ' in message.as_string()
         assert _check_dkim(message, pub_key)
+        #assert 0
+
 
 
 def test_dkim_error():

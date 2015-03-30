@@ -65,6 +65,11 @@ class DKIMSigner:
         """
         Add DKIM header to email.message
         """
+
+        # py3 pydkim requires bytes to compute dkim header
+        # but py3 smtplib requires str to send DATA command (#
+        # so we have to convert msg.as_string
+
         dkim_header = self.get_sign_header(to_bytes(msg.as_string()))
         if dkim_header:
             msg._headers.insert(0, dkim_header)
@@ -74,5 +79,11 @@ class DKIMSigner:
         """
         Insert DKIM header to message string
         """
+
+        # py3 pydkim requires bytes to compute dkim header
+        # but py3 smtplib requires str to send DATA command
+        # so we have to convert message_string
+
         s = self.get_sign_string(to_bytes(message_string))
-        return s and s + message_string or message_string
+        return s and to_native(s) + message_string or message_string
+

@@ -15,18 +15,8 @@ from .helpers import common_email_data
 
 
 def test_message_types():
-
-    if is_py2:
-        bytes_types = (str, )
-        native_string = (unicode, )
-    else:
-        bytes_types = (bytes, )
-        native_string = (str, )
-
     m = emails.Message(**common_email_data())
-    print(type(m.as_string()))
-    #assert isinstance(m.as_message().as_string(), native_string)
-    assert isinstance(m.as_string(), bytes_types)
+    assert isinstance(m.as_string(), str)
 
 
 def test_message_build():
