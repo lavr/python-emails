@@ -6,14 +6,12 @@ import emails
 
 from emails.backend.smtp import SMTPBackend
 
-
 TRAVIS_CI = os.environ.get('TRAVIS')
 
 SAMPLE_MESSAGE = {'html': '<p>Test from python-emails',
                   'text': 'Test from python-emails',
                   'mail_from': 's@lavr.me',
-                  'mail_to': 'sergei-nko@yandex.ru',
-                  'subject': 'Sample message'}
+                  'mail_to': 'sergei-nko@yandex.ru'}
 
 
 def test_send_to_unknown_host():
@@ -29,35 +27,21 @@ def test_send_to_unknown_host():
         assert response.error.errno == 8
 
 
-def test_smtp_send(smtp_servers):
-    """
-    Check SMTPBackend.sendmail
-    """
-    for tag, server in smtp_servers.items():
-        print("-- test_smtp_send: %s" % server)
-        smtp = server.params
-        smtp['fail_silently'] = True
-        response = server.patch_message(emails.html(**SAMPLE_MESSAGE)).send(smtp=server.params)
-        assert response.success or response.status_code == 421  # gmail sometimes fail sending
-        #message.smtp_pool[smtp].get_client().quit()
-        server.sleep()
-
-
 def test_smtp_send_with_reconnect(smtp_servers):
     """
     Check SMTPBackend.sendmail reconnect
     """
-
     for tag, server in smtp_servers.items():
         print("-- test_smtp_reconnect: %s" % server)
         params = server.params
         params['fail_silently'] = True
-        backend = SMTPBackend(**params)
+        message = server.patch_message(emails.html(subject='reconnect test', **SAMPLE_MESSAGE))
+        message.mail_from = server.from_email
+        message.mail_to = server.to_email
+        backend = message.smtp_pool[params]
         backend.get_client().sock.close()  # simulate disconnect
-        response = backend.sendmail(to_addrs=server.to_email,
-                                    from_addr=server.from_email,
-                                    msg=server.patch_message(emails.html(**SAMPLE_MESSAGE)))
-        assert response.success or response.status_code == 421  # gmail sometimes fail sending
+        response = message.send(smtp=params)
+        assert response.success or response.status_code in (421, 451)  # gmail don't like test emails
         server.sleep()
 
 
