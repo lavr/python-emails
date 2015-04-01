@@ -29,6 +29,9 @@ def test_image_apply():
         assert after in t.to_string()
 
 
+def test_entity_13():
+    assert Transformer(html="<div>x\r\n</div>").to_string() == '<html><body><div>x\n</div></body></html>'
+
 
 def test_link_apply():
 

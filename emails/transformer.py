@@ -63,7 +63,12 @@ class HTMLParser(object):
     _xml_title_regex = re.compile(r'\<title(.*?)\/\>', re.IGNORECASE)
 
     def __init__(self, html, method="html", output_method="xml"):
-        self._html = html
+
+        if output_method == 'xml':
+            self._html = html.replace('\r\n', '\n')
+        else:
+            self._html = html
+
         self._method = method
         self._output_method = output_method
         self._tree = None
@@ -333,6 +338,7 @@ class BaseTransformer(HTMLParser):
         self.apply_to_images(_src_update_func)
 
         return self
+
 
 class Transformer(BaseTransformer):
     pass
