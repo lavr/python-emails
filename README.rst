@@ -30,7 +30,9 @@ and more:
 
 |
 
-See **documentation** on `python-emails.readthedocs.org <http://python-emails.readthedocs.org/>`_
+Documentation: `python-emails.readthedocs.org <http://python-emails.readthedocs.org/>`_
+
+Flask extension: `flask-emails <https://github.com/lavr/flask-emails>`_
 
 |
 |
