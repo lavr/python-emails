@@ -3,7 +3,7 @@ from __future__ import unicode_literals, print_function
 import os.path
 from lxml.etree import XMLSyntaxError
 import pytest
-from requests import ConnectionError
+from requests import ConnectionError, Timeout
 import emails
 import emails.loader
 import emails.transformer
@@ -147,7 +147,7 @@ def test_external_urls():
                 ]:
         try:
             emails.loader.from_url(url)
-        except ConnectionError:
+        except (ConnectionError, Timeout):
             # Nevermind if external site does not respond
             pass
         except HTTPLoaderError:
