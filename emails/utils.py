@@ -136,16 +136,7 @@ def parse_name_and_email(obj, encoding='utf-8'):
     return to_unicode(name, encoding) or None, to_unicode(email, encoding) or None
 
 
-def sanitize_address(addr, encoding='ascii'):
-    if isinstance(addr, string_types):
-        addr = parseaddr(to_unicode(addr))
-    nm, addr = addr
-    # This try-except clause is needed on Python 3 < 3.2.4
-    # http://bugs.python.org/issue14291
-    try:
-        nm = Header(nm, encoding).encode()
-    except UnicodeEncodeError:
-        nm = Header(nm, 'utf-8').encode()
+def sanitize_email(addr, encoding='ascii'):
     try:
         addr.encode('ascii')
     except UnicodeEncodeError:  # IDN
@@ -156,7 +147,20 @@ def sanitize_address(addr, encoding='ascii'):
             addr = '@'.join([localpart, domain])
         else:
             addr = Header(addr, encoding).encode()
-    return formataddr((nm, addr))
+    return addr
+
+
+def sanitize_address(addr, encoding='ascii'):
+    if isinstance(addr, string_types):
+        addr = parseaddr(to_unicode(addr))
+    nm, addr = addr
+    # This try-except clause is needed on Python 3 < 3.2.4
+    # http://bugs.python.org/issue14291
+    try:
+        nm = Header(nm, encoding).encode()
+    except UnicodeEncodeError:
+        nm = Header(nm, 'utf-8').encode()
+    return formataddr((nm, sanitize_email(addr)))
 
 
 class MIMEMixin():

@@ -4,7 +4,7 @@ import pytest
 import datetime
 import time
 from emails.utils import (parse_name_and_email, encode_header, decode_header, sanitize_address, fetch_url,
-                          MessageID, format_date_header, parse_name_and_email_list)
+                          MessageID, format_date_header, parse_name_and_email_list, sanitize_email)
 from emails.exc import HTTPLoaderError
 
 
@@ -39,6 +39,10 @@ def test_sanitize_address():
     assert sanitize_address('x y <a@b.d>') == 'x y <a@b.d>'
     assert sanitize_address('♤ <a@b.d>') == '=?utf-8?b?4pmk?= <a@b.d>'
     assert sanitize_address('a@♤.d') == 'a@xn--f6h.d'
+
+
+def test_sanitize_email():
+    assert sanitize_email('a@♤.d') == 'a@xn--f6h.d'
 
 
 def test_fetch_url():
