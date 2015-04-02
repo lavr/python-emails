@@ -1,11 +1,10 @@
 # encoding: utf-8
-
 __all__ = ['SMTPClientWithResponse', 'SMTPClientWithResponse_SSL']
 
 import smtplib
 from smtplib import _have_ssl, SMTP
 import logging
-
+from ... utils import sanitize_email
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +66,8 @@ class SMTPClientWithResponse(SMTP):
 
         response = self.make_response()
 
+        from_addr = sanitize_email(from_addr)
+
         response.from_addr = from_addr
         response.esmtp_opts = esmtp_opts[:]
 
@@ -81,6 +82,8 @@ class SMTPClientWithResponse(SMTP):
 
         if not isinstance(to_addrs, (list, tuple)):
             to_addrs = [to_addrs]
+
+        to_addrs = [sanitize_email(e) for e in to_addrs]
 
         response.to_addrs = to_addrs
         response.rcpt_options = rcpt_options[:]

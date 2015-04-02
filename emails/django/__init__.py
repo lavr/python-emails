@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 from django.core.mail import get_connection
 from .. message import MessageTransformerMixin, MessageSignMixin, MessageBuildMixin, BaseMessage
+from .. utils import sanitize_email
 
 __all__ = ['DjangoMessageMixin', 'DjangoMessage']
 
@@ -15,13 +16,12 @@ class DjangoMessageMixin(object):
         return self.charset or 'utf-8'
 
     def recipients(self):
-        if self._recipients is not None:
-            return self._recipients
-        return [r[1] for r in self.mail_to]
+        r = self._recipients if self._recipients is not None else [r[1] for r in self.mail_to]
+        return [sanitize_email(e) for e in r]
 
     @property
     def from_email(self):
-        return self._from_email or self.mail_from[1]
+        return sanitize_email(self._from_email or self.mail_from[1])
 
     def _set_emails(self, mail_to=None, set_mail_to=True, mail_from=None,
                     set_mail_from=False, to=None):

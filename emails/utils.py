@@ -136,7 +136,9 @@ def parse_name_and_email(obj, encoding='utf-8'):
     return to_unicode(name, encoding) or None, to_unicode(email, encoding) or None
 
 
-def sanitize_email(addr, encoding='ascii'):
+def sanitize_email(addr, encoding='ascii', parse=False):
+    if parse:
+        _, addr = parseaddr(to_unicode(addr))
     try:
         addr.encode('ascii')
     except UnicodeEncodeError:  # IDN
@@ -160,7 +162,7 @@ def sanitize_address(addr, encoding='ascii'):
         nm = Header(nm, encoding).encode()
     except UnicodeEncodeError:
         nm = Header(nm, 'utf-8').encode()
-    return formataddr((nm, sanitize_email(addr)))
+    return formataddr((nm, sanitize_email(addr, encoding=encoding, parse=False)))
 
 
 class MIMEMixin():
