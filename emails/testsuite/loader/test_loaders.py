@@ -177,6 +177,7 @@ def test_local_store1():
         assert 'images/arrow.png' in files_list
         assert len(files_list) in [15, 16]
         # TODO: remove directories from zip loader list_files results
+        assert loader.get_file('./images/img01.jpg') == loader.get_file('images/img01.jpg')
 
 
 def test_split_template_path():

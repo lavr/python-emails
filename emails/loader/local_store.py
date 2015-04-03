@@ -202,6 +202,8 @@ class ZipLoader(BaseLoader):
         if self.base_path:
             name = path.join(self.base_path, name)
 
+        name = path.join(*split_template_path(name))
+
         self._unpack()
 
         if isinstance(name, str):
