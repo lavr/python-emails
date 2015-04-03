@@ -7,6 +7,6 @@ from conf_theme_alabaster import *
 
 #from conf_theme_flask import *
 
-version = '0.4'
-release = '0.4.5'
+version = '0.5'
+release = '0.5.1'
 html_theme_path = ['_themes', ] + html_theme_path
