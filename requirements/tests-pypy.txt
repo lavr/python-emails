@@ -1,0 +1,4 @@
+--requirement=base.txt
+--requirement=tests-base.txt
+
+django
