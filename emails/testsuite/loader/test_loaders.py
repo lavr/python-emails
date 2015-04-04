@@ -136,6 +136,32 @@ def test_loaders_with_params():
                 assert a.is_inline is True
 
 
+def test_loader_image_callback():
+
+    checked_images = []
+
+    def check_image_callback(el, **kwargs):
+        if hasattr(el, 'attrib'):
+            checked_images.append(el.attrib['src'])
+        elif hasattr(el, 'uri'):
+            checked_images.append(el.uri)
+        else:
+            assert 0, "el should be lxml.etree._Element or cssutils.css.value.URIValue"
+        return False
+
+    for message in load_messages(load_images=check_image_callback, **OLDORNAMENT_URLS):
+        # Check images not loaded
+        assert len(message.attachments.keys()) == 0
+
+    total_images = 0
+    for message in load_messages(**OLDORNAMENT_URLS):
+        # Check loaded images
+        assert len(message.attachments.keys()) == 13
+        total_images += len(message.attachments.keys())
+
+    assert len(checked_images) >= total_images
+
+
 def test_external_urls():
 
     # Load some real sites with complicated html and css.

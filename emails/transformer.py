@@ -4,13 +4,15 @@ import logging
 import posixpath
 import re
 import warnings
+import functools
 
 from cssutils import CSSParser
+
 from lxml import etree
 from premailer import Premailer
 from premailer.premailer import ExternalNotFoundError
 
-from .compat import urlparse, to_unicode
+from .compat import urlparse, to_unicode, is_callable
 from .store import MemoryFileStore, LazyHTTPFile
 from .template.base import BaseTemplate
 from .loader.local_store import FileNotFound
@@ -216,16 +218,27 @@ class BaseTransformer(HTMLParser):
                and el.attrib.get(self.html_attribute_name) \
                or None
 
-    def _load_attachment_func(self, uri, element=None, **kw):
+    def _default_attachment_check(self, el, hints):
+        if hints['attrib'] == 'ignore':
+            return False
+        else:
+            return True
+
+    def _load_attachment_func(self, uri, element=None, callback=None, **kw):
 
         #
         # Load uri from remote url or from local_store
         # Return local uri
         #
 
-        # Ignore tags with attribute data-emails="ignore"
-        attribute_value = self._attribute_value(element)
-        if attribute_value == 'ignore':
+        if callback is None:
+            # Default callback: skip images with data-emails="ignore" attribute
+            callback = lambda _, hints: hints['attrib'] != 'ignore'
+
+        attribute_value = self._attribute_value(element) or ''
+
+        # If callback returns False, skip attachment loading
+        if not callback(element, hints={'attrib': attribute_value}):
             return uri
 
         attachment = self.attachment_store.by_uri(uri)
@@ -234,7 +247,7 @@ class BaseTransformer(HTMLParser):
                 uri=uri,
                 absolute_url=self.get_absolute_url(uri),
                 local_loader=self.local_loader,
-                content_disposition='inline' if attribute_value and 'inline' in attribute_value else None,
+                content_disposition='inline' if 'inline' in attribute_value else None,
                 requests_args=self.requests_params)
             self.attachment_store.add(attachment)
         return attachment.filename
@@ -285,8 +298,13 @@ class BaseTransformer(HTMLParser):
             self.get_premailer(**kw).transform()
 
         # 2. Load linked images and transform links
+        # If load_images is a function, use if as callback
         if load_images:
-            self.apply_to_images(self._load_attachment_func)
+            if is_callable(load_images):
+                func = functools.partial(self._load_attachment_func, callback=load_images)
+            else:
+                func = self._load_attachment_func
+            self.apply_to_images(func)
 
         # 3. Remove unsafe tags is requested
         if remove_unsafe_tags:
