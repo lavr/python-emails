@@ -136,11 +136,16 @@ class BaseMessage(object):
     date = property(get_date, set_date)
     message_date = date
 
+    @property
     def message_id(self):
         mid = self._message_id
         if mid is False:
             return None
         return is_callable(mid) and mid() or mid
+
+    @message_id.setter
+    def message_id(self, value):
+        self._message_id = value
 
     @property
     def attachments(self):
@@ -208,7 +213,7 @@ class MessageBuildMixin(object):
 
         msg.preamble = self.ROOT_PREAMBLE
         self.set_header(msg, 'Date', self.date, encode=False)
-        self.set_header(msg, 'Message-ID', self.message_id(), encode=False)
+        self.set_header(msg, 'Message-ID', self.message_id, encode=False)
 
         if self._headers:
             for (name, value) in self._headers.items():
