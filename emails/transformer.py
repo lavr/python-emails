@@ -212,11 +212,13 @@ class BaseTransformer(HTMLParser):
 
         return url
 
-    def _attribute_value(self, el):
+    def attribute_value(self, el):
         return el is not None \
                and hasattr(el, 'attrib') \
                and el.attrib.get(self.html_attribute_name) \
                or None
+
+    _attribute_value = attribute_value  # deprecated
 
     def _default_attachment_check(self, el, hints):
         if hints['attrib'] == 'ignore':
@@ -235,7 +237,7 @@ class BaseTransformer(HTMLParser):
             # Default callback: skip images with data-emails="ignore" attribute
             callback = lambda _, hints: hints['attrib'] != 'ignore'
 
-        attribute_value = self._attribute_value(element) or ''
+        attribute_value = self.attribute_value(element) or ''
 
         # If callback returns False, skip attachment loading
         if not callback(element, hints={'attrib': attribute_value}):
