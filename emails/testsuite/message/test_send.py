@@ -31,5 +31,6 @@ def test_send_letters(smtp_servers):
         for tag, server in smtp_servers.items():
             server.patch_message(m)
             response = m.send(smtp=server.params, render=render)
+            print(server.params)
             assert response.success or response.status_code in (421, 451)  # gmail not always like test emails
             server.sleep()
