@@ -102,6 +102,15 @@ def test_image_inline():
     t.save()
     assert '<img src="a.gif"' in t.html
 
+    # test inline image in css
+    t = Transformer(html="<div style='background:url(a.gif);'></div>", local_loader=SimpleLoader(data={'a.gif': 'xxx'}))
+    t.load_and_transform()
+    t.attachment_store['a.gif'].content_disposition = 'inline'
+    t.synchronize_inline_images()
+    t.save()
+    assert "url(cid:a.gif)" in t.html
+
+
 
 def test_absolute_url():
     t = Transformer(html="", base_url="https://host1.tld/a/b")

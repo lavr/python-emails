@@ -159,10 +159,24 @@ def test_message_id():
     m = Message(**params)
     assert not m.as_message()['Message-ID']
 
+    # Check message-id property setter
+    m.message_id = 'ZZZ'
+    assert m.as_message()['Message-ID'] == 'ZZZ'
+
     # Check message-id exists when argument specified
     m = Message(message_id=MessageID(), **params)
     assert m.as_message()['Message-ID']
 
     m = Message(message_id='XXX', **params)
     assert m.as_message()['Message-ID'] == 'XXX'
+
+
+def test_several_recipients_in_to_header():
+    params = dict(html='...', mail_from='a@b.c')
+
+    m = Message(mail_to=['d@e.f', 'g@h.i'], **params)
+    assert m.as_message()['To'] == 'd@e.f, g@h.i'
+
+    m = Message(mail_to=[('♡', 'd@e.f'), ('웃', 'g@h.i')], **params)
+    assert m.as_message()['To'] == '=?utf-8?b?4pmh?= <d@e.f>, =?utf-8?b?7JuD?= <g@h.i>'
 

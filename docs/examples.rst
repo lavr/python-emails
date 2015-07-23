@@ -67,7 +67,7 @@ Send and get response from smtp server:
 
     r = message.send(to=('John Brown', 'jbrown@gmail.com'),
                      render={'name': 'John'},
-                     smtp={'host':'smtp.mycompany.com', 'port': 465, 'ssl': True})
+                     smtp={'host':'smtp.mycompany.com', 'port': 465, 'ssl': True, 'user': 'john', 'password': '***'})
     assert r.status_code == 250
 
 
