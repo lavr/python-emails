@@ -170,3 +170,13 @@ def test_message_id():
     m = Message(message_id='XXX', **params)
     assert m.as_message()['Message-ID'] == 'XXX'
 
+
+def test_several_recipients_in_to_header():
+    params = dict(html='...', mail_from='a@b.c')
+
+    m = Message(mail_to=['d@e.f', 'g@h.i'], **params)
+    assert m.as_message()['To'] == 'd@e.f, g@h.i'
+
+    m = Message(mail_to=[('♡', 'd@e.f'), ('웃', 'g@h.i')], **params)
+    assert m.as_message()['To'] == '=?utf-8?b?4pmh?= <d@e.f>, =?utf-8?b?7JuD?= <g@h.i>'
+

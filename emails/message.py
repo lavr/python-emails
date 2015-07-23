@@ -224,7 +224,8 @@ class MessageBuildMixin(object):
             self.set_header(msg, 'Subject', subject)
 
         self.set_header(msg, 'From', self.encode_address_header(self._mail_from), encode=False)
-        self.set_header(msg, 'To', self._mail_to and self.encode_address_header(self._mail_to[0]) or None, encode=False)
+        self.set_header(msg, 'To', self._mail_to and ", ".join([self.encode_address_header(addr)
+                                                                for addr in self._mail_to]) or None, encode=False)
 
         return msg
 
