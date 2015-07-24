@@ -7,7 +7,8 @@ from .compat import (string_types, is_callable, formataddr as compat_formataddr,
 from .utils import (SafeMIMEText, SafeMIMEMultipart, sanitize_address,
                     parse_name_and_email, load_email_charsets,
                     encode_header as encode_header_,
-                    renderable, format_date_header, parse_name_and_email_list)
+                    renderable, format_date_header, parse_name_and_email_list,
+                    cached_property)
 from .exc import BadHeaderError
 from .backend import ObjectFactory, SMTPBackend
 from .store import MemoryFileStore, BaseFile
@@ -72,6 +73,13 @@ class BaseMessage(object):
         return self._mail_to
 
     mail_to = property(get_mail_to, set_mail_to)
+
+    def get_recipients_emails(self):
+        """
+        Returns message recipient's emails for actual sending.
+        :return:
+        """
+        return [a[1] for a in self._mail_to]
 
     def set_headers(self, headers):
         self._headers = headers or {}
@@ -312,12 +320,9 @@ class MessageSendMixin(object):
     smtp_pool_factory = ObjectFactory
     smtp_cls = SMTPBackend
 
-    @property
+    @cached_property
     def smtp_pool(self):
-        pool = getattr(self, '_smtp_pool', None)
-        if pool is None:
-            pool = self._smtp_pool = self.smtp_pool_factory(cls=self.smtp_cls)
-        return pool
+        return self.smtp_pool_factory(cls=self.smtp_cls)
 
     def send(self,
              to=None,
@@ -342,17 +347,17 @@ class MessageSendMixin(object):
             raise ValueError(
                 "smtp must be a dict or an object with method 'sendmail'. got %s" % type(smtp))
 
-        mail_to = to
-        if mail_to:
-            mail_to = parse_name_and_email(mail_to)
-            to_addr = mail_to[1]
+        to_addrs = None
+
+        if to:
             if set_mail_to:
-                self.set_mail_to(mail_to)
+                self.set_mail_to(to)
+            else:
+                to_addrs = [a[1] for a in parse_name_and_email_list(to)]
 
-        else:
-            to_addr = self._mail_to[0][1]
+        to_addrs = to_addrs or self.get_recipients_emails()
 
-        if not to_addr:
+        if not to_addrs:
             raise ValueError('No to-addr')
 
         if mail_from:
@@ -368,7 +373,7 @@ class MessageSendMixin(object):
         if not from_addr:
             raise ValueError('No "from" addr')
 
-        params = dict(from_addr=from_addr, to_addrs=[to_addr, ], msg=self,
+        params = dict(from_addr=from_addr, to_addrs=to_addrs, msg=self,
                       mail_options=smtp_mail_options, rcpt_options=smtp_rcpt_options)
 
         return smtp.sendmail(**params)

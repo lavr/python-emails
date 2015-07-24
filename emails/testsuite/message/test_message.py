@@ -10,6 +10,7 @@ from emails import Message
 import emails.exc
 from emails.compat import to_unicode, StringIO, is_py2, is_py34_plus
 from emails.utils import decode_header, MessageID
+from emails.backend.inmemory import InMemoryBackend
 
 from .helpers import common_email_data
 
@@ -172,6 +173,9 @@ def test_message_id():
 
 
 def test_several_recipients_in_to_header():
+
+    # Test multiple recipients in "To" header
+
     params = dict(html='...', mail_from='a@b.c')
 
     m = Message(mail_to=['d@e.f', 'g@h.i'], **params)
@@ -180,3 +184,10 @@ def test_several_recipients_in_to_header():
     m = Message(mail_to=[('♡', 'd@e.f'), ('웃', 'g@h.i')], **params)
     assert m.as_message()['To'] == '=?utf-8?b?4pmh?= <d@e.f>, =?utf-8?b?7JuD?= <g@h.i>'
 
+    # Test sending to several emails
+
+    backend = InMemoryBackend()
+    m = Message(mail_to=[('♡', 'd@e.f'), ('웃', 'g@h.i')], **params)
+    m.send(smtp=backend)
+    assert len(backend.messages['d@e.f']) == 1
+    assert len(backend.messages['g@h.i']) == 1
