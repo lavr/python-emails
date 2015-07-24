@@ -172,22 +172,23 @@ def test_message_id():
     assert m.as_message()['Message-ID'] == 'XXX'
 
 
-def test_several_recipients_in_to_header():
+def test_several_recipients():
 
     # Test multiple recipients in "To" header
 
     params = dict(html='...', mail_from='a@b.c')
 
-    m = Message(mail_to=['d@e.f', 'g@h.i'], **params)
-    assert m.as_message()['To'] == 'd@e.f, g@h.i'
+    m = Message(mail_to=['a@x.z', 'b@x.z'], cc='c@x.z', **params)
+    assert m.as_message()['To'] == 'a@x.z, b@x.z'
+    assert m.as_message()['cc'] == 'c@x.z'
 
-    m = Message(mail_to=[('♡', 'd@e.f'), ('웃', 'g@h.i')], **params)
-    assert m.as_message()['To'] == '=?utf-8?b?4pmh?= <d@e.f>, =?utf-8?b?7JuD?= <g@h.i>'
+    m = Message(mail_to=[('♡', 'a@x.z'), ('웃', 'b@x.z')], **params)
+    assert m.as_message()['To'] == '=?utf-8?b?4pmh?= <a@x.z>, =?utf-8?b?7JuD?= <b@x.z>'
 
     # Test sending to several emails
 
     backend = InMemoryBackend()
-    m = Message(mail_to=[('♡', 'd@e.f'), ('웃', 'g@h.i')], **params)
+    m = Message(mail_to=[('♡', 'a@x.z'), ('웃', 'b@x.z')], cc=['c@x.z', 'b@x.z'], bcc=['c@x.z', 'd@x.z'], **params)
     m.send(smtp=backend)
-    assert len(backend.messages['d@e.f']) == 1
-    assert len(backend.messages['g@h.i']) == 1
+    for addr in ['a@x.z', 'b@x.z', 'c@x.z', 'd@x.z']:
+        assert len(backend.messages[addr]) == 1

@@ -38,7 +38,9 @@ class BaseMessage(object):
                  headers=None,
                  html=None,
                  text=None,
-                 attachments=None):
+                 attachments=None,
+                 cc=None,
+                 bcc=None):
 
         self._attachments = None
         self.charset = charset or 'utf-8'  # utf-8 is standard de-facto, yeah
@@ -47,6 +49,8 @@ class BaseMessage(object):
         self.set_date(date)
         self.set_mail_from(mail_from)
         self.set_mail_to(mail_to)
+        self.set_cc(cc)
+        self.set_bcc(bcc)
         self.set_headers(headers)
         self.set_html(html=html)
         self.set_text(text=text)
@@ -74,12 +78,28 @@ class BaseMessage(object):
 
     mail_to = property(get_mail_to, set_mail_to)
 
+    def set_cc(self, addr):
+        self._cc = parse_name_and_email_list(addr)
+
+    def get_cc(self):
+        return self._cc
+
+    cc = property(get_cc, set_cc)
+
+    def set_bcc(self, addr):
+        self._bcc = parse_name_and_email_list(addr)
+
+    def get_bcc(self):
+        return self._bcc
+
+    bcc = property(get_bcc, set_bcc)
+
     def get_recipients_emails(self):
         """
         Returns message recipient's emails for actual sending.
-        :return:
+        :return: list of emails
         """
-        return [a[1] for a in self._mail_to]
+        return list(set([a[1] for a in self._mail_to] + [a[1] for a in self._cc] + [a[1] for a in self._bcc]))
 
     def set_headers(self, headers):
         self._headers = headers or {}
@@ -232,8 +252,12 @@ class MessageBuildMixin(object):
             self.set_header(msg, 'Subject', subject)
 
         self.set_header(msg, 'From', self.encode_address_header(self._mail_from), encode=False)
-        self.set_header(msg, 'To', self._mail_to and ", ".join([self.encode_address_header(addr)
-                                                                for addr in self._mail_to]) or None, encode=False)
+
+        if self._mail_to:
+            self.set_header(msg, 'To', ", ".join([self.encode_address_header(addr) for addr in self._mail_to]), encode=False)
+
+        if self._cc:
+            self.set_header(msg, 'Cc', ", ".join([self.encode_address_header(addr) for addr in self._cc]), encode=False)
 
         return msg
 
