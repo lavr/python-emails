@@ -369,10 +369,11 @@ class MessageTransformer(BaseTransformer):
     def __init__(self, message, **kw):
         self.message = message
 
-        t = message._html
-        _html = isinstance(t, BaseTemplate) and t.template_text or t
+        html = message._html
+        if isinstance(html, BaseTemplate):
+            html = html.template_text
 
-        params = {'html': _html, 'attachment_store': message.attachments}
+        params = {'html': html, 'attachment_store': message.attachments}
         params.update(kw)
         BaseTransformer.__init__(self, **params)
 
