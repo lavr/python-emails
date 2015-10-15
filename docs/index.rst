@@ -11,7 +11,7 @@ Modern email handling in python.
                        text=T("Build passed: {{ project_name }} ..."),
                        subject=T("Passed: {{ project_name }}#{{ build_id }}"),
                        mail_from=("CI", "ci@mycompany.com"))
-    m.attach(filename="icon.png", content_disposition="inline", data=open("icon.png"))
+    m.attach(filename="icon.png", content_disposition="inline", data=open("icon.png", "rb"))
     response = m.send(render={"project_name": "user/project1", "build_id": 121},
                       to='somebody@mycompany.com',
                       smtp={"host":"mx.mycompany.com", "port": 25})

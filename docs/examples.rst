@@ -28,8 +28,8 @@ Attach files or inline images:
 
 .. code-block:: python
 
-    message.attach(data=open('event.ics'), filename='Event.ics')
-    message.attach(data=open('image.png'), filename='image.png',
+    message.attach(data=open('event.ics', 'rb'), filename='Event.ics')
+    message.attach(data=open('image.png', 'rb'), filename='image.png',
                    content_disposition='inline')
 
 Use templates:

@@ -16,7 +16,7 @@ Code example to make images inline:
 .. code-block:: python
 
     >>> message = emails.Message(html="<img src='promo.png'>")
-    >>> message.attach(filename='promo.png', data=open('promo.png'))
+    >>> message.attach(filename='promo.png', data=open('promo.png', 'rb'))
     >>> message.attachments['promo.png'].is_inline = True
     >>> message.transformer.synchronize_inline_images()
     >>> message.transformer.save()
@@ -41,7 +41,7 @@ Load from zipfile or directory:
 
 .. code-block:: python
 
-    message = emails.loader.from_zipfile(open('design_pack.zip'))
+    message = emails.loader.from_zipfile(open('design_pack.zip', 'rb'))
     message = emails.loader.from_directory('/home/user/design_pack')
 
 Zipfile and directory loaders require at least one html file (with "html" extension).
