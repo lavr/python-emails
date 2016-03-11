@@ -169,7 +169,6 @@ def test_external_urls():
 
     success = 0
     for url in [
-                'https://github.com/lavr/python-emails',
                 'http://yandex.com',
                 'http://www.smashingmagazine.com/'
                 ]:

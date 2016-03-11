@@ -1,14 +1,15 @@
 # encoding: utf-8
 from __future__ import unicode_literals
-
-__all__ = ['SMTPBackend', ]
-
 import smtplib
 import logging
 from functools import wraps
 from ..response import SMTPResponse
 from .client import SMTPClientWithResponse, SMTPClientWithResponse_SSL
 from ...utils import DNS_NAME
+from .exceptions import SMTPConnectNetworkError
+
+
+__all__ = ['SMTPBackend']
 
 logger = logging.getLogger(__name__)
 
@@ -85,16 +86,20 @@ class SMTPBackend:
 
     def _send(self, **kwargs):
 
+        response = None
         try:
             client = self.get_client()
-        except (IOError, smtplib.SMTPException) as exc:
-            logger.exception("Error connecting smtp server")
+        except IOError as exc:
+            response = self.make_response(exception=SMTPConnectNetworkError.from_ioerror(exc))
+        except smtplib.SMTPException as exc:
             response = self.make_response(exception=exc)
+
+        if response:
             if not self.fail_silently:
                 response.raise_if_needed()
             return response
-
-        return client.sendmail(**kwargs)
+        else:
+            return client.sendmail(**kwargs)
 
     def sendmail(self, from_addr, to_addrs, msg, mail_options=None, rcpt_options=None):
 
