@@ -6,6 +6,7 @@ from .. utils import sanitize_email
 
 __all__ = ['DjangoMessageMixin', 'DjangoMessage']
 
+
 class DjangoMessageMixin(object):
 
     _recipients = None
@@ -16,8 +17,10 @@ class DjangoMessageMixin(object):
         return self.charset or 'utf-8'
 
     def recipients(self):
-        r = self._recipients if self._recipients is not None else [r[1] for r in self.mail_to]
-        return [sanitize_email(e) for e in r]
+        ret = self._recipients
+        if ret is None:
+            ret = self.get_recipients_emails()
+        return [sanitize_email(e) for e in ret]
 
     @property
     def from_email(self):
