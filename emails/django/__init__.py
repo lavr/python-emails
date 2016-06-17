@@ -56,7 +56,7 @@ class DjangoMessageMixin(object):
             self.render(**context)
 
         connection = connection or get_connection()
-        connection.send_messages([self, ])
+        return connection.send_messages([self, ])
 
 
 class DjangoMessage(DjangoMessageMixin, MessageTransformerMixin, MessageSignMixin, MessageBuildMixin, BaseMessage):
