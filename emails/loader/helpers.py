@@ -4,7 +4,14 @@ __all__ = ['guess_charset', 'fix_content_type']
 
 import re
 import cgi
-import charade
+import warnings
+
+try:
+    import charade as chardet
+    warnings.warn("charade module is deprecated, update your requirements to chardet",
+                  DeprecationWarning)
+except ImportError:
+    import chardet
 
 from ..compat import to_native, to_unicode
 
@@ -40,7 +47,7 @@ def guess_text_charset(text, is_html=False):
                     return to_native(charset)
     # guess by chardet
     if isinstance(text, bytes):
-        return to_native(charade.detect(text)['encoding'])
+        return to_native(chardet.detect(text)['encoding'])
 
 
 def guess_html_charset(html):
