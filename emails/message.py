@@ -99,7 +99,7 @@ class BaseMessage(object):
         Returns message recipient's emails for actual sending.
         :return: list of emails
         """
-        return list(set([a[1] for a in self._mail_to] + [a[1] for a in self._cc] + [a[1] for a in self._bcc]))
+        return list(set([a[1] for a in self._mail_to] + [a[1] for a in self.cc] + [a[1] for a in self.bcc]))
 
     def set_headers(self, headers):
         self._headers = headers or {}
@@ -256,8 +256,8 @@ class MessageBuildMixin(object):
         if self._mail_to:
             self.set_header(msg, 'To', ", ".join([self.encode_address_header(addr) for addr in self._mail_to]), encode=False)
 
-        if self._cc:
-            self.set_header(msg, 'Cc', ", ".join([self.encode_address_header(addr) for addr in self._cc]), encode=False)
+        if self.cc:
+            self.set_header(msg, 'Cc', ", ".join([self.encode_address_header(addr) for addr in self.cc]), encode=False)
 
         return msg
 
