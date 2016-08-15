@@ -251,10 +251,11 @@ class MessageBuildMixin(object):
         if subject is not None:
             self.set_header(msg, 'Subject', subject)
 
-        self.set_header(msg, 'From', self.encode_address_header(self._mail_from), encode=False)
+        self.set_header(msg, 'From', self.encode_address_header(self.mail_from), encode=False)
 
-        if self._mail_to:
-            self.set_header(msg, 'To', ", ".join([self.encode_address_header(addr) for addr in self._mail_to]), encode=False)
+        mail_to = self.mail_to
+        if mail_to:
+            self.set_header(msg, 'To', ", ".join([self.encode_address_header(addr) for addr in mail_to]), encode=False)
 
         if self.cc:
             self.set_header(msg, 'Cc', ", ".join([self.encode_address_header(addr) for addr in self.cc]), encode=False)
