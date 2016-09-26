@@ -388,7 +388,8 @@ class MsgLoader(BaseLoader):
         elif name == 'to':
             r = self.decode_address_header_value(value)
             if r:
-                message.mail_to = r[0]
+                message.mail_to = r
+
         elif name == 'from':
             r = self.decode_address_header_value(value)
             if r:
