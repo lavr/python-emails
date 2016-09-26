@@ -260,6 +260,9 @@ class MessageBuildMixin(object):
         if self.cc:
             self.set_header(msg, 'Cc', ", ".join([self.encode_address_header(addr) for addr in self.cc]), encode=False)
 
+        if self.bcc:
+            self.set_header(msg, 'Bcc', ", ".join([self.encode_address_header(addr) for addr in self.bcc]), encode=False)
+
         return msg
 
     def _build_html_part(self):

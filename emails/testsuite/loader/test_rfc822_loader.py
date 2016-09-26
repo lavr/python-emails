@@ -43,7 +43,9 @@ def test_msgloader():
     data = {'charset': 'utf-8',
             'subject': 'Что-то по-русски',
             'mail_from': ('Максим Иванов', 'ivanov@ya.ru'),
-            'mail_to': [('Полина Сергеева', 'polina@mail.ru'),('test', 'test@example.com')],
+            'mail_to': [('Полина Сергеева', 'polina@mail.ru'), ('test', 'test@example.com')],
+            'cc': [('CC User', 'cc@example.com'), ('cc', 'cc.1@example.com')],
+            'bcc': [('BCC User', 'bcc@example.com')],
             'html': '<h1>Привет!</h1><p>В первых строках...',
             'text': 'Привет!\nВ первых строках...',
             'headers': {'X-Mailer': 'python-emails',
@@ -68,6 +70,8 @@ def test_msgloader():
     assert loader.content(map_cid) == 'Y'
 
     assert message.mail_to == data['mail_to']
+    assert message.cc == data['cc']
+    assert message.bcc == data['bcc']
     assert message.subject == data['subject']
     print(message._headers)
     assert message._headers['sender'] == '웃'

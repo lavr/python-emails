@@ -390,6 +390,16 @@ class MsgLoader(BaseLoader):
             if r:
                 message.mail_to = r
 
+        elif name == 'cc':
+            r = self.decode_address_header_value(value)
+            if r:
+                message.cc = r
+
+        elif name == 'bcc':
+             r = self.decode_address_header_value(value)
+             if r:
+               message.bcc = r
+
         elif name == 'from':
             r = self.decode_address_header_value(value)
             if r:
