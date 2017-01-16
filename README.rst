@@ -23,7 +23,7 @@ send message and get response from smtp server:
 and more:
 
 * DKIM signature
-* Render body from template
+* Render email subject and body using Jinja templates
 * Flask extension and Django integration
 * Message body transformation methods
 * Load message from url or from file
