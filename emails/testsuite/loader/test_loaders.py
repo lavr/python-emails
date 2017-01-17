@@ -25,8 +25,7 @@ OLDORNAMENT_URLS = dict(from_url='campaignmonitor-samples/oldornament/index.html
 
 def test__from_html():
 
-    with pytest.raises(XMLSyntaxError):
-        emails.loader.from_html(html='')
+    emails.loader.from_html(html='')
 
     assert '-X-' in emails.loader.from_html(html='-X-').html
 

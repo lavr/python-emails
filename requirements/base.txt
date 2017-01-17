@@ -4,3 +4,4 @@ chardet
 python-dateutil
 requests
 premailer>=2.8.3
+html5lib
