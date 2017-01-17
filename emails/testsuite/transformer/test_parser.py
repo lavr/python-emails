@@ -6,8 +6,8 @@ from emails.transformer import HTMLParser
 def test_parser_inputs():
 
     def _cleaned_body(s):
-        for el in ('html', 'body'):
-            s = s.replace('<%s>' % el, '').replace('</%s>' % el, '')
+        for el in ('html', 'body', 'head'):
+            s = s.replace('<%s>' % el, '').replace('</%s>' % el, '').replace('<%s/>' % el, '')
         return s
 
     # This is a fixation of de-facto rendering results
