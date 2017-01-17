@@ -9,7 +9,7 @@ SERVERS = {
     'gmail.com-tls': dict(from_email=_from, to_email='s.lavrinenko@gmail.com',
                           host='alt1.gmail-smtp-in.l.google.com', port=25, tls=True),
 
-    'mx.yandex.ru': dict(from_email=_from, to_email='drlavr@yandex.ru',
+    'mx.yandex.ru': dict(from_email=_from, to_email='python.emails.test@yandex.ru',
                          host='mx.yandex.ru', port=25),
 
     #'mailtrap.io': dict(from_email=_from, port=25, **_mailtrap),
