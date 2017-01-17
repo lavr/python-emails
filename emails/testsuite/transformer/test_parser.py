@@ -6,8 +6,8 @@ from emails.transformer import HTMLParser
 def test_parser_inputs():
 
     def _cleaned_body(s):
-        for el in ('html', 'body'):
-            s = s.replace('<%s>' % el, '').replace('</%s>' % el, '')
+        for el in ('html', 'body', 'head'):
+            s = s.replace('<%s>' % el, '').replace('</%s>' % el, '').replace('<%s/>' % el, '')
         return s
 
     # This is a fixation of de-facto rendering results
@@ -17,9 +17,11 @@ def test_parser_inputs():
             ("<a href='[]&'>_</a>", '<a href="[]&amp;">_</a>'),
             ('<p>a\r\n', '<p>a</p>')
     ):
-        r = HTMLParser(html=html).to_string()
-        print("html=", html.__repr__(), "result=", r.__repr__(), sep='')
-        assert _cleaned_body(r) == result
+        for parser in [HTMLParser(html=html, method='html'),
+                       HTMLParser(html=html, method='html5')]:
+            r = parser.to_string()
+            print("html=", html.__repr__(), "result=", r.__repr__(), sep='')
+            assert _cleaned_body(r) == result
 
 
 def test_breaking_title():

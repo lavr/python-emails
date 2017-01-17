@@ -29,8 +29,13 @@ def test_image_apply():
         assert after in t.to_string()
 
 
+def test_html5_transform():
+    assert Transformer(html="<a><table/></a>", method="html").to_string() == '<html><body><a/><table/></body></html>'
+    assert Transformer(html="<a><table/></a>", method="html5").to_string() == '<html><head/><body><a><table/></a></body></html>'
+
+
 def test_entity_13():
-    assert Transformer(html="<div>x\r\n</div>").to_string() == '<html><body><div>x\n</div></body></html>'
+    assert "<div>x\n</div>" in Transformer(html="<div>x\r\n</div>").to_string()
 
 
 def test_link_apply():

@@ -63,15 +63,16 @@ class HTMLParser(object):
 
     _cdata_regex = re.compile(r'\<\!\[CDATA\[(.*?)\]\]\>', re.DOTALL)
     _xml_title_regex = re.compile(r'\<title(.*?)\/\>', re.IGNORECASE)
+    default_parser_method = "html"
 
-    def __init__(self, html, method="html", output_method="xml"):
+    def __init__(self, html, method=None, output_method="xml"):
 
         if output_method == 'xml':
             self._html = html.replace('\r\n', '\n')
         else:
             self._html = html
 
-        self._method = method
+        self._method = method or self.default_parser_method
         self._output_method = output_method
         self._tree = None
 
@@ -82,10 +83,17 @@ class HTMLParser(object):
     @property
     def tree(self):
         if self._tree is None:
-            parser = self._method == 'xml' \
-                         and etree.XMLParser(ns_clean=False, resolve_entities=False) \
-                         or etree.HTMLParser()
-            self._tree = etree.fromstring(self._html.strip(), parser)
+            html_data = self._html.strip()
+            if self._method == 'xml':
+                parser = etree.XMLParser(ns_clean=False, resolve_entities=False)
+                self._tree = etree.fromstring(html_data, parser)
+            elif self._method == 'html5':
+                import html5lib
+                parsed = html5lib.parse(html_data, treebuilder='lxml', namespaceHTMLElements=False)
+                self._tree = parsed.getroot()
+            else:
+                parser = etree.HTMLParser()
+                self._tree = etree.fromstring(html_data, parser)
         return self._tree
 
     def to_string(self, encoding='utf-8', **kwargs):
