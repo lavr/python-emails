@@ -2,3 +2,4 @@
 --requirement=tests-base.txt
 
 django<1.9
+pytest-cov
