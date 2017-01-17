@@ -1,5 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals
+import html5lib
 import logging
 import posixpath
 import re
@@ -82,10 +83,13 @@ class HTMLParser(object):
     @property
     def tree(self):
         if self._tree is None:
-            parser = self._method == 'xml' \
-                         and etree.XMLParser(ns_clean=False, resolve_entities=False) \
-                         or etree.HTMLParser()
-            self._tree = etree.fromstring(self._html.strip(), parser)
+            html_data = self._html.strip()
+            if self._method == 'xml':
+                parser = etree.XMLParser(ns_clean=False, resolve_entities=False)
+                self._tree = etree.fromstring(html_data, parser)
+            else:
+                parsed = html5lib.parse(html_data, treebuilder='lxml', namespaceHTMLElements=False)
+                self._tree = parsed.getroot()
         return self._tree
 
     def to_string(self, encoding='utf-8', **kwargs):
