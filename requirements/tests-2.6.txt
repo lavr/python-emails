@@ -3,4 +3,4 @@
 
 django==1.6
 ordereddict
-pytest-cov==4.2
+pytest-cov<2.4.0
