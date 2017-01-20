@@ -190,7 +190,7 @@ class BaseTransformer(HTMLParser):
 
     def __init__(self, html, local_loader=None,
                  attachment_store=None,
-                 requests_params=None, method="html", base_url=None):
+                 requests_params=None, method=None, base_url=None):
 
         HTMLParser.__init__(self, html=html, method=method)
 
