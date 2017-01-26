@@ -1,21 +1,21 @@
 # encoding: utf-8
 from __future__ import unicode_literals
+
+import functools
 import logging
 import posixpath
 import re
 import warnings
-import functools
 
 from cssutils import CSSParser
-
 from lxml import etree
 from premailer import Premailer
 from premailer.premailer import ExternalNotFoundError
 
 from .compat import urlparse, to_unicode, is_callable
+from .loader.local_store import FileNotFound
 from .store import MemoryFileStore, LazyHTTPFile
 from .template.base import BaseTemplate
-from .loader.local_store import FileNotFound
 
 
 class LocalPremailer(Premailer):
@@ -60,20 +60,21 @@ class LocalPremailer(Premailer):
 
 
 class HTMLParser(object):
-
     _cdata_regex = re.compile(r'\<\!\[CDATA\[(.*?)\]\]\>', re.DOTALL)
     _xml_title_regex = re.compile(r'\<title(.*?)\/\>', re.IGNORECASE)
     default_parser_method = "html"
+    default_output_method = "xml"
 
-    def __init__(self, html, method=None, output_method="xml"):
+    def __init__(self, html, method=None, output_method=None):
 
-        if output_method == 'xml':
+        self._method = method or self.default_parser_method
+        self._output_method = output_method or self.default_output_method
+
+        if self._output_method == 'xml':
             self._html = html.replace('\r\n', '\n')
         else:
             self._html = html
 
-        self._method = method or self.default_parser_method
-        self._output_method = output_method
         self._tree = None
 
     @property
