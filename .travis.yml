@@ -12,7 +12,7 @@ python:
 script: py.test --cov emails
 
 before_install:
-  - travis_retry pip install coverage coveralls pytest-cov
+  - travis_retry pip install coverage coveralls pytest-cov six
 
 install:
   - travis_retry pip install -r requirements/tests-$TRAVIS_PYTHON_VERSION.txt
