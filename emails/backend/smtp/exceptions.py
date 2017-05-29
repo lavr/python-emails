@@ -11,5 +11,5 @@ class SMTPConnectNetworkError(IOError):
         o = cls()
         o.errno = exc.errno
         o.filename = exc.filename
-        o.strerror = exc.strerror
+        o.strerror = exc.strerror or str(exc)
         return o

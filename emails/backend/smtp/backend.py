@@ -39,6 +39,7 @@ class SMTPBackend:
 
         kwargs.setdefault('timeout', self.DEFAULT_SOCKET_TIMEOUT)
         kwargs.setdefault('local_hostname', DNS_NAME.get_fqdn())
+        kwargs['port'] = int(kwargs.get('port', 0))  # Issue #85
 
         self.smtp_cls_kwargs = kwargs
 
