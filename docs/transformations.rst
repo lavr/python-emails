@@ -1,7 +1,23 @@
 HTML transformer
 ----------------
 
-Message HTML body can be modified with 'transformer' object:
+Message HTML body usually should be modified before sent.
+
+Base transformations, such as css inlining can be made by `Message.transform` method:
+
+.. code-block:: python
+
+    >>> message = emails.Message(html="<style>h1{color:red}</style><h1>Hello world!</h1>")
+    >>> message.transform()
+    >>> message.html
+    u'<html><head></head><body><h1 style="color:red">Hello world!</h1></body></html>'
+
+`Message.transform` can take some arguments with speaken names `css_inline`, `remove_unsafe_tags`,
+`make_links_absolute`, `set_content_type_meta`, `update_stylesheet`, `images_inline`.
+
+More specific transformation can be made via `transformer` property.
+
+Example of custom link transformations:
 
 .. code-block:: python
 
@@ -11,7 +27,7 @@ Message HTML body can be modified with 'transformer' object:
     >>> message.html
     u'<html><body><img src="http://mycompany.tld/images/promo.png"></body></html>'
 
-Code example to make images inline:
+Example of customized making images inline:
 
 .. code-block:: python
 

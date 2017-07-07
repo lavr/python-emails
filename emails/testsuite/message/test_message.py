@@ -192,3 +192,10 @@ def test_several_recipients():
     m.send(smtp=backend)
     for addr in ['a@x.z', 'b@x.z', 'c@x.z', 'd@x.z']:
         assert len(backend.messages[addr]) == 1
+
+
+def test_transform():
+    message = Message(html='''<style>h1{color:red}</style><h1>Hello world!</h1>''')
+    message.transform()
+    assert message.html == '<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/></head>' \
+                           '<body><h1 style="color:red">Hello world!</h1></body></html>'

@@ -426,6 +426,10 @@ class MessageTransformerMixin(object):
             self.create_transformer()
         return self._transformer
 
+    def transform(self, **kwargs):
+        self.transformer.load_and_transform(*kwargs)
+        self.transformer.save()
+
     def set_html(self, **kw):
         # When html set, remove old transformer
         self.destroy_transformer()
