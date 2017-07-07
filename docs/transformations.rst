@@ -45,3 +45,9 @@ Load from zipfile or directory:
     message = emails.loader.from_directory('/home/user/design_pack')
 
 Zipfile and directory loaders require at least one html file (with "html" extension).
+
+Load message from `.eml` file (experimental):
+
+.. code-block:: python
+
+    message = emails.loader.from_rfc822(open('message.eml').read())
