@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import os
 import pytest
 import emails
+import socket
 
 from emails.backend.smtp import SMTPBackend
 
@@ -21,10 +22,8 @@ def test_send_to_unknown_host():
     assert response.status_code is None
     assert isinstance(response.error, IOError)
     assert not response.success
-    print("response.error.errno=", response.error.errno)
-    if not TRAVIS_CI:
-        # IOError: [Errno 8] nodename nor servname provided, or not known
-        assert response.error.errno == 8
+    # IOError: [Errno 8] nodename nor servname provided, or not known
+    assert response.error.errno == socket.EAI_NONAME
 
 
 def test_smtp_send_with_reconnect(smtp_servers):
