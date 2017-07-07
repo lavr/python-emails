@@ -427,7 +427,7 @@ class MessageTransformerMixin(object):
         return self._transformer
 
     def transform(self, **kwargs):
-        self.transformer.load_and_transform(*kwargs)
+        self.transformer.load_and_transform(**kwargs)
         self.transformer.save()
 
     def set_html(self, **kw):
