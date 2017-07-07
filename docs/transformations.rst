@@ -23,6 +23,18 @@ Code example to make images inline:
     >>> message.html
     u'<html><body><img src="cid:promo.png"></body></html>'
 
+To inline CSS using `Premailer <https://github.com/peterbe/premailer>`_:
+
+.. code-block:: python
+
+    >>> html = '''<style>h1 { color: red }</style>
+    ...           <h1>Hello world!</h1>'''
+    >>> message = emails.Message(html=html)
+    >>> message.transformer.premailer.transform()
+    >>> message.transformer.save()
+    >>> print(message.html)
+    <html><head/><body><h1 style="color:red">Hello world!</h1></body></html>
+
 
 Loaders
 -------
