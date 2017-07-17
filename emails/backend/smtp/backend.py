@@ -14,7 +14,7 @@ __all__ = ['SMTPBackend']
 logger = logging.getLogger(__name__)
 
 
-class SMTPBackend:
+class SMTPBackend(object):
 
     """
     SMTPBackend manages a smtp connection.
@@ -122,3 +122,9 @@ class SMTPBackend:
             response.raise_if_needed()
 
         return response
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
