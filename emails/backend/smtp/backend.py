@@ -62,7 +62,7 @@ class SMTPBackend(object):
 
         if self._client:
             try:
-                self._client.close()
+                self._client.quit()
             except:
                     if self.fail_silently:
                         return
