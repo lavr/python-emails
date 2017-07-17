@@ -35,8 +35,6 @@ def test_smtp_send_with_reconnect(smtp_servers):
         params = server.params
         params['fail_silently'] = True
         message = server.patch_message(emails.html(subject='reconnect test', **SAMPLE_MESSAGE))
-        message.mail_from = server.from_email
-        message.mail_to = server.to_email
         backend = message.smtp_pool[params]
         backend.get_client().sock.close()  # simulate disconnect
         response = message.send(smtp=params)
@@ -55,4 +53,3 @@ def test_smtp_init_error():
 def test_smtp_empty_sendmail():
     response = SMTPBackend().sendmail(to_addrs=[], from_addr='a@b.com', msg='')
     assert not response
-

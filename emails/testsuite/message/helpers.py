@@ -5,8 +5,8 @@ import os
 import emails
 from emails.template import JinjaTemplate
 
-TO_EMAIL = 'jbrown@hotmail.tld'
-FROM_EMAIL = 'robot@company.tld'
+TO_EMAIL = os.environ.get('TEST_TO_EMAIL') or 'python.emails.test.2@yandex.ru'
+FROM_EMAIL = os.environ.get('TEST_FROM_EMAIL') or 'python-emails@lavr.me'
 
 TRAVIS_CI = os.environ.get('TRAVIS')
 

@@ -34,3 +34,9 @@ class InMemoryBackend(object):
             self.messages.setdefault(addr.lower(), []).append(data)
 
         return True
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass

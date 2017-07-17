@@ -4,6 +4,7 @@ import time
 import random
 import emails
 import emails.loader
+from emails.backend.smtp import SMTPBackend
 
 from .helpers import common_email_data
 
@@ -34,3 +35,16 @@ def test_send_letters(smtp_servers):
             print(server.params)
             assert response.success or response.status_code in (421, 451)  # gmail not always like test emails
             server.sleep()
+
+
+def test_send_with_context_manager(smtp_servers):
+    for _, server in smtp_servers.items():
+        b = SMTPBackend(**server.params)
+        with b as backend:
+            for n in range(2):
+                data = common_email_data(subject='context manager {0}'.format(n))
+                message = emails.html(**data)
+                message = server.patch_message(message)
+                response = message.send(smtp=backend)
+                assert response.success or response.status_code in (421, 451), 'error sending to {0}'.format(server.params)  # gmail not always like test emails
+        assert b._client is None
