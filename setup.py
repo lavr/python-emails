@@ -109,7 +109,7 @@ settings.update(
     name='emails',
     version=find_version('emails/__init__.py'),
     description='Modern python library for emails.',
-    # long_description=open('README.rst').read(),
+    long_description=__doc__,
     author='Sergey Lavrinenko',
     author_email='s@lavr.me',
     url='https://github.com/lavr/python-emails',
