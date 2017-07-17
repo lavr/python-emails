@@ -1,23 +1,36 @@
 # encoding: utf-8
+import os
 
-_from = 'python-emails@lavr.me'
+_from = os.environ.get('TEST_FROM_EMAIL') or 'python-emails@lavr.me'
+_to = 'python.emails.test.2@yandex.ru'
 
-_mailtrap = dict(user='324263f0d84f52b2a', password='#e:lZdnZ5iUmJOcm2Wca2c=',
-                 host='mailtrap.io', to_email='324263f0d84f52b2a@mailtrap.io')
 
-SERVERS = {
-    'gmail.com-tls': dict(from_email=_from, to_email='s.lavrinenko@gmail.com',
-                          host='alt1.gmail-smtp-in.l.google.com', port=25, tls=True),
+def as_bool(value, default=False):
+    if value is None:
+        return default
+    return value.lower() in ('1', 'yes', 'true', 'on')
 
-    'mx.yandex.ru': dict(from_email=_from, to_email='python.emails.test.2@yandex.ru',
-                         host='mx.yandex.ru', port=25),
 
-    #'mailtrap.io': dict(from_email=_from, port=25, **_mailtrap),
-    #'mailtrap.io-tls': dict(from_email=_from, tls=True, port=465, **_mailtrap),
-    # mailtrap disabled because of timeouts on Travis
+if os.environ.get('TEST_SMTP_HOST'):
+    SERVERS = {
+        'my': dict(
+            host=os.environ.get('TEST_SMTP_HOST'),
+            port=os.environ.get('TEST_SMTP_PORT') or 25,
+            from_email=_from,
+            to_email=os.environ.get('TEST_TO_EMAIL') or _to,
+            tls=as_bool(os.environ.get('TEST_SMTP_TLS')),
+            user=os.environ.get('TEST_SMTP_USER'),
+            password=os.environ.get('TEST_SMTP_PASSWORD')
+        )
+    }
 
-    'outlook.com': dict(from_email=_from, to_email='lavr@outlook.com', host='mx1.hotmail.com'),
+else:
+    SERVERS = {
+        'gmail.com-tls': dict(from_email=_from, to_email='s.lavrinenko@gmail.com',
+                              host='alt1.gmail-smtp-in.l.google.com', port=25, tls=True),
 
-    #'me.com': dict(from_email=_from, to_email='s.lavrinenko@me.com', host='mx3.mail.icloud.com'),
-    # icloud.com disabled because of timeouts on Travis
-}
+        'mx.yandex.ru': dict(from_email=_from, to_email=_to,
+                             host='mx.yandex.ru', port=25, tls=False),
+
+        'outlook.com': dict(from_email=_from, to_email='lavr@outlook.com', host='mx1.hotmail.com'),
+    }
