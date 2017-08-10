@@ -3,5 +3,5 @@ mako
 speaklater
 pytest
 pytest-cov
-html5lib
+html5lib==0.999999999
 six
