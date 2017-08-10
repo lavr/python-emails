@@ -1,4 +1,4 @@
-jinja2
+jinja2==2.9.6
 mako
 speaklater
 pytest
