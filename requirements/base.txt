@@ -2,5 +2,5 @@ cssutils
 lxml
 chardet
 python-dateutil
-requests
+requests==2.18.3
 premailer>=2.8.3
