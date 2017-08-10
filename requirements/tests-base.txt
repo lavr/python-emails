@@ -1,7 +1,7 @@
 jinja2
 mako
 speaklater
-pytest
+pytest==3.2.1
 pytest-cov
 html5lib
 six
