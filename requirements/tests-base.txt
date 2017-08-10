@@ -1,5 +1,5 @@
 jinja2
-mako
+mako==1.0.7
 speaklater
 pytest
 pytest-cov
