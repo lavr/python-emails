@@ -1,4 +1,4 @@
 --requirement=base.txt
 --requirement=tests-base.txt
 
-django<1.9
+django==1.11.4
