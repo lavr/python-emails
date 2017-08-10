@@ -1,1 +1,1 @@
-alabaster
+alabaster==0.7.10
