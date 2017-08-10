@@ -1,6 +1,6 @@
 jinja2
 mako
-speaklater
+speaklater==1.3
 pytest
 pytest-cov
 html5lib
