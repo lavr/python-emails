@@ -1,5 +1,5 @@
 cssutils
-lxml
+lxml==3.8.0
 chardet
 python-dateutil
 requests
