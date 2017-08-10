@@ -2,4 +2,4 @@
 --requirement=tests-base.txt
 
 django==1.6
-ordereddict
+ordereddict==1.1
