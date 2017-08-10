@@ -1,4 +1,4 @@
-cssutils
+cssutils==1.0.2
 lxml
 chardet
 python-dateutil
