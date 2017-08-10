@@ -2,3 +2,7 @@
 # see https://pyup.io/docs/configuration/ for all available options
 
 update: insecure
+
+requirements:
+  - requirements/tests-2.6.txt
+      update: False
