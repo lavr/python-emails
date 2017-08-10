@@ -4,4 +4,4 @@ speaklater
 pytest
 pytest-cov
 html5lib
-six
+six==1.10.0
