@@ -118,7 +118,14 @@ if is_py2:
 
 elif is_py3:
     import urllib.parse as urlparse
-    from collections import OrderedDict, Callable
+
+    try:
+        from collections.abc import Callable
+    except ImportError:
+        from collections import Callable
+
+    from collections import OrderedDict
+
     from io import StringIO, BytesIO
     NativeStringIO = StringIO
 

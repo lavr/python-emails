@@ -32,6 +32,6 @@ else:
         'mx.yandex.ru': dict(from_email=_from, to_email=_to,
                              host='mx.yandex.ru', port=25, tls=False),
 
-        'outlook.com': dict(from_email=_from, to_email='lavr@outlook.com',
-                            host='mx1.hotmail.com'),
+        #'outlook.com': dict(from_email=_from, to_email='lavr@outlook.com',
+        #                    host='smtp-mail.outlook.com', port=587, tls=True),
     }

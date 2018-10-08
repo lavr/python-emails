@@ -22,10 +22,9 @@ OLDORNAMENT_URLS = dict(from_url='campaignmonitor-samples/oldornament/index.html
                         from_file='data/html_import/oldornament/oldornament/index.html',
                         from_zip='data/html_import/oldornament/oldornament.zip')
 
-
 def test__from_html():
 
-    with pytest.raises(XMLSyntaxError):
+    with pytest.raises(Exception):
         emails.loader.from_html(html='')
 
     assert '-X-' in emails.loader.from_html(html='-X-').html
@@ -169,10 +168,10 @@ def test_external_urls():
 
     success = 0
     for url in [
-                'http://yandex.com',
-                'http://www.smashingmagazine.com/'
+                'https://news.ycombinator.com/',
+                'https://www.python.org/'
                 ]:
-        print("test_external_urls: %s" % url)
+        print("test_external_urls: url=%s" % url)
         try:
             emails.loader.from_url(url)
             success += 1
