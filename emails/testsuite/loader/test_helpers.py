@@ -1,6 +1,8 @@
 # encoding: utf-8
 from __future__ import unicode_literals, print_function
 
+import logging; import  cssutils; cssutils.log.setLevel(logging.FATAL)
+
 from emails.loader.helpers import (guess_charset, guess_text_charset, decode_text, guess_html_charset, RULES_U)
 
 

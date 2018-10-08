@@ -13,6 +13,8 @@ from emails.compat import to_native, is_py3, to_unicode
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
 
+import cssutils
+cssutils.log.setLevel(logging.FATAL)
 
 @pytest.fixture(scope='module')
 def django_email_backend(request):
