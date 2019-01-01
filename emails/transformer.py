@@ -289,7 +289,7 @@ class BaseTransformer(HTMLParser):
                            remove_unsafe_tags=True,
                            make_links_absolute=True,
                            set_content_type_meta=True,
-                           update_stylesheet=True,
+                           update_stylesheet=False,
                            load_images=True,
                            images_inline=False,
                            **kw):
