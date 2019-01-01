@@ -105,17 +105,13 @@ def test_loaders_with_params():
 
     transform_params = [ dict(css_inline=True,
                             remove_unsafe_tags=True,
-                            make_links_absolute=True,
                             set_content_type_meta=True,
-                            update_stylesheet=True,
                             load_images=True,
                             images_inline=True),
 
                          dict(css_inline=False,
                               remove_unsafe_tags=False,
-                              make_links_absolute=False,
                               set_content_type_meta=False,
-                              update_stylesheet=False,
                               load_images=False,
                               images_inline=False)
                          ]

@@ -1,5 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals
+import warnings
 import emails
 import emails.message
 from emails.django import DjangoMessage
@@ -80,6 +81,7 @@ def test_legacy_import():
     """
     Test legacy django_ module exists and works
     """
-    from emails.django_ import DjangoMessage as DjangoMessageLegacy
-    assert DjangoMessageLegacy == DjangoMessage
-
+    with warnings.catch_warnings(record=True) as w:
+        from emails.django_ import DjangoMessage as DjangoMessageLegacy
+        assert issubclass(w[-1].category, DeprecationWarning)
+        assert DjangoMessageLegacy == DjangoMessage
