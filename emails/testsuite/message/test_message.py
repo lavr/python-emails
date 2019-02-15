@@ -113,6 +113,23 @@ def test_headers_not_double_encoded():
     assert decode_header(msg['Subject']) == TEXT
 
 
+def test_headers_encode_when_needed():
+
+    for text, encoded in (
+        ('웃', '=?utf-8?b?7JuD?='),
+        ('human stick figure', 'human stick figure'),
+    ):
+        m = Message()
+        m.mail_from = (text, 'a@b.c')
+        m.mail_to = (text, 'a@b.c')
+        m.subject = text
+        m.html = '...'
+        msg = m.as_message()
+        assert parseaddr(msg['From'])[0] == encoded
+        assert parseaddr(msg['To'])[0] == encoded
+        # assert msg['Subject'] == encoded  # subject encodes later
+
+
 def test_message_addresses():
 
     m = Message()
