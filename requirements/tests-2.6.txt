@@ -3,3 +3,5 @@
 
 django==1.6
 ordereddict
+pytest==3.2  # since pytest 3.3 dropped python 2.6 and 3.3 support
+pytest-cov==2.5  # since 2.6 dropped support for pytest<3.5
