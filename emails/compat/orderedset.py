@@ -2,7 +2,11 @@
 from __future__ import unicode_literals
 __all__ = ['OrderedSet', ]
 
-from collections import MutableSet
+try:
+    from collections.abc import MutableSet
+except ImportError:
+    from collections import MutableSet
+
 
 # http://code.activestate.com/recipes/576694/
 
