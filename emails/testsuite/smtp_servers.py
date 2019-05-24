@@ -26,8 +26,8 @@ if os.environ.get('TEST_SMTP_HOST'):
 
 else:
     SERVERS = {
-        'gmail.com-tls': dict(from_email=_from, to_email='s.lavrinenko+python-email-test@gmail.com',
-                              host='alt1.gmail-smtp-in.l.google.com', port=25, tls=True),
+        #'gmail.com-tls': dict(from_email=_from, to_email='s.lavrinenko+python-email-test@gmail.com',
+        #                      host='alt1.gmail-smtp-in.l.google.com', port=25, tls=True),
 
         'mx.yandex.ru': dict(from_email=_from, to_email=_to,
                              host='mx.yandex.ru', port=25, tls=False),
