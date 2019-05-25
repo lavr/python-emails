@@ -21,6 +21,7 @@ DEFAULT_SERVERS = {
                             host='smtp-mail.outlook.com', port=587, tls=True),
     }
 
+SERVERS = {}
 
 if os.environ.get('TEST_SMTP_HOST'):
     SERVERS = {
