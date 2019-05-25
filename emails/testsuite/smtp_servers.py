@@ -29,8 +29,8 @@ else:
         #'gmail.com-tls': dict(from_email=_from, to_email='s.lavrinenko+python-email-test@gmail.com',
         #                      host='alt1.gmail-smtp-in.l.google.com', port=25, tls=True),
 
-        'mx.yandex.ru': dict(from_email=_from, to_email=_to,
-                             host='mx.yandex.ru', port=25, tls=False),
+        #'mx.yandex.ru': dict(from_email=_from, to_email=_to,
+        #                     host='mx.yandex.ru', port=25, tls=False),
 
         #'outlook.com': dict(from_email=_from, to_email='lavr@outlook.com',
         #                    host='smtp-mail.outlook.com', port=587, tls=True),
