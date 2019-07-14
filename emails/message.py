@@ -40,10 +40,12 @@ class BaseMessage(object):
                  text=None,
                  attachments=None,
                  cc=None,
-                 bcc=None):
+                 bcc=None,
+                 headers_encoding=None):
 
         self._attachments = None
-        self.charset = charset or 'utf-8'  # utf-8 is standard de-facto, yeah
+        self.charset = charset or 'utf-8'
+        self.headers_encoding = headers_encoding or 'ascii'
         self._message_id = message_id
         self.set_subject(subject)
         self.set_date(date)
@@ -227,7 +229,7 @@ class MessageBuildMixin(object):
             raise BadHeaderError("Header values can't contain newlines (got %r for header %r)" % (value, key))
 
         if key.lower() in self.ADDRESS_HEADERS:
-            value = ', '.join(sanitize_address(addr, self.charset)
+            value = ', '.join(sanitize_address(addr, self.headers_encoding)
                               for addr in getaddresses((value,)))
 
         msg[key] = encode and self.encode_header(value) or value
