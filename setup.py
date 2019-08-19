@@ -120,6 +120,7 @@ settings.update(
               'emails.store',
               'emails.backend',
               'emails.backend.smtp',
+              'emails.backend.inmemory',
               'emails.template',
               'emails.packages',
               'emails.packages.dkim'
