@@ -114,7 +114,7 @@ class SMTPBackend(object):
 
         response = send(from_addr=from_addr,
                         to_addrs=to_addrs,
-                        msg=msg.as_string(),
+                        msg=msg.as_string().encode(msg.charset),
                         mail_options=mail_options,
                         rcpt_options=rcpt_options)
 
