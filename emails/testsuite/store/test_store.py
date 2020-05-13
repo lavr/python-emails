@@ -42,6 +42,10 @@ def test_store_unique_name():
     f2 = store.add({'uri': '/a/b/c.gif'})
     assert f2.filename == 'c-2.gif'
     assert f1.content_id != f2.content_id
+    f3 = store.add({'uri': '/a/c/c.gif'})
+    assert f3.filename == 'c-3.gif'
+    assert f1.content_id != f3.content_id
+    assert f2.content_id != f3.content_id
 
 
 def test_store_commons2():
@@ -57,4 +61,3 @@ def test_store_commons2():
     store.remove(f1)
     assert f1 not in store
     assert len(store) == 0
-
