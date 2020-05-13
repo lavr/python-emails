@@ -62,8 +62,8 @@ class MemoryFileStore(FileStore):
                 filename = "%s-%d%s" % (basefilename, n, ext)
                 if filename not in self._filenames:
                     break
-        else:
-            self._filenames[filename] = uri
+
+        self._filenames[filename] = uri
 
         return filename
 
