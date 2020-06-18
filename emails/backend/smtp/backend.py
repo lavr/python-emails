@@ -92,8 +92,12 @@ class SMTPBackend(object):
             client = self.get_client()
         except IOError as exc:
             response = self.make_response(exception=SMTPConnectNetworkError.from_ioerror(exc))
+            if not self.fail_silently:
+                raise
         except smtplib.SMTPException as exc:
             response = self.make_response(exception=exc)
+            if not self.fail_silently:
+                raise
 
         if response:
             if not self.fail_silently:

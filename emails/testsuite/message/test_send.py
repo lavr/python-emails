@@ -7,6 +7,7 @@ import emails.loader
 from emails.backend.smtp import SMTPBackend
 
 from .helpers import common_email_data
+from emails.testsuite.smtp_servers import get_servers
 
 
 def get_letters():
@@ -26,19 +27,20 @@ def get_letters():
     yield emails.loader.from_url(url=url, message_params=data, images_inline=True), None
 
 
-def test_send_letters(smtp_servers):
+def test_send_letters():
 
     for m, render in get_letters():
-        for tag, server in smtp_servers.items():
+        for tag, server in get_servers():
             server.patch_message(m)
+            print(tag, server.params)
             response = m.send(smtp=server.params, render=render)
             print(server.params)
             assert response.success or response.status_code in (421, 451)  # gmail not always like test emails
             server.sleep()
 
 
-def test_send_with_context_manager(smtp_servers):
-    for _, server in smtp_servers.items():
+def test_send_with_context_manager():
+    for _, server in get_servers():
         b = SMTPBackend(**server.params)
         with b as backend:
             for n in range(2):

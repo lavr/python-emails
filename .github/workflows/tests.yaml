@@ -3,10 +3,11 @@ on:
   push:
     branches:
       - master
-      - 'py38'
+      - '*'
   pull_request:
     branches:
       - master
+
 jobs:
   tests:
     name: ${{ matrix.name }}
@@ -15,12 +16,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {name: Linux, python: '3.8', os: ubuntu-latest, tox: py38}
-          - {name: Windows, python: '3.8', os: windows-latest, tox: py38}
-          - {name: Mac, python: '3.8', os: macos-latest, tox: py38}
+          - {name: '3.8', python: '3.8', os: ubuntu-latest, tox: py38}
           - {name: '3.7', python: '3.7', os: ubuntu-latest, tox: py37}
           - {name: '3.6', python: '3.6', os: ubuntu-latest, tox: py36}
-          - {name: 'PyPy', python: pypy3, os: ubuntu-latest, tox: pypy3}
+          - {name: '2.7', python: '2.7', os: ubuntu-16.04, tox: py27}
+    services:
+      postfix:
+        image: juanluisbaptiste/postfix
+        env:
+          SMTP_SERVER: smtp.gmail.com
+          SMTP_PORT: 587
+          SMTP_USERNAME: ${{ secrets.SMTP_TEST_GMAIL_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_TEST_GMAIL_PASSWORD }}
+          SERVER_HOSTNAME: python-emails-tests.github-ci.lavr.me
+        ports:
+          - 2525:25
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -40,4 +50,25 @@ jobs:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: pip|${{ runner.os }}|${{ matrix.python }}|${{ hashFiles('setup.py') }}|${{ hashFiles('requirements/*.txt') }}
       - run: pip install tox
-      - run: tox -e ${{ matrix.tox }}
+      - name: run rests
+        env:
+          SMTP_TEST_SUBJECT_SUFFIX: "github-actions sha:${{ github.sha }} run_id:${{ github.run_id }}"
+          SMTP_TEST_SETS: LOCAL
+          SMTP_TEST_LOCAL_TO: python-emails-tests@lavr.me
+          SMTP_TEST_LOCAL_WITHOUT_TLS: true
+          SMTP_TEST_LOCAL_HOST: 127.0.0.1
+          SMTP_TEST_LOCAL_PORT: 2525
+          SMTP_TEST_GMAIL_TO: python-emails-tests@lavr.me
+          SMTP_TEST_GMAIL_USER: ${{ secrets.SMTP_TEST_GMAIL_USER }}
+          SMTP_TEST_GMAIL_PASSWORD: ${{ secrets.SMTP_TEST_GMAIL_PASSWORD }}
+          SMTP_TEST_GMAIL_WITH_TLS: true
+          SMTP_TEST_GMAIL_HOST: smtp.gmail.com
+          SMTP_TEST_GMAIL_PORT: 587
+          SMTP_TEST_YAMAIL_TO: python.emails.test.2@yandex.ru
+          SMTP_TEST_YAMAIL_FROM: python.emails.test.2@yandex.ru
+          SMTP_TEST_YAMAIL_USER: python.emails.test.2
+          SMTP_TEST_YAMAIL_PASSWORD: ${{ secrets.SMTP_TEST_YAMAIL_PASSWORD }}
+          SMTP_TEST_YAMAIL_WITH_TLS: true
+          SMTP_TEST_YAMAIL_HOST: smtp.yandex.ru
+          SMTP_TEST_YAMAIL_PORT: 25
+        run: tox -e ${{ matrix.tox }}

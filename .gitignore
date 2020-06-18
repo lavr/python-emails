@@ -36,3 +36,6 @@ nosetests.xml
 .project
 .pydevproject
 .idea
+
+venv/
+.env
