@@ -1,13 +1,13 @@
 # encoding: utf-8
 from __future__ import unicode_literals
-import os
-import pytest
-import emails
+
 import socket
 
-from emails.backend.smtp import SMTPBackend
+import pytest
 
-TRAVIS_CI = os.environ.get('TRAVIS')
+import emails
+from emails.backend.smtp import SMTPBackend
+from emails.testsuite.smtp_servers import get_servers
 
 SAMPLE_MESSAGE = {'html': '<p>Test from python-emails',
                   'text': 'Test from python-emails',
@@ -26,11 +26,11 @@ def test_send_to_unknown_host():
     assert response.error.errno == socket.EAI_NONAME
 
 
-def test_smtp_send_with_reconnect(smtp_servers):
+def test_smtp_send_with_reconnect():
     """
     Check SMTPBackend.sendmail reconnect
     """
-    for tag, server in smtp_servers.items():
+    for tag, server in get_servers():
         print("-- test_smtp_reconnect: %s" % server)
         params = server.params
         params['fail_silently'] = True

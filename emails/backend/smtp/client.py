@@ -27,6 +27,7 @@ class SMTPClientWithResponse(SMTP):
 
         self.initialize()
 
+
     def initialize(self):
         if not self._initialized:
             self.set_debuglevel(self.debug)

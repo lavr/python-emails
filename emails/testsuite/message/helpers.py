@@ -7,9 +7,6 @@ from emails.template import JinjaTemplate
 
 TO_EMAIL = os.environ.get('TEST_TO_EMAIL') or 'python.emails.test.2@yandex.ru'
 FROM_EMAIL = os.environ.get('TEST_FROM_EMAIL') or 'python-emails@lavr.me'
-
-TRAVIS_CI = os.environ.get('TRAVIS')
-
 ROOT = os.path.dirname(__file__)
 
 def common_email_data(**kw):
