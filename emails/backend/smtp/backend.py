@@ -26,7 +26,7 @@ class SMTPBackend(object):
     connection_ssl_cls = SMTPClientWithResponse_SSL
     response_cls = SMTPResponse
 
-    def __init__(self, ssl=False, fail_silently=True, **kwargs):
+    def __init__(self, ssl=False, fail_silently=True, mail_options=None, **kwargs):
 
         self.smtp_cls = ssl and self.connection_ssl_cls or self.connection_cls
 
@@ -46,6 +46,7 @@ class SMTPBackend(object):
         self.host = kwargs.get('host')
         self.port = kwargs.get('port')
         self.fail_silently = fail_silently
+        self.mail_options = mail_options or []
 
         self._client = None
 
@@ -119,7 +120,7 @@ class SMTPBackend(object):
         response = send(from_addr=from_addr,
                         to_addrs=to_addrs,
                         msg=msg.as_string(),
-                        mail_options=mail_options,
+                        mail_options=mail_options or self.mail_options,
                         rcpt_options=rcpt_options)
 
         if not self.fail_silently:

@@ -147,6 +147,13 @@ def test_message_addresses():
     assert m.mail_to == [("웃", "b@c.d"), (None, "e@f.g")]
 
 
+def test_rfc6532_address():
+    m = Message()
+    m.mail_to = "anaïs@example.com"
+    m.html = 'X'
+    assert m.as_string()
+
+
 def test_message_policy():
 
     if is_py34_plus:

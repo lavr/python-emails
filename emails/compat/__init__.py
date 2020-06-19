@@ -160,7 +160,10 @@ elif is_py3:
         Does not encode non-ascii realname.
 
         Python3 email.utils.formataddr do encode realname.
+
+        TODO: switch to email.headerregistry.AddressHeader ?
         """
+
         name, address = pair
         if name:
             quotes = ''
