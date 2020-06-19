@@ -169,7 +169,7 @@ def test_external_urls():
                 ]:
         print("test_external_urls: url=%s" % url)
         try:
-            emails.loader.from_url(url)
+            emails.loader.from_url(url, requests_params={'verify': True})
             success += 1
         except (ConnectionError, Timeout):
             # Nevermind if external site does not respond
