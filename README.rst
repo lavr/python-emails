@@ -37,14 +37,11 @@ Flask extension: `flask-emails <https://github.com/lavr/flask-emails>`_
 |
 |
 
-.. image:: https://travis-ci.org/lavr/python-emails.png?branch=master
-   :target: https://travis-ci.org/lavr/python-emails
+.. image:: https://github.com/lavr/python-emails/workflows/Tests/badge.svg?branch=master
+   :target: https://github.com/lavr/python-emails/actions?query=workflow%3ATests
 
 .. image:: https://img.shields.io/pypi/v/emails.svg
    :target: https://pypi.python.org/pypi/emails
-
-.. image:: http://allmychanges.com/p/python/emails/badge/
-   :target: http://allmychanges.com/p/python/emails/?utm_source=badge
 
 .. image:: https://coveralls.io/repos/lavr/python-emails/badge.svg?branch=master
    :target: https://coveralls.io/r/lavr/python-emails?branch=master
