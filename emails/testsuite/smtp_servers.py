@@ -41,7 +41,7 @@ def smtp_server_from_env(name='GMAIL'):
         return v
 
     def _valid_smtp(data):
-        return data['to_email'] and data['host']
+        return data['host']
 
     smtp_info = dict(
         from_email=_var("FROM", default=DEFAULT_FROM),

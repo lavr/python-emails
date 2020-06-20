@@ -5,9 +5,10 @@ import os
 import emails
 from emails.template import JinjaTemplate
 
-TO_EMAIL = os.environ.get('TEST_TO_EMAIL') or 'python.emails.test.2@yandex.ru'
-FROM_EMAIL = os.environ.get('TEST_FROM_EMAIL') or 'python-emails@lavr.me'
+TO_EMAIL = os.environ.get('SMTP_TEST_MAIL_TO') or 'python.emails.test.2@yandex.ru'
+FROM_EMAIL = os.environ.get('SMTP_TEST_MAIL_FROM') or 'python-emails@lavr.me'
 ROOT = os.path.dirname(__file__)
+
 
 def common_email_data(**kw):
     T = JinjaTemplate

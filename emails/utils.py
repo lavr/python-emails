@@ -12,7 +12,8 @@ from email import generator
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header, decode_header as decode_header_
-from email.utils import formataddr, parseaddr, formatdate
+from email.utils import parseaddr, formatdate
+from emails.compat import formataddr
 
 import requests
 

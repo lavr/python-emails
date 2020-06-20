@@ -22,7 +22,7 @@ jobs:
           - {name: '2.7', python: '2.7', os: ubuntu-16.04, tox: py27}
     services:
       postfix:
-        image: juanluisbaptiste/postfix
+        image: lavr/docker-postfix
         env:
           SMTP_SERVER: smtp.gmail.com
           SMTP_PORT: 587
@@ -53,11 +53,13 @@ jobs:
       - name: run rests
         env:
           SMTP_TEST_SUBJECT_SUFFIX: "github-actions sha:${{ github.sha }} run_id:${{ github.run_id }}"
+          SMTP_TEST_MAIL_FROM: python-emails-tests@lavr.me
+          SMTP_TEST_MAIL_TO: python-emails-tests@lavr.me
           SMTP_TEST_SETS: LOCAL
-          SMTP_TEST_LOCAL_TO: python-emails-tests@lavr.me
           SMTP_TEST_LOCAL_WITHOUT_TLS: true
           SMTP_TEST_LOCAL_HOST: 127.0.0.1
           SMTP_TEST_LOCAL_PORT: 2525
+
           SMTP_TEST_GMAIL_TO: python-emails-tests@lavr.me
           SMTP_TEST_GMAIL_USER: ${{ secrets.SMTP_TEST_GMAIL_USER }}
           SMTP_TEST_GMAIL_PASSWORD: ${{ secrets.SMTP_TEST_GMAIL_PASSWORD }}
