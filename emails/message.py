@@ -332,11 +332,17 @@ class MessageBuildMixin(object):
 
         Note: this method costs one less message-to-string conversions
         for dkim in compare to self.as_message().as_string()
-
-        Changes:
-        v0.4.2: now returns bytes, not native string
         """
         r = to_native(self.build_message(message_cls=message_cls).as_string())
+        if self._signer:
+            r = self.sign_string(r)
+        return r
+
+    def as_bytes(self, message_cls=None):
+        """
+        Returns message as bytes.
+        """
+        r = self.build_message(message_cls=message_cls).as_bytes()
         if self._signer:
             r = self.sign_string(r)
         return r
@@ -460,6 +466,12 @@ class MessageSignMixin(object):
         Add sign header to message-as-a-string
         """
         return self._signer.sign_message_string(message_string)
+
+    def sign_bytes(self, message_bytes):
+        """
+        Add sign header to message-as-a-string
+        """
+        return self._signer.sign_message_bytes(message_bytes)
 
 
 class Message(MessageSendMixin, MessageTransformerMixin, MessageSignMixin, MessageBuildMixin, BaseMessage):

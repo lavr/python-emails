@@ -40,7 +40,6 @@ class DKIMSigner:
                                   'selector': to_bytes(selector)})
 
     def get_sign_string(self, message):
-
         try:
             # pydkim module parses message and privkey on each signing
             # this is not optimal for mass operations
@@ -51,6 +50,9 @@ class DKIMSigner:
                 logging.exception('Error signing message')
             else:
                 raise
+
+    def get_sign_bytes(self, message):
+        return self.get_sign_string(message)
 
     def get_sign_header(self, message):
         # pydkim returns string, so we should split
@@ -87,3 +89,9 @@ class DKIMSigner:
         s = self.get_sign_string(to_bytes(message_string))
         return s and to_native(s) + message_string or message_string
 
+    def sign_message_bytes(self, message_bytes):
+        """
+        Insert DKIM header to message bytes
+        """
+        s = self.get_sign_bytes(message_bytes)
+        return s and to_bytes(s) + message_bytes or message_bytes
