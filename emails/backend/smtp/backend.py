@@ -91,12 +91,12 @@ class SMTPBackend(object):
         response = None
         try:
             client = self.get_client()
-        except IOError as exc:
-            response = self.make_response(exception=SMTPConnectNetworkError.from_ioerror(exc))
-            if not self.fail_silently:
-                raise
         except smtplib.SMTPException as exc:
             response = self.make_response(exception=exc)
+            if not self.fail_silently:
+                raise
+        except IOError as exc:
+            response = self.make_response(exception=SMTPConnectNetworkError.from_ioerror(exc))
             if not self.fail_silently:
                 raise
 
@@ -119,7 +119,7 @@ class SMTPBackend(object):
 
         response = send(from_addr=from_addr,
                         to_addrs=to_addrs,
-                        msg=msg.as_string(),
+                        msg=msg.as_bytes(),
                         mail_options=mail_options or self.mail_options,
                         rcpt_options=rcpt_options)
 
