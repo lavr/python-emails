@@ -1,6 +1,7 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
+import imghdr
 import uuid
 from mimetypes import guess_type
 from email.mime.base import MIMEBase
@@ -99,6 +100,10 @@ class BaseFile(object):
             filename = self.filename
             if filename:
                 r = self._mime_type = guess_type(filename)[0]
+                if not r:
+                    img_mime_type = imghdr.what(filename, h=self.data)
+                    if img_mime_type:
+                        r = "image/{0}".format(img_mime_type)
         if not r:
             r = MIMETYPE_UNKNOWN
         self._mime_type = r
