@@ -19,7 +19,8 @@ jobs:
           - {name: '3.8', python: '3.8', os: ubuntu-latest, tox: py38}
           - {name: '3.7', python: '3.7', os: ubuntu-latest, tox: py37}
           - {name: '3.6', python: '3.6', os: ubuntu-latest, tox: py36}
-          - {name: '2.7', python: '2.7', os: ubuntu-16.04, tox: py27}
+          # ubuntu-16.04 is deprecated. TODO: remove python 2 support ?
+          # - {name: '2.7', python: '2.7', os: ubuntu-16.04, tox: py27}
     services:
       postfix:
         image: lavr/docker-postfix
