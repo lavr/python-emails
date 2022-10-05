@@ -39,3 +39,4 @@ nosetests.xml
 
 venv/
 .env
+/tmp-emails/

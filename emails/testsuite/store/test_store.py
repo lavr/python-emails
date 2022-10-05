@@ -25,6 +25,35 @@ def test_attachment_headers():
     assert 'X-Header: X' in part
 
 
+def test_get_mime_type_by_extension():
+    f = emails.store.BaseFile(data='x', filename='logo.jpg')
+    assert f.mime_type == 'image/jpeg'
+
+
+def test_get_mime_type_from_data_jpeg():
+    f = emails.store.BaseFile(
+        data=b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01',
+        filename='thumb',
+    )
+    assert f.mime_type == 'image/jpeg'
+
+
+def test_get_mime_type_from_data_png():
+    f = emails.store.BaseFile(
+        data=b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00d',
+        filename='thumb',
+    )
+    assert f.mime_type == 'image/png'
+
+
+def test_get_mime_type_from_data_gif():
+    f = emails.store.BaseFile(
+        data=b'GIF89a\xd3\x00G\x00\xf7\x00\x00\xff\xff',
+        filename='thumb',
+    )
+    assert f.mime_type == 'image/gif'
+
+
 def test_store_commons():
     FILES = [{'data': 'aaa', 'filename': 'aaa.txt'}, {'data': 'bbb', 'filename': 'bbb.txt'}, ]
     store = emails.store.MemoryFileStore()
