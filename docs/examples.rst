@@ -45,6 +45,7 @@ Use templates:
     message.send(to=('John Brown', 'jbrown@gmail.com'),
                  render={'name': 'John Brown', 'billno': '141051906163'})
 
+The :code:`JinjaTemplate` constructor expects a unicode string as the first argument. Therefore templates stored in external files can be added using :code:`T(open('template.html').read())`.
 
 
 Add DKIM signature:
