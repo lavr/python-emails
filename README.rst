@@ -20,12 +20,15 @@ send message and get response from smtp server:
    >>> r = message.send(to='s@lavr.me', smtp={'host': 'aspmx.l.google.com', 'timeout': 5})
    >>> assert r.status_code == 250
 
+
 add CC in the Email
+
 .. code-block:: python
    
    >>> r =  message.set_cc(['someone@gmail.com'])
  
 add BCC in the Email 
+
 .. code-block:: python
 
    >>> r = message.set_bcc(['someone@gmail.com', 'anyone@gmail.com'])
