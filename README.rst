@@ -21,13 +21,13 @@ send message and get response from smtp server:
    >>> assert r.status_code == 250
 
 
-add CC in the Email
+Adding CC in the Email
 
 .. code-block:: python
    
    >>> r =  message.set_cc(['someone@gmail.com'])
  
-add BCC in the Email 
+Adding BCC in the Email 
 
 .. code-block:: python
 
