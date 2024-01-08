@@ -56,6 +56,7 @@ jobs:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: pip|${{ runner.os }}|${{ matrix.python }}|${{ hashFiles('setup.py') }}|${{ hashFiles('requirements/*.txt') }}
       - run: pip install tox
+      - run: apt install libxml2-dev libxslt-dev
       - name: run rests
         env:
           SMTP_TEST_SUBJECT_SUFFIX: "github-actions sha:${{ github.sha }} run_id:${{ github.run_id }}"
