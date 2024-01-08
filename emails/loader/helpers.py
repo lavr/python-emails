@@ -1,9 +1,10 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 __all__ = ['guess_charset', 'fix_content_type']
+from email.message import Message
+
 
 import re
-import cgi
 import warnings
 
 try:
@@ -60,8 +61,9 @@ def guess_charset(headers, html):
     if headers:
         content_type = headers['content-type']
         if content_type:
-            _, params = cgi.parse_header(content_type)
-            r = params.get('charset', None)
+            msg = Message()
+            msg.add_header('content-type', content_type)
+            r = msg.get_param('charset')
             if r:
                 return r
 
