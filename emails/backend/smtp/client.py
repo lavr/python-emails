@@ -25,7 +25,11 @@ class SMTPClientWithResponse(SMTP):
 
         SMTP.__init__(self, **kwargs)
 
-        self.initialize()
+        try:
+            self.initialize()
+        except smtplib.SMTPAuthenticationError:
+            self.quit()
+            raise
 
 
     def initialize(self):
