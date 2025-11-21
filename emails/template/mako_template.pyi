@@ -1,0 +1,6 @@
+from typing import Any
+from .base import BaseTemplate
+
+class MakoTemplate(BaseTemplate):
+    def compile_template(self) -> Any: ...
+    def render(self, **kwargs: Any) -> str: ...

@@ -1,0 +1,9 @@
+from typing import Any, Optional, Dict
+from .base import BaseTemplate
+
+class JinjaTemplate(BaseTemplate):
+    DEFAULT_JINJA_ENVIRONMENT: Dict[str, Any]
+    environment: Any
+    def __init__(self, template_text: str, environment: Optional[Any] = ...) -> None: ...
+    def compile_template(self) -> Any: ...
+    def render(self, **kwargs: Any) -> str: ...
