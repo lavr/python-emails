@@ -9,11 +9,9 @@ import errno
 from zipfile import ZipFile
 import email
 
-from ..compat import to_unicode, string_types, to_native, formataddr as compat_formataddr
-
+from ..utils import to_unicode, to_native, formataddr, decode_header
 from ..loader.helpers import decode_text
 from ..message import Message
-from ..utils import decode_header
 
 class FileNotFound(Exception):
     pass
@@ -127,7 +125,7 @@ class FileSystemLoader(BaseLoader):
     """
 
     def __init__(self, searchpath, encoding='utf-8', base_path=None):
-        if isinstance(searchpath, string_types):
+        if isinstance(searchpath, str):
             searchpath = [searchpath]
         self.searchpath = list(searchpath)
         self.encoding = encoding
@@ -229,7 +227,7 @@ class MsgLoader(BaseLoader):
     common_charsets = ['ascii', 'utf-8', 'utf-16', 'windows-1252', 'cp850', 'windows-1251']
 
     def __init__(self, msg, base_path=None):
-        if isinstance(msg, string_types):
+        if isinstance(msg, str):
             self.msg = email.message_from_string(msg)
         elif isinstance(msg, bytes):
             self.msg = email.message_from_string(to_native(msg))
@@ -366,7 +364,7 @@ class MsgLoader(BaseLoader):
                 if not skip_invalid:
                     r.append(decode_header(email))
             else:
-                r.append(compat_formataddr([decode_header(name), email]))
+                r.append(formataddr([decode_header(name), email]))
 
         return r
 

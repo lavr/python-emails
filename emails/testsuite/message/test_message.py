@@ -7,7 +7,9 @@ import pytest
 import emails
 from emails import Message
 import emails.exc
-from emails.compat import to_unicode, StringIO
+from io import StringIO
+
+from emails.utils import to_unicode
 from emails.utils import decode_header, MessageID
 from emails.backend.inmemory import InMemoryBackend
 

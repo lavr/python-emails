@@ -10,7 +10,7 @@ import logging
 from .packages import dkim
 from .packages.dkim import DKIMException, UnparsableKeyError
 from .packages.dkim.crypto import parse_pem_private_key
-from .compat import to_bytes, to_native
+from .utils import to_bytes, to_native
 
 
 class DKIMSigner:

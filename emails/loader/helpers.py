@@ -13,7 +13,7 @@ try:
 except ImportError:
     import chardet
 
-from ..compat import to_native, to_unicode
+from ..utils import to_native, to_unicode
 
 # HTML page charset stuff
 

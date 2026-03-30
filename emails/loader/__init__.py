@@ -2,8 +2,9 @@
 import os.path
 from email.utils import formataddr
 
-from ..compat import to_unicode, to_native
-from ..compat import urlparse
+import urllib.parse as urlparse
+
+from ..utils import to_unicode, to_native
 from ..message import Message
 from ..utils import fetch_url
 from .local_store import (FileSystemLoader, ZipLoader, MsgLoader, FileNotFound)

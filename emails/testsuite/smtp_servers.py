@@ -4,7 +4,7 @@ import platform
 import datetime
 import random
 import time
-from emails.compat import to_unicode
+from emails.utils import to_unicode
 
 DEFAULT_FROM = os.environ.get('SMTP_TEST_FROM_EMAIL') or 'python-emails@lavr.me'
 SUBJECT_SUFFIX = os.environ.get('SMTP_TEST_SUBJECT_SUFFIX')

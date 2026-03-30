@@ -2,8 +2,8 @@
 
 from email.utils import getaddresses
 
-from .compat import (string_types, is_callable, formataddr as compat_formataddr, to_unicode, to_native)
-from .utils import (SafeMIMEText, SafeMIMEMultipart, sanitize_address,
+from .utils import (formataddr, to_unicode, to_native,
+                    SafeMIMEText, SafeMIMEMultipart, sanitize_address,
                     parse_name_and_email, load_email_charsets,
                     encode_header as encode_header_,
                     renderable, format_date_header, parse_name_and_email_list,
@@ -156,9 +156,9 @@ class BaseMessage(object):
         v = self._date
         if v is False:
             return None
-        if is_callable(v):
+        if callable(v):
             v = v()
-        if not isinstance(v, string_types):
+        if not isinstance(v, str):
             v = format_date_header(v)
         return v
 
@@ -170,7 +170,7 @@ class BaseMessage(object):
         mid = self._message_id
         if mid is False:
             return None
-        return is_callable(mid) and mid() or mid
+        return callable(mid) and mid() or mid
 
     @message_id.setter
     def message_id(self, value):
@@ -210,7 +210,7 @@ class MessageBuildMixin(object):
         if not pair:
             return None
         name, email = pair
-        return compat_formataddr((name or '', email))
+        return formataddr((name or '', email))
 
     encode_name_header = encode_address_header  # legacy name
 
@@ -220,7 +220,7 @@ class MessageBuildMixin(object):
             # TODO: may be remove header here ?
             return
 
-        if not isinstance(value, string_types):
+        if not isinstance(value, str):
             value = to_unicode(value)
 
         # Prevent header injection

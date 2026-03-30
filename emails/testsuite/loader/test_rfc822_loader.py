@@ -3,7 +3,7 @@ import glob
 import email
 import datetime
 import os.path
-from emails.compat import to_native
+from emails.utils import to_native
 import emails.loader
 from emails.loader.local_store import MsgLoader
 

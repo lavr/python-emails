@@ -4,7 +4,9 @@ import email
 import pytest
 import emails
 from emails import Message
-from emails.compat import NativeStringIO, to_bytes, to_native
+from io import StringIO
+
+from emails.utils import to_bytes, to_native
 from emails.exc import DKIMException
 from emails.utils import load_email_charsets
 import emails.packages.dkim
@@ -56,7 +58,7 @@ def test_dkim():
 
     priv_key, pub_key = _generate_key(length=1024)
 
-    DKIM_PARAMS = [dict(key=NativeStringIO(to_native(priv_key)),
+    DKIM_PARAMS = [dict(key=StringIO(to_native(priv_key)),
                         selector='_dkim',
                         domain='somewhere1.net'),
 
@@ -139,7 +141,7 @@ def test_dkim_sign_twice():
 
     priv_key, pub_key = _generate_key(length=1024)
     message = Message(**common_email_data())
-    message.dkim(key=NativeStringIO(to_native(priv_key)), selector='_dkim', domain='somewhere.net')
+    message.dkim(key=StringIO(to_native(priv_key)), selector='_dkim', domain='somewhere.net')
     for n in range(2):
         message.subject = 'Test %s' % n
         assert _check_dkim(message, pub_key)
