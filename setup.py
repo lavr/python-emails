@@ -32,8 +32,8 @@ and more:
 Links
 `````
 
-* `documentation <http://python-emails.readthedocs.org/>`_
-* `source code <http://github.com/lavr/python-emails>`_
+* `documentation <https://python-emails.readthedocs.io/>`_
+* `source code <https://github.com/lavr/python-emails>`_
 
 """
 
@@ -111,7 +111,7 @@ settings.update(
     version=find_version('emails/__init__.py'),
     description='Modern python library for emails.',
     long_description=__doc__,
-    long_description_content_type='text/markdown',
+    long_description_content_type='text/x-rst',
     author='Sergey Lavrinenko',
     author_email='s@lavr.me',
     url='https://github.com/lavr/python-emails',

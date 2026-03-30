@@ -30,8 +30,8 @@ and more:
 Links
 `````
 
-* `documentation <http://python-emails.readthedocs.org/>`_
-* `source code <http://github.com/lavr/python-emails>`_
+* `documentation <https://python-emails.readthedocs.io/>`_
+* `source code <https://github.com/lavr/python-emails>`_
 
 """
 
@@ -41,7 +41,7 @@ __title__ = 'emails'
 __version__ = '0.6'
 __author__ = 'Sergey Lavrinenko'
 __license__ = 'Apache 2.0'
-__copyright__ = 'Copyright 2013-2019 Sergey Lavrinenko'
+__copyright__ = 'Copyright 2013-2026 Sergey Lavrinenko'
 
 USER_AGENT = 'python-emails/%s' % __version__
 
