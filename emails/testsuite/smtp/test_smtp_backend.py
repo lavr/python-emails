@@ -26,6 +26,7 @@ def test_send_to_unknown_host():
     assert response.error.errno == socket.EAI_NONAME
 
 
+@pytest.mark.e2e
 def test_smtp_send_with_reconnect():
     """
     Check SMTPBackend.sendmail reconnect

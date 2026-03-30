@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 import time
 import random
+import pytest
 import emails
 import emails.loader
 from emails.backend.smtp import SMTPBackend
@@ -41,6 +42,16 @@ def test_send_letters():
             # server.sleep()
 
 
+@pytest.mark.e2e
+def test_send_simple():
+    message = emails.html(**common_email_data(subject='Simple e2e test'))
+    for tag, server in get_servers():
+        server.patch_message(message)
+        response = message.send(smtp=server.params)
+        assert response.success
+
+
+@pytest.mark.e2e
 def test_send_with_context_manager():
     for _, server in get_servers():
         b = SMTPBackend(**server.params)
