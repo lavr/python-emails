@@ -27,7 +27,7 @@ class SMTPClientWithResponse(SMTP):
 
         try:
             self.initialize()
-        except smtplib.SMTPAuthenticationError:
+        except Exception:
             self.quit()
             raise
 
