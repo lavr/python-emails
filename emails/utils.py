@@ -131,7 +131,7 @@ def parse_name_and_email_list(elements, encoding='utf-8'):
         # Let's do some guesses
         if isinstance(elements, tuple):
             n, e = elements
-            if isinstance(e, string_types) and (not n or isinstance(e, string_types)):
+            if isinstance(e, string_types) and (not n or isinstance(n, string_types)):
                 # It is probably a pair (name, email)
                 return [parse_name_and_email(elements, encoding), ]
 
