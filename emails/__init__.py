@@ -35,7 +35,6 @@ Links
 
 """
 
-from __future__ import unicode_literals
 
 __title__ = 'emails'
 __version__ = '0.6'

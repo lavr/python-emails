@@ -1,5 +1,4 @@
 # coding: utf-8
-from __future__ import unicode_literals, print_function
 import datetime
 from email.utils import parseaddr
 from dateutil.parser import parse as dateutil_parse
@@ -8,7 +7,7 @@ import pytest
 import emails
 from emails import Message
 import emails.exc
-from emails.compat import to_unicode, StringIO, is_py2, is_py34_plus
+from emails.compat import to_unicode, StringIO
 from emails.utils import decode_header, MessageID
 from emails.backend.inmemory import InMemoryBackend
 
@@ -156,11 +155,9 @@ def test_rfc6532_address():
 
 def test_message_policy():
 
-    if is_py34_plus:
-
-        def gen_policy(**kw):
-            import email.policy
-            return email.policy.SMTP.clone(**kw)
+    def gen_policy(**kw):
+        import email.policy
+        return email.policy.SMTP.clone(**kw)
 
         # Generate without policy
         m1 = emails.Message(**common_email_data())

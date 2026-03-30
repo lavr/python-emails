@@ -1,5 +1,4 @@
 # encode: utf-8
-from __future__ import unicode_literals
 import emails
 from emails.template import JinjaTemplate, StringTemplate, MakoTemplate
 

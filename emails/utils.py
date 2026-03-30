@@ -1,5 +1,4 @@
 # encoding: utf-8
-from __future__ import unicode_literals
 import os
 import socket
 from time import mktime
@@ -18,7 +17,7 @@ from emails.compat import formataddr
 import requests
 
 from . import USER_AGENT
-from .compat import string_types, to_unicode, NativeStringIO, is_py2, BytesIO, to_native
+from .compat import string_types, to_unicode, NativeStringIO, BytesIO, to_native
 from .exc import HTTPLoaderError
 
 
@@ -194,17 +193,11 @@ class MIMEMixin():
         """
         fp = NativeStringIO()
         g = generator.Generator(fp, mangle_from_=False)
-        if is_py2:
-            g.flatten(self, unixfrom=unixfrom)
-        else:
-            g.flatten(self, unixfrom=unixfrom, linesep=linesep)
+        g.flatten(self, unixfrom=unixfrom, linesep=linesep)
 
         return fp.getvalue()
 
-    if is_py2:
-        as_bytes = as_string
-    else:
-        def as_bytes(self, unixfrom=False, linesep='\n'):
+    def as_bytes(self, unixfrom=False, linesep='\n'):
             """Return the entire formatted message as bytes.
             Optional `unixfrom' when True, means include the Unix From_ envelope
             header.

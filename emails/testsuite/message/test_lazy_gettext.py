@@ -1,5 +1,4 @@
 # encoding: utf-8
-from __future__ import unicode_literals, print_function
 import gettext
 from emails import Message
 from emails.utils import decode_header

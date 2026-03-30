@@ -1,5 +1,4 @@
 # encoding: utf-8
-from __future__ import unicode_literals
 from email.utils import parseaddr
 import logging
 import mimetypes

@@ -1,5 +1,4 @@
 # encoding: utf-8
-from __future__ import unicode_literals
 import pytest
 import emails
 import emails.store

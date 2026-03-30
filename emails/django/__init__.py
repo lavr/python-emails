@@ -1,5 +1,4 @@
 # encoding: utf-8
-from __future__ import absolute_import
 from django.core.mail import get_connection
 from .. message import MessageTransformerMixin, MessageSignMixin, MessageBuildMixin, BaseMessage
 from .. utils import sanitize_email

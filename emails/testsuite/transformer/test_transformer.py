@@ -1,5 +1,4 @@
 # encoding: utf-8
-from __future__ import unicode_literals
 import os.path
 import emails.loader
 from emails.loader.local_store import FileSystemLoader, BaseLoader
