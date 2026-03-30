@@ -10,7 +10,7 @@ on:
 
 jobs:
   tests:
-    name: ${{ matrix.name }}
+    name: "unit / ${{ matrix.name }}"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -34,10 +34,42 @@ jobs:
           pip install -U setuptools
           python -m pip install -U pip
       - run: pip install tox
-      - name: run rests
+      - name: run tests
+        run: tox -e ${{ matrix.tox }} -- -m "not e2e"
+
+  e2e:
+    name: "e2e / ${{ matrix.name }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {name: '3.14', python: '3.14', os: ubuntu-latest, tox: py314}
+    services:
+      mailpit:
+        image: axllent/mailpit
+        ports:
+          - 1025:1025
+          - 8025:8025
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - name: update pip
+        run: |
+          pip install -U wheel
+          pip install -U setuptools
+          python -m pip install -U pip
+      - run: pip install tox
+      - name: run e2e tests
         env:
           SMTP_TEST_SUBJECT_SUFFIX: "github-actions sha:${{ github.sha }} run_id:${{ github.run_id }}"
           SMTP_TEST_MAIL_FROM: python-emails-tests@lavr.me
           SMTP_TEST_MAIL_TO: python-emails-tests@lavr.me
-          SMTP_TEST_SETS: ""
-        run: tox -e ${{ matrix.tox }}
+          SMTP_TEST_SETS: LOCAL
+          SMTP_TEST_LOCAL_HOST: 127.0.0.1
+          SMTP_TEST_LOCAL_PORT: 1025
+          SMTP_TEST_LOCAL_WITHOUT_TLS: true
+        run: tox -e ${{ matrix.tox }} -- -m e2e
