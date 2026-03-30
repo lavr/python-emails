@@ -30,7 +30,7 @@ and more:
 
 |
 
-Documentation: `python-emails.readthedocs.org <http://python-emails.readthedocs.org/>`_
+Documentation: `python-emails.readthedocs.io <https://python-emails.readthedocs.io/>`_
 
 Flask extension: `flask-emails <https://github.com/lavr/flask-emails>`_
 
@@ -43,5 +43,3 @@ Flask extension: `flask-emails <https://github.com/lavr/flask-emails>`_
 .. image:: https://img.shields.io/pypi/v/emails.svg
    :target: https://pypi.python.org/pypi/emails
 
-.. image:: https://coveralls.io/repos/lavr/python-emails/badge.svg?branch=master
-   :target: https://coveralls.io/r/lavr/python-emails?branch=master

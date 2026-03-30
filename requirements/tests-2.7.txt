@@ -1,9 +1,0 @@
---requirement=tests-base.txt
-
-cssutils
-lxml
-chardet
-python-dateutil
-requests
-django
-premailer<3.7
