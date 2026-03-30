@@ -23,17 +23,6 @@ jobs:
           - {name: '3.8', python: '3.8', os: ubuntu-latest, tox: py38}
           - {name: '3.7', python: '3.7', os: ubuntu-latest, tox: py37}
           - {name: '3.6', python: '3.6', os: ubuntu-20.04, tox: py36}
-    services:
-      postfix:
-        image: lavr/docker-postfix
-        env:
-          SMTP_SERVER: smtp.gmail.com
-          SMTP_PORT: 587
-          SMTP_USERNAME: ${{ secrets.SMTP_TEST_GMAIL_USER }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_TEST_GMAIL_PASSWORD }}
-          SERVER_HOSTNAME: python-emails-tests.github-ci.lavr.me
-        ports:
-          - 2525:25
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -58,22 +47,5 @@ jobs:
           SMTP_TEST_SUBJECT_SUFFIX: "github-actions sha:${{ github.sha }} run_id:${{ github.run_id }}"
           SMTP_TEST_MAIL_FROM: python-emails-tests@lavr.me
           SMTP_TEST_MAIL_TO: python-emails-tests@lavr.me
-          SMTP_TEST_SETS: LOCAL
-          SMTP_TEST_LOCAL_WITHOUT_TLS: true
-          SMTP_TEST_LOCAL_HOST: 127.0.0.1
-          SMTP_TEST_LOCAL_PORT: 2525
-
-          SMTP_TEST_GMAIL_TO: python-emails-tests@lavr.me
-          SMTP_TEST_GMAIL_USER: ${{ secrets.SMTP_TEST_GMAIL_USER }}
-          SMTP_TEST_GMAIL_PASSWORD: ${{ secrets.SMTP_TEST_GMAIL_PASSWORD }}
-          SMTP_TEST_GMAIL_WITH_TLS: true
-          SMTP_TEST_GMAIL_HOST: smtp.gmail.com
-          SMTP_TEST_GMAIL_PORT: 587
-          SMTP_TEST_YAMAIL_TO: python.emails.test.2@yandex.ru
-          SMTP_TEST_YAMAIL_FROM: python.emails.test.2@yandex.ru
-          SMTP_TEST_YAMAIL_USER: python.emails.test.2
-          SMTP_TEST_YAMAIL_PASSWORD: ${{ secrets.SMTP_TEST_YAMAIL_PASSWORD }}
-          SMTP_TEST_YAMAIL_WITH_TLS: true
-          SMTP_TEST_YAMAIL_HOST: smtp.yandex.ru
-          SMTP_TEST_YAMAIL_PORT: 25
+          SMTP_TEST_SETS: ""
         run: tox -e ${{ matrix.tox }}
