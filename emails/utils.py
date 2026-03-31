@@ -10,7 +10,7 @@ from random import randrange
 from functools import wraps
 from io import StringIO, BytesIO
 from collections.abc import Callable
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast, overload
 
 import email.charset
 from email import generator
@@ -33,6 +33,16 @@ def to_native(x: str | bytes | None, charset: str = sys.getdefaultencoding(),
     return x.decode(charset, errors)
 
 
+@overload
+def to_unicode(x: None, charset: str | None = ..., errors: str = ...,
+               allow_none_charset: bool = ...) -> None: ...
+@overload
+def to_unicode(x: str | bytes, charset: str | None = ..., errors: str = ...,
+               allow_none_charset: bool = ...) -> str: ...
+@overload
+def to_unicode(x: Any, charset: str | None = ..., errors: str = ...,
+               allow_none_charset: bool = ...) -> str | None: ...
+
 def to_unicode(x: Any, charset: str | None = sys.getdefaultencoding(),
                errors: str = 'strict',
                allow_none_charset: bool = False) -> str | None:
@@ -41,8 +51,9 @@ def to_unicode(x: Any, charset: str | None = sys.getdefaultencoding(),
     if not isinstance(x, bytes):
         return str(x)
     if charset is None and allow_none_charset:
-        return x  # type: ignore[return-value]  # returns bytes when allow_none_charset=True
-    return x.decode(charset, errors)  # type: ignore[arg-type]  # charset is str here
+        return x  # type: ignore[return-value]  # bytes returned when allow_none_charset=True
+    assert charset is not None  # guaranteed when allow_none_charset is False (default)
+    return x.decode(charset, errors)
 
 
 def to_bytes(x: str | bytes | bytearray | memoryview | None,
@@ -130,7 +141,12 @@ def decode_header(value: str | bytes, default: str = "utf-8", errors: str = 'str
     """Decode the specified header value"""
     native = to_native(value, charset=default, errors=errors)
     assert native is not None  # to_native returns None only for None input
-    return "".join([to_unicode(text, charset or default, errors) for text, charset in decode_header_(native)])  # type: ignore[misc]
+    parts: list[str] = []
+    for text, charset in decode_header_(native):
+        decoded = to_unicode(text, charset or default, errors)
+        assert decoded is not None
+        parts.append(decoded)
+    return "".join(parts)
 
 
 class MessageID:
@@ -319,7 +335,7 @@ def renderable(f: F) -> F:
         else:
             return r
 
-    return wrapper  # type: ignore[return-value]
+    return cast(F, wrapper)
 
 
 def format_date_header(v: datetime | float | None, localtime: bool = True) -> str:

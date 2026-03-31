@@ -1,10 +1,13 @@
 # encoding: utf-8
+from __future__ import annotations
+
 __all__ = ['SMTPClientWithResponse', 'SMTPClientWithResponse_SSL']
 
 import smtplib
-from smtplib import _have_ssl, SMTP
+from smtplib import _have_ssl, SMTP  # noqa: private API
 import logging
-from ... utils import sanitize_email
+from ..response import SMTPResponse
+from ...utils import sanitize_email
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +58,9 @@ class SMTPClientWithResponse(SMTP):
         except smtplib.SMTPServerDisconnected:
             pass
 
-    def sendmail(self, from_addr, to_addrs, msg, mail_options=None, rcpt_options=None):
+    def sendmail(self, from_addr: str, to_addrs: list[str] | str,
+                 msg: bytes, mail_options: list[str] | None = None,
+                 rcpt_options: list[str] | None = None) -> SMTPResponse | None:
 
         if not to_addrs:
             return None

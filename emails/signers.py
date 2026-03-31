@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from email.mime.multipart import MIMEMultipart
-from typing import IO
+from typing import IO, cast
 
 from .packages import dkim
 from .packages.dkim import DKIMException, UnparsableKeyError
@@ -28,13 +28,16 @@ class DKIMSigner:
         if privkey and hasattr(privkey, 'read'):
             privkey = privkey.read()
 
+        # Normalize to bytes before parsing
+        privkey_bytes = privkey if isinstance(privkey, bytes) else str(privkey).encode()
+
         # Compile private key
         try:
-            privkey = parse_pem_private_key(to_bytes(privkey))  # type: ignore[arg-type]
+            privkey_parsed = parse_pem_private_key(privkey_bytes)
         except UnparsableKeyError as exc:
             raise DKIMException(exc)
 
-        self._sign_params.update({'privkey': privkey,
+        self._sign_params.update({'privkey': privkey_parsed,
                                   'domain': to_bytes(domain),
                                   'selector': to_bytes(selector)})
 
@@ -43,7 +46,7 @@ class DKIMSigner:
             # pydkim module parses message and privkey on each signing
             # this is not optimal for mass operations
             # TODO: patch pydkim or use another signing module
-            return dkim.sign(message=message, **self._sign_params)  # type: ignore[no-any-return]
+            return cast(bytes, dkim.sign(message=message, **self._sign_params))
         except DKIMException:
             if self.ignore_sign_errors:
                 logging.exception('Error signing message')

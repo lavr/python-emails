@@ -144,7 +144,8 @@ class BaseFile:
         if p is None:
             filename_header = encode_header(self.filename)
             p = MIMEBase(*self.mime_type.split('/', 1), name=filename_header)
-            p.set_payload(to_bytes(self.data))  # type: ignore[arg-type]
+            payload = to_bytes(self.data) or b''
+            p.set_payload(payload)
             encode_base64(p)
             if 'content-disposition' not in self._headers:
                 p.add_header('Content-Disposition', self.content_disposition, filename=filename_header)
@@ -188,7 +189,10 @@ class LazyHTTPFile(BaseFile):
 
     def get_data(self) -> bytes | str:
         self.fetch()
-        return self._data or ''  # type: ignore[return-value]
+        data = self._data
+        if data is None or isinstance(data, (str, bytes)):
+            return data or ''
+        return data.read()
 
     def set_data(self, v: bytes | str | IO[bytes] | None) -> None:
         self._data = v
@@ -198,7 +202,7 @@ class LazyHTTPFile(BaseFile):
     @property
     def mime_type(self) -> str:
         self.fetch()
-        return super(LazyHTTPFile, self).mime_type  # type: ignore[no-any-return]
+        return self.get_mime_type()
 
     @property
     def headers(self) -> dict[str, str]:

@@ -111,7 +111,9 @@ class SMTPBackend:
                 response.raise_if_needed()
             return response
         else:
-            return client.sendmail(**kwargs)  # type: ignore[no-any-return]
+            result = client.sendmail(**kwargs)
+            assert result is not None  # to_addrs validated by caller
+            return result
 
     def sendmail(self, from_addr: str, to_addrs: str | list[str],
                  msg: Any, mail_options: list[str] | None = None,
