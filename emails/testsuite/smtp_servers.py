@@ -1,4 +1,3 @@
-# encoding: utf-8
 import os
 import platform
 import datetime
@@ -100,7 +99,7 @@ class SMTPTestParams(object):
         return message
 
     def __str__(self):
-        return u'SMTPTestParams({user}@{host}:{port})'.format(host=self.params.get('host'),
+        return 'SMTPTestParams({user}@{host}:{port})'.format(host=self.params.get('host'),
                                                               port=self.params.get('port'),
                                                               user=self.params.get('user', ''))
 

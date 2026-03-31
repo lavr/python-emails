@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
-
+#!/usr/bin/env python3
 """
 
 Simple utility that imports html from url ang print generated rfc822 message to console.
@@ -65,7 +63,7 @@ class MakeRFC822:
         args = dict(images_inline=options.inline_images,
                     message_params=dict(headers=self._headers_from_command_line(),
                                         mail_from=(options.from_name, options.from_email),
-                                        subject=T(unicode(options.subject, 'utf-8')),
+                                        subject=T(options.subject),
                                         message_id=message_id),
                     template_cls=T)
         if options.url:

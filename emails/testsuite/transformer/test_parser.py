@@ -1,4 +1,3 @@
-# encoding: utf-8
 from emails.transformer import HTMLParser
 
 

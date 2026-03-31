@@ -1,4 +1,3 @@
-# encoding: utf-8
 
 import socket
 
@@ -11,7 +10,7 @@ from emails.testsuite.smtp_servers import get_servers
 SAMPLE_MESSAGE = {'html': '<p>Test from python-emails',
                   'text': 'Test from python-emails',
                   'mail_from': 's@lavr.me',
-                  'mail_to': 'sergei-nko@yandex.ru'}
+                  'mail_to': 'sergei-nko@yandex.r'}
 
 
 def test_send_to_unknown_host():

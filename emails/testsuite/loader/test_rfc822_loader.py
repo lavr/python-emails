@@ -1,4 +1,3 @@
-# encoding: utf-8
 import glob
 import email
 import datetime
@@ -41,8 +40,8 @@ def test_msgloader():
 
     data = {'charset': 'utf-8',
             'subject': 'Что-то по-русски',
-            'mail_from': ('Максим Иванов', 'ivanov@ya.ru'),
-            'mail_to': [('Полина Сергеева', 'polina@mail.ru'), ('test', 'test@example.com')],
+            'mail_from': ('Максим Иванов', 'ivanov@ya.r'),
+            'mail_to': [('Полина Сергеева', 'polina@mail.r'), ('test', 'test@example.com')],
             'cc': [('CC User', 'cc@example.com'), ('cc', 'cc.1@example.com')],
             'html': '<h1>Привет!</h1><p>В первых строках...',
             'text': 'Привет!\nВ первых строках...',

@@ -1,4 +1,3 @@
-# encoding: utf-8
 import pytest
 from emails.template import MakoTemplate, StringTemplate, JinjaTemplate
 from emails.template.base import BaseTemplate

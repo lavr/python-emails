@@ -1,4 +1,3 @@
-# encoding: utf-8
 import os.path
 import emails.loader
 from emails.loader.local_store import FileSystemLoader, BaseLoader

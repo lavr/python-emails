@@ -1,4 +1,3 @@
-# encoding: utf-8
 from __future__ import annotations
 
 import sys
@@ -207,7 +206,7 @@ def parse_name_and_email_list(elements: str | tuple[str | None, str] | list[Any]
 def parse_name_and_email(obj: str | tuple[str | None, str] | list[str],
                          encoding: str = 'utf-8') -> AddressPair:
     # In:  'john@smith.me' or  '"John Smith" <john@smith.me>' or ('John Smith', 'john@smith.me')
-    # Out: (u'John Smith', u'john@smith.me')
+    # Out: ('John Smith', 'john@smith.me')
 
     if isinstance(obj, (list, tuple)):
         if len(obj) == 2:

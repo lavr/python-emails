@@ -1,4 +1,3 @@
-# encoding: utf-8
 import os
 from lxml.etree import XMLSyntaxError
 import pytest
