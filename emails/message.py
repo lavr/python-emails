@@ -39,7 +39,7 @@ class BaseMessage:
     def __init__(self,
                  charset: str | None = None,
                  message_id: str | MessageID | bool | None = None,
-                 date: str | datetime | float | bool | Callable[[], str] | None = None,
+                 date: str | datetime | float | bool | Callable[..., str | datetime | float] | None = None,
                  subject: str | None = None,
                  mail_from: _Address = None,
                  mail_to: _AddressList = None,
@@ -158,7 +158,7 @@ class BaseMessage:
     def render(self, **kwargs: Any) -> None:
         self.render_data = kwargs
 
-    def set_date(self, value: str | datetime | float | bool | Callable[[], str] | None) -> None:
+    def set_date(self, value: str | datetime | float | bool | Callable[..., str | datetime | float] | None) -> None:
         self._date = value
 
     def get_date(self) -> str | None:

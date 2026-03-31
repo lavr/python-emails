@@ -37,13 +37,13 @@ class SMTPResponse(Response):
 
         self.responses: list[list] = []
 
-        self.esmtp_opts: str | None = None
-        self.rcpt_options: str | None = None
+        self.esmtp_opts: list[str] | None = None
+        self.rcpt_options: list[str] | None = None
 
         self.status_code: int | None = None
         self.status_text: str | None = None
         self.last_command: str | None = None
-        self.refused_recipient: dict[str, tuple[int, str]] = {}
+        self.refused_recipients: dict[str, tuple[int, bytes]] = {}
 
     def set_status(self, command: str, code: int, text: str, **kwargs: Any) -> None:
         self.responses.append([command, code, text, kwargs])
