@@ -242,6 +242,9 @@ class BaseTransformer(HTMLParser):
         # Return local uri
         #
 
+        if uri.startswith('data:'):
+            return uri
+
         if callback is None:
             # Default callback: skip images with data-emails="ignore" attribute
             callback = lambda _, hints: hints['attrib'] != 'ignore'
