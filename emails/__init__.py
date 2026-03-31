@@ -42,7 +42,7 @@ __author__ = 'Sergey Lavrinenko'
 __license__ = 'Apache 2.0'
 __copyright__ = 'Copyright 2013-2026 Sergey Lavrinenko'
 
-USER_AGENT = 'python-emails/%s' % __version__
+USER_AGENT: str = 'python-emails/%s' % __version__
 
 from .message import Message, html
 from .utils import MessageID

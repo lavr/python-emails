@@ -17,7 +17,8 @@ from email import generator
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header, decode_header as decode_header_
-from email.utils import parseaddr, formatdate, escapesre, specialsre
+from email.utils import parseaddr, formatdate
+from email.utils import escapesre, specialsre  # type: ignore[attr-defined]  # private but stable
 
 from . import USER_AGENT
 from .exc import HTTPLoaderError
@@ -40,8 +41,8 @@ def to_unicode(x: Any, charset: str | None = sys.getdefaultencoding(),
     if not isinstance(x, bytes):
         return str(x)
     if charset is None and allow_none_charset:
-        return x
-    return x.decode(charset, errors)
+        return x  # type: ignore[return-value]  # returns bytes when allow_none_charset=True
+    return x.decode(charset, errors)  # type: ignore[arg-type]  # charset is str here
 
 
 def to_bytes(x: str | bytes | bytearray | memoryview | None,
@@ -127,8 +128,8 @@ DNS_NAME = CachedDnsName()
 
 def decode_header(value: str | bytes, default: str = "utf-8", errors: str = 'strict') -> str:
     """Decode the specified header value"""
-    value = to_native(value, charset=default, errors=errors)
-    return "".join([to_unicode(text, charset or default, errors) for text, charset in decode_header_(value)])
+    value = to_native(value, charset=default, errors=errors)  # type: ignore[assignment]
+    return "".join([to_unicode(text, charset or default, errors) for text, charset in decode_header_(value)])  # type: ignore[misc, arg-type]
 
 
 class MessageID:
@@ -212,7 +213,7 @@ def parse_name_and_email(obj: str | tuple[str | None, str] | list[str],
 
 def sanitize_email(addr: str, encoding: str = 'ascii', parse: bool = False) -> str:
     if parse:
-        _, addr = parseaddr(to_unicode(addr))
+        _, addr = parseaddr(to_unicode(addr))  # type: ignore[arg-type]
     try:
         addr.encode('ascii')
     except UnicodeEncodeError:  # IDN
@@ -228,7 +229,7 @@ def sanitize_email(addr: str, encoding: str = 'ascii', parse: bool = False) -> s
 
 def sanitize_address(addr: str | tuple[str, str], encoding: str = 'ascii') -> str:
     if isinstance(addr, str):
-        addr = parseaddr(to_unicode(addr))
+        addr = parseaddr(to_unicode(addr))  # type: ignore[arg-type]
     nm, addr = addr
     # This try-except clause is needed on Python 3 < 3.2.4
     # http://bugs.python.org/issue14291
@@ -266,13 +267,13 @@ class MIMEMixin:
             return fp.getvalue()
 
 
-class SafeMIMEText(MIMEMixin, MIMEText):
+class SafeMIMEText(MIMEMixin, MIMEText):  # type: ignore[misc]  # intentional override
     def __init__(self, text: str, subtype: str, charset: str) -> None:
         self.encoding = charset
         MIMEText.__init__(self, text, subtype, charset)
 
 
-class SafeMIMEMultipart(MIMEMixin, MIMEMultipart):
+class SafeMIMEMultipart(MIMEMixin, MIMEMultipart):  # type: ignore[misc]  # intentional override
     def __init__(self, _subtype: str = 'mixed', boundary: str | None = None,
                  _subparts: list[Any] | None = None,
                  encoding: str | None = None, **_params: Any) -> None:
@@ -280,7 +281,7 @@ class SafeMIMEMultipart(MIMEMixin, MIMEMultipart):
         MIMEMultipart.__init__(self, _subtype, boundary, _subparts, **_params)
 
 
-DEFAULT_REQUESTS_PARAMS = dict(allow_redirects=True,
+DEFAULT_REQUESTS_PARAMS: dict[str, Any] = dict(allow_redirects=True,
                              verify=False, timeout=10,
                              headers={'User-Agent': USER_AGENT})
 
@@ -299,7 +300,7 @@ def fetch_url(url: str, valid_http_codes: tuple[int, ...] = (200, ),
 
 def encode_header(value: str | Any, charset: str = 'utf-8') -> str | Any:
     if isinstance(value, str):
-        value = to_unicode(value, charset=charset).rstrip()
+        value = to_unicode(value, charset=charset).rstrip()  # type: ignore[union-attr]
         _r = Header(value, charset)
         return str(_r)
     else:

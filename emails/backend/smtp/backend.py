@@ -34,7 +34,7 @@ class SMTPBackend:
     def __init__(self, ssl: bool = False, fail_silently: bool = True,
                  mail_options: list[str] | None = None, **kwargs: Any) -> None:
 
-        self.smtp_cls = ssl and self.connection_ssl_cls or self.connection_cls
+        self.smtp_cls = self.connection_ssl_cls if ssl else self.connection_cls
 
         self.ssl = ssl
         self.tls = kwargs.get('tls')
@@ -50,7 +50,7 @@ class SMTPBackend:
         self.smtp_cls_kwargs = kwargs
 
         self.host: str | None = kwargs.get('host')
-        self.port: int = kwargs.get('port')
+        self.port: int = kwargs.get('port')  # type: ignore[assignment]
         self.fail_silently = fail_silently
         self.mail_options = mail_options or []
 
@@ -111,7 +111,7 @@ class SMTPBackend:
                 response.raise_if_needed()
             return response
         else:
-            return client.sendmail(**kwargs)
+            return client.sendmail(**kwargs)  # type: ignore[no-any-return]
 
     def sendmail(self, from_addr: str, to_addrs: str | list[str],
                  msg: Any, mail_options: list[str] | None = None,

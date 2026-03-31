@@ -66,9 +66,9 @@ class MemoryFileStore(FileStore):
                 if filename not in self._filenames:
                     break
 
-        self._filenames[filename] = uri
+        self._filenames[filename] = uri  # type: ignore[index]
 
-        return filename
+        return filename  # type: ignore[return-value]
 
     def add(self, value: BaseFile | dict[str, Any], replace: bool = False) -> BaseFile:
 
@@ -94,6 +94,7 @@ class MemoryFileStore(FileStore):
         uri = self._filenames.get(filename)
         if uri:
             return self.by_uri(uri)
+        return None
 
     def __getitem__(self, uri: str) -> BaseFile | None:
         return self.by_uri(uri) or self.by_filename(uri)

@@ -35,10 +35,10 @@ class BaseFile:
         if no filename set, filename extracted from uri.
         if no uri, but filename set, then uri==filename
         """
-        self.uri: str | None = kwargs.get('uri', None)
+        self.uri: str | None = kwargs.get('uri', None)  # type: ignore[no-redef]
         self.absolute_url: str | None = kwargs.get('absolute_url', None) or self.uri
-        self.filename: str | None = kwargs.get('filename', None)
-        self.data: bytes | str | IO[bytes] | None = kwargs.get('data', None)
+        self.filename: str | None = kwargs.get('filename', None)  # type: ignore[no-redef]
+        self.data: bytes | str | IO[bytes] | None = kwargs.get('data', None)  # type: ignore[no-redef]
         self._mime_type: str | None = kwargs.get('mime_type')
         self._headers: dict[str, str] = kwargs.get('headers', {})
         self._content_id: str | None = kwargs.get('content_id')
@@ -56,7 +56,7 @@ class BaseFile:
         if isinstance(_data, str):
             return _data
         elif hasattr(_data, 'read'):
-            return _data.read()
+            return _data.read()  # type: ignore[union-attr, no-any-return]
         else:
             return _data
 
@@ -142,7 +142,7 @@ class BaseFile:
         if p is None:
             filename_header = encode_header(self.filename)
             p = MIMEBase(*self.mime_type.split('/', 1), name=filename_header)
-            p.set_payload(to_bytes(self.data))
+            p.set_payload(to_bytes(self.data))  # type: ignore[arg-type]
             encode_base64(p)
             if 'content-disposition' not in self._headers:
                 p.add_header('Content-Disposition', self.content_disposition, filename=filename_header)
@@ -186,7 +186,7 @@ class LazyHTTPFile(BaseFile):
 
     def get_data(self) -> bytes | str:
         self.fetch()
-        return self._data or ''
+        return self._data or ''  # type: ignore[return-value]
 
     def set_data(self, v: bytes | str | IO[bytes] | None) -> None:
         self._data = v
@@ -196,7 +196,7 @@ class LazyHTTPFile(BaseFile):
     @property
     def mime_type(self) -> str:
         self.fetch()
-        return super(LazyHTTPFile, self).mime_type
+        return super(LazyHTTPFile, self).mime_type  # type: ignore[no-any-return]
 
     @property
     def headers(self) -> dict[str, str]:

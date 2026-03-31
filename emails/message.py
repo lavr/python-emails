@@ -280,6 +280,7 @@ class MessageBuildMixin:
             p = SafeMIMEText(text, 'html', charset=self.charset)
             p.set_charset(self.charset)
             return p
+        return None
 
     def _build_text_part(self) -> SafeMIMEText | None:
         text = self.text_body
@@ -287,6 +288,7 @@ class MessageBuildMixin:
             p = SafeMIMEText(text, 'plain', charset=self.charset)
             p.set_charset(self.charset)
             return p
+        return None
 
     def build_message(self, message_cls: type | None = None) -> SafeMIMEMultipart:
 
