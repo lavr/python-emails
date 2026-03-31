@@ -29,6 +29,8 @@ class BaseFile:
     Store base "attachment-file" information.
     """
 
+    _data: bytes | str | IO[bytes] | None
+
     def __init__(self, **kwargs: Any) -> None:
         """
         uri and filename are connected properties.
@@ -52,13 +54,13 @@ class BaseFile:
         return dict([(k, getattr(self, k)) for k in fields])
 
     def get_data(self) -> bytes | str | None:
-        _data = getattr(self, '_data', None)
-        if isinstance(_data, str):
+        _data = self._data
+        if isinstance(_data, (str, bytes)):
             return _data
-        elif hasattr(_data, 'read'):
-            return _data.read()  # type: ignore[union-attr, no-any-return]
+        elif _data is None:
+            return None
         else:
-            return _data
+            return _data.read()
 
     def set_data(self, value: bytes | str | IO[bytes] | None) -> None:
         self._data = value
