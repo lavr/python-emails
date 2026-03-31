@@ -121,13 +121,11 @@ settings.update(
               'emails.backend.smtp',
               'emails.backend.inmemory',
               'emails.template',
-              'emails.packages',
-              'emails.packages.dkim'
              ],
     package_data={'emails': ['py.typed']},
     scripts=['scripts/make_rfc822.py'],
     python_requires='>=3.10',
-    install_requires=['python-dateutil', 'puremagic'],
+    install_requires=['python-dateutil', 'puremagic', 'dkimpy'],
     extras_require={
         'html': ['cssutils', 'lxml', 'chardet', 'requests', 'premailer'],
     },
