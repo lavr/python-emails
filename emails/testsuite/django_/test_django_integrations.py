@@ -1,4 +1,3 @@
-# encoding: utf-8
 import warnings
 import emails
 import emails.message

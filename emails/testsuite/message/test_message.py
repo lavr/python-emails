@@ -1,4 +1,3 @@
-# coding: utf-8
 import datetime
 from email.utils import parseaddr
 from dateutil.parser import parse as dateutil_parse

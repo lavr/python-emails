@@ -1,4 +1,3 @@
-# encoding: utf-8
 __all__ = ['guess_charset', 'fix_content_type']
 from email.message import Message
 

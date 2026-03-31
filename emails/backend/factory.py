@@ -1,4 +1,3 @@
-# encoding: utf-8
 
 def simple_dict2str(d):
     # Simple dict serializer

@@ -4,4 +4,3 @@ speaklater
 pytest
 pytest-cov
 html5lib
-six

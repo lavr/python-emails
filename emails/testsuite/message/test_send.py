@@ -1,4 +1,3 @@
-# coding: utf-8
 import time
 import random
 import pytest
@@ -18,7 +17,7 @@ def get_letters():
     yield emails.html(**data), None
 
     # Email with render
-    yield emails.html(**common_email_data(subject='Render with name=John')), {'name': u'John'}
+    yield emails.html(**common_email_data(subject='Render with name=John')), {'name': 'John'}
 
     # Email with several inline images
     url = 'http://lavr.github.io/python-emails/tests/campaignmonitor-samples/sample-template/template-widgets.html'

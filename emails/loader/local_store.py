@@ -1,4 +1,3 @@
-# encoding: utf-8
 from email.utils import parseaddr
 import logging
 import mimetypes

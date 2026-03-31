@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This module use pydkim for DKIM signature
 from __future__ import annotations
 

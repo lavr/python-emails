@@ -1,4 +1,3 @@
-# encoding: utf-8
 
 import logging; import  cssutils; cssutils.log.setLevel(logging.FATAL)
 
@@ -33,16 +32,16 @@ def test_decode_text():
         assert enc_
         return enc_
 
-    assert decode_text(u'A')[0] == u'A'
-    assert decode_text(b'A') == (u'A', 'ascii')
+    assert decode_text('A')[0] == 'A'
+    assert decode_text(b'A') == ('A', 'ascii')
 
     for enc in ['utf-8', 'windows-1251', 'cp866']:
-        t = u'Шла Саша по шоссе и сосала сушку. В огороде бузина, в Киеве дядька.'
+        t = 'Шла Саша по шоссе и сосала сушку. В огороде бузина, в Киеве дядька.'
         text, guessed_encoding = decode_text(t.encode(enc))
         print(text, norma_enc(guessed_encoding))
         assert (text, norma_enc(guessed_encoding)) == (t, norma_enc(enc))
 
-        html = u"""<html><meta http-equiv="Content-Type" content="text/html; charset=%s" />""" % enc
+        html = """<html><meta http-equiv="Content-Type" content="text/html; charset=%s" />""" % enc
         text, guessed_encoding = decode_text(html.encode('utf-8'), is_html=True)
         print(text, norma_enc(guessed_encoding))
         assert (text, norma_enc(guessed_encoding)) == (html, norma_enc(enc))

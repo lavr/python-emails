@@ -1,4 +1,3 @@
-# encoding: utf-8
 import gettext
 from emails import Message
 from emails.utils import decode_header

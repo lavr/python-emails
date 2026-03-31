@@ -1,10 +1,9 @@
-# coding: utf-8
 import os
 
 import emails
 from emails.template import JinjaTemplate
 
-TO_EMAIL = os.environ.get('SMTP_TEST_MAIL_TO') or 'python.emails.test.2@yandex.ru'
+TO_EMAIL = os.environ.get('SMTP_TEST_MAIL_TO') or 'python.emails.test.2@yandex.r'
 FROM_EMAIL = os.environ.get('SMTP_TEST_MAIL_FROM') or 'python-emails@lavr.me'
 ROOT = os.path.dirname(__file__)
 
