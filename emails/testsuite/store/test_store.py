@@ -68,6 +68,33 @@ def test_get_data_none():
     assert f.data is None
 
 
+def test_mime_type_from_content():
+    # PNG magic bytes, no file extension
+    png_header = (b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR'
+                  b'\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02'
+                  b'\x00\x00\x00\x90wS\xde')
+    f = BaseFile(data=png_header, filename='image_no_ext')
+    assert f.mime_type == 'image/png'
+
+    # JPEG magic bytes, no file extension
+    jpeg_header = b'\xff\xd8\xff\xe0\x00\x10JFIF'
+    f = BaseFile(data=jpeg_header, filename='photo')
+    assert f.mime_type == 'image/jpeg'
+
+    # Unknown bytes, no extension — should fall back to unknown
+    f = BaseFile(data=b'\x00\x01\x02\x03', filename='mystery')
+    assert f.mime_type == 'application/unknown'
+
+    # Extension still takes priority
+    f = BaseFile(data=png_header, filename='image.gif')
+    assert f.mime_type == 'image/gif'
+
+    # File-like data: mime detected without exhausting stream
+    f = BaseFile(data=BytesIO(png_header), filename='no_ext')
+    assert f.mime_type == 'image/png'
+    assert f.data == png_header  # stream not consumed by mime detection
+
+
 def test_store_commons2():
     store = emails.store.MemoryFileStore()
     f1 = store.add({'uri': '/a/c.gif'})

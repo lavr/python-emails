@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from mimetypes import guess_type
+import puremagic
 from email.mime.base import MIMEBase
 from email.encoders import encode_base64
 from os.path import basename
@@ -102,6 +103,23 @@ class BaseFile:
             filename = self.filename
             if filename:
                 r = self._mime_type = guess_type(filename)[0]
+        if not r:
+            _data = self._data
+            if isinstance(_data, bytes):
+                header = _data
+            elif isinstance(_data, str):
+                header = _data.encode()
+            elif _data is not None:
+                pos = _data.tell()
+                header = _data.read(128)
+                _data.seek(pos)
+            else:
+                header = None
+            if header:
+                try:
+                    r = puremagic.from_string(header, mime=True)
+                except puremagic.PureError:
+                    pass
         if not r:
             r = MIMETYPE_UNKNOWN
         self._mime_type = r

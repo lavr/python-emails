@@ -127,7 +127,7 @@ settings.update(
     package_data={'emails': ['py.typed']},
     scripts=['scripts/make_rfc822.py'],
     python_requires='>=3.10',
-    install_requires=['python-dateutil'],
+    install_requires=['python-dateutil', 'puremagic'],
     extras_require={
         'html': ['cssutils', 'lxml', 'chardet', 'requests', 'premailer'],
     },
