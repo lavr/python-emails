@@ -6,7 +6,7 @@ from datetime import datetime
 from email.utils import getaddresses
 from typing import Any, IO
 
-from .utils import (formataddr, to_unicode, to_native,
+from .utils import (formataddr,
                     SafeMIMEText, SafeMIMEMultipart, sanitize_address,
                     parse_name_and_email, load_email_charsets,
                     encode_header as encode_header_,
@@ -231,7 +231,7 @@ class MessageBuildMixin:
             return
 
         if not isinstance(value, str):
-            value = to_unicode(value)
+            value = value.decode() if isinstance(value, bytes) else str(value)
 
         # Prevent header injection
         if '\n' in value or '\r' in value:
@@ -345,7 +345,7 @@ class MessageBuildMixin:
         Note: this method costs one less message-to-string conversions
         for dkim in compare to self.as_message().as_string()
         """
-        r = to_native(self.build_message(message_cls=message_cls).as_string())
+        r = self.build_message(message_cls=message_cls).as_string()
         if self._signer:
             r = self.sign_string(r)
         return r

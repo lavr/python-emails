@@ -9,7 +9,7 @@ from typing import IO, cast
 from .packages import dkim
 from .packages.dkim import DKIMException, UnparsableKeyError
 from .packages.dkim.crypto import parse_pem_private_key
-from .utils import to_bytes, to_native
+from .utils import to_bytes
 
 
 class DKIMSigner:
@@ -61,9 +61,7 @@ class DKIMSigner:
         # pydkim returns string, so we should split
         s = self.get_sign_string(message)
         if s:
-            native = to_native(s)
-            assert native is not None  # s is bytes, to_native always returns str
-            (header, value) = native.split(': ', 1)
+            (header, value) = s.decode().split(': ', 1)
             if value.endswith("\r\n"):
                 value = value[:-2]
             return header, value
@@ -98,9 +96,7 @@ class DKIMSigner:
         assert msg_bytes is not None
         s = self.get_sign_string(msg_bytes)
         if s:
-            header = to_native(s)
-            assert header is not None
-            return header + message_string
+            return s.decode() + message_string
         return message_string
 
     def sign_message_bytes(self, message_bytes: bytes) -> bytes:

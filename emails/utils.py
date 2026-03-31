@@ -219,7 +219,7 @@ def parse_name_and_email(obj: str | tuple[str | None, str] | list[str],
     else:
         raise ValueError("Can not parse_name_and_email from %s" % obj)
 
-    return to_unicode(name, encoding) or None, to_unicode(email, encoding) or None
+    return name or None, email or None
 
 
 def sanitize_email(addr: str, encoding: str = 'ascii', parse: bool = False) -> str:
