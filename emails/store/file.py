@@ -104,10 +104,15 @@ class BaseFile:
             if filename:
                 r = self._mime_type = guess_type(filename)[0]
         if not r:
-            data = self.data
-            if data:
+            _data = self._data
+            if isinstance(_data, bytes):
                 try:
-                    r = puremagic.from_string(data if isinstance(data, bytes) else data.encode(), mime=True)
+                    r = puremagic.from_string(_data, mime=True)
+                except puremagic.PureError:
+                    pass
+            elif isinstance(_data, str):
+                try:
+                    r = puremagic.from_string(_data.encode(), mime=True)
                 except puremagic.PureError:
                     pass
         if not r:
