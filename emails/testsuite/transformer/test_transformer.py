@@ -66,6 +66,32 @@ def test_tag_attribute():
     assert m3.attachments['1.jpg'].content_disposition == "inline"
 
 
+def test_data_uri_preserved():
+    DATA_URI = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+
+    # data URIs in img src should be left untouched
+    html = '<img src="%s"/>' % DATA_URI
+    m = emails.loader.from_string(html=html)
+    assert len(m.attachments.keys()) == 0
+    assert DATA_URI in m.html
+
+    # data URIs in css url() should be left untouched
+    html = '<div style="background: url(%s);">x</div>' % DATA_URI
+    m = emails.loader.from_string(html=html)
+    assert len(m.attachments.keys()) == 0
+
+    # data URIs in background attribute should be left untouched
+    html = '<table background="%s"/>' % DATA_URI
+    m = emails.loader.from_string(html=html)
+    assert len(m.attachments.keys()) == 0
+
+    # mixed-case scheme should also be preserved
+    mixed = DATA_URI.replace('data:', 'Data:')
+    html = '<img src="%s"/>' % mixed
+    m = emails.loader.from_string(html=html)
+    assert len(m.attachments.keys()) == 0
+
+
 ROOT = os.path.dirname(__file__)
 
 def test_local_premailer():
