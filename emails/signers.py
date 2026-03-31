@@ -9,7 +9,6 @@ from typing import IO, cast
 from .packages import dkim
 from .packages.dkim import DKIMException, UnparsableKeyError
 from .packages.dkim.crypto import parse_pem_private_key
-from .utils import to_bytes
 
 
 class DKIMSigner:
@@ -38,8 +37,8 @@ class DKIMSigner:
             raise DKIMException(exc)
 
         self._sign_params.update({'privkey': privkey_parsed,
-                                  'domain': to_bytes(domain),
-                                  'selector': to_bytes(selector)})
+                                  'domain': domain.encode(),
+                                  'selector': selector.encode()})
 
     def get_sign_string(self, message: bytes) -> bytes | None:
         try:
@@ -76,9 +75,7 @@ class DKIMSigner:
         # but py3 smtplib requires str to send DATA command (#
         # so we have to convert msg.as_string
 
-        msg_bytes = to_bytes(msg.as_string())
-        assert msg_bytes is not None
-        dkim_header = self.get_sign_header(msg_bytes)
+        dkim_header = self.get_sign_header(msg.as_string().encode())
         if dkim_header:
             msg._headers.insert(0, dkim_header)  # type: ignore[attr-defined]
         return msg
@@ -92,9 +89,7 @@ class DKIMSigner:
         # but py3 smtplib requires str to send DATA command
         # so we have to convert message_string
 
-        msg_bytes = to_bytes(message_string)
-        assert msg_bytes is not None
-        s = self.get_sign_string(msg_bytes)
+        s = self.get_sign_string(message_string.encode())
         if s:
             return s.decode() + message_string
         return message_string
