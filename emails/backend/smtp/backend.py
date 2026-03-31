@@ -1,7 +1,13 @@
 # encoding: utf-8
-import smtplib
+from __future__ import annotations
+
 import logging
+import smtplib
+from collections.abc import Callable
 from functools import wraps
+from types import TracebackType
+from typing import Any
+
 from ..response import SMTPResponse
 from .client import SMTPClientWithResponse, SMTPClientWithResponse_SSL
 from ...utils import DNS_NAME
@@ -13,7 +19,7 @@ __all__ = ['SMTPBackend']
 logger = logging.getLogger(__name__)
 
 
-class SMTPBackend(object):
+class SMTPBackend:
 
     """
     SMTPBackend manages a smtp connection.
@@ -25,7 +31,8 @@ class SMTPBackend(object):
     connection_ssl_cls = SMTPClientWithResponse_SSL
     response_cls = SMTPResponse
 
-    def __init__(self, ssl=False, fail_silently=True, mail_options=None, **kwargs):
+    def __init__(self, ssl: bool = False, fail_silently: bool = True,
+                 mail_options: list[str] | None = None, **kwargs: Any) -> None:
 
         self.smtp_cls = ssl and self.connection_ssl_cls or self.connection_cls
 
@@ -42,19 +49,19 @@ class SMTPBackend(object):
 
         self.smtp_cls_kwargs = kwargs
 
-        self.host = kwargs.get('host')
-        self.port = kwargs.get('port')
+        self.host: str | None = kwargs.get('host')
+        self.port: int = kwargs.get('port')
         self.fail_silently = fail_silently
         self.mail_options = mail_options or []
 
-        self._client = None
+        self._client: SMTPClientWithResponse | None = None
 
-    def get_client(self):
+    def get_client(self) -> SMTPClientWithResponse:
         if self._client is None:
             self._client = self.smtp_cls(parent=self, **self.smtp_cls_kwargs)
         return self._client
 
-    def close(self):
+    def close(self) -> None:
 
         """
         Closes the connection to the email server.
@@ -70,12 +77,12 @@ class SMTPBackend(object):
             finally:
                 self._client = None
 
-    def make_response(self, exception=None):
+    def make_response(self, exception: Exception | None = None) -> SMTPResponse:
         return self.response_cls(backend=self, exception=exception)
 
-    def retry_on_disconnect(self, func):
+    def retry_on_disconnect(self, func: Callable[..., SMTPResponse]) -> Callable[..., SMTPResponse]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> SMTPResponse:
             try:
                 return func(*args, **kwargs)
             except smtplib.SMTPServerDisconnected:
@@ -85,7 +92,7 @@ class SMTPBackend(object):
                 return func(*args, **kwargs)
         return wrapper
 
-    def _send(self, **kwargs):
+    def _send(self, **kwargs: Any) -> SMTPResponse:
 
         response = None
         try:
@@ -106,7 +113,9 @@ class SMTPBackend(object):
         else:
             return client.sendmail(**kwargs)
 
-    def sendmail(self, from_addr, to_addrs, msg, mail_options=None, rcpt_options=None):
+    def sendmail(self, from_addr: str, to_addrs: str | list[str],
+                 msg: Any, mail_options: list[str] | None = None,
+                 rcpt_options: list[str] | None = None) -> SMTPResponse | None:
 
         if not to_addrs:
             return None
@@ -127,8 +136,10 @@ class SMTPBackend(object):
 
         return response
 
-    def __enter__(self):
+    def __enter__(self) -> SMTPBackend:
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type: type[BaseException] | None,
+                 exc_value: BaseException | None,
+                 traceback: TracebackType | None) -> None:
         self.close()
