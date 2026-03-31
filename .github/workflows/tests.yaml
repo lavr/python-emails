@@ -34,7 +34,32 @@ jobs:
           python -m pip install -U pip
       - run: pip install tox
       - name: run tests
-        run: tox -e ${{ matrix.tox }} -- -m "not e2e"
+        run: tox -e ${{ matrix.tox }} -- -m "not e2e and not django"
+
+  django:
+    name: "django / ${{ matrix.django }}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {django: '4.2', tox: django42}
+          - {django: '5.2', tox: django52}
+          - {django: '6.0', tox: django60}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: update pip
+        run: |
+          pip install -U wheel
+          pip install -U setuptools
+          python -m pip install -U pip
+      - run: pip install tox
+      - name: run django tests
+        run: tox -e ${{ matrix.tox }}
 
   typecheck:
     name: "typecheck"

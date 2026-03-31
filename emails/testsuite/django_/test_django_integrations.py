@@ -1,7 +1,12 @@
 import warnings
+import pytest
 import emails
 import emails.message
+
+django = pytest.importorskip("django")
 from emails.django import DjangoMessage
+
+pytestmark = pytest.mark.django
 
 
 def test_django_message_proxy(django_email_backend):
