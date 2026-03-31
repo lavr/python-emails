@@ -6,7 +6,7 @@ from datetime import datetime
 from email.utils import getaddresses
 from typing import Any, IO
 
-from .utils import (formataddr, to_unicode, to_native,
+from .utils import (formataddr,
                     SafeMIMEText, SafeMIMEMultipart, sanitize_address,
                     parse_name_and_email, load_email_charsets,
                     encode_header as encode_header_,
@@ -39,7 +39,7 @@ class BaseMessage:
     def __init__(self,
                  charset: str | None = None,
                  message_id: str | MessageID | bool | None = None,
-                 date: str | datetime | float | bool | Callable[[], str] | None = None,
+                 date: str | datetime | float | bool | Callable[..., str | datetime | float] | None = None,
                  subject: str | None = None,
                  mail_from: _Address = None,
                  mail_to: _AddressList = None,
@@ -158,7 +158,7 @@ class BaseMessage:
     def render(self, **kwargs: Any) -> None:
         self.render_data = kwargs
 
-    def set_date(self, value: str | datetime | float | bool | Callable[[], str] | None) -> None:
+    def set_date(self, value: str | datetime | float | bool | Callable[..., str | datetime | float] | None) -> None:
         self._date = value
 
     def get_date(self) -> str | None:
@@ -231,7 +231,7 @@ class MessageBuildMixin:
             return
 
         if not isinstance(value, str):
-            value = to_unicode(value)
+            value = value.decode() if isinstance(value, bytes) else str(value)
 
         # Prevent header injection
         if '\n' in value or '\r' in value:
@@ -280,6 +280,7 @@ class MessageBuildMixin:
             p = SafeMIMEText(text, 'html', charset=self.charset)
             p.set_charset(self.charset)
             return p
+        return None
 
     def _build_text_part(self) -> SafeMIMEText | None:
         text = self.text_body
@@ -287,6 +288,7 @@ class MessageBuildMixin:
             p = SafeMIMEText(text, 'plain', charset=self.charset)
             p.set_charset(self.charset)
             return p
+        return None
 
     def build_message(self, message_cls: type | None = None) -> SafeMIMEMultipart:
 
@@ -343,7 +345,7 @@ class MessageBuildMixin:
         Note: this method costs one less message-to-string conversions
         for dkim in compare to self.as_message().as_string()
         """
-        r = to_native(self.build_message(message_cls=message_cls).as_string())
+        r = self.build_message(message_cls=message_cls).as_string()
         if self._signer:
             r = self.sign_string(r)
         return r
@@ -354,7 +356,7 @@ class MessageBuildMixin:
         """
         r = self.build_message(message_cls=message_cls).as_bytes()
         if self._signer:
-            r = self.sign_string(r)
+            r = self.sign_bytes(r)
         return r
 
 

@@ -126,6 +126,7 @@ settings.update(
               'emails.packages',
               'emails.packages.dkim'
              ],
+    package_data={'emails': ['py.typed']},
     scripts=['scripts/make_rfc822.py'],
     python_requires='>=3.10',
     install_requires=['python-dateutil'],

@@ -132,6 +132,16 @@ def test_dkim_error():
     m.as_message()
 
 
+def test_dkim_as_bytes():
+
+    priv_key, pub_key = _generate_key(length=1024)
+    message = Message(**common_email_data())
+    message.dkim(key=priv_key, selector='_dkim', domain='somewhere.net')
+    result = message.as_bytes()
+    assert isinstance(result, bytes)
+    assert b'DKIM-Signature: ' in result
+
+
 def test_dkim_sign_twice():
 
     # Test #44:

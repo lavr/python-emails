@@ -29,16 +29,18 @@ class BaseFile:
     Store base "attachment-file" information.
     """
 
+    _data: bytes | str | IO[bytes] | None
+
     def __init__(self, **kwargs: Any) -> None:
         """
         uri and filename are connected properties.
         if no filename set, filename extracted from uri.
         if no uri, but filename set, then uri==filename
         """
-        self.uri: str | None = kwargs.get('uri', None)
+        self.uri = kwargs.get('uri', None)
         self.absolute_url: str | None = kwargs.get('absolute_url', None) or self.uri
-        self.filename: str | None = kwargs.get('filename', None)
-        self.data: bytes | str | IO[bytes] | None = kwargs.get('data', None)
+        self.filename = kwargs.get('filename', None)
+        self.data = kwargs.get('data', None)
         self._mime_type: str | None = kwargs.get('mime_type')
         self._headers: dict[str, str] = kwargs.get('headers', {})
         self._content_id: str | None = kwargs.get('content_id')
@@ -52,13 +54,13 @@ class BaseFile:
         return dict([(k, getattr(self, k)) for k in fields])
 
     def get_data(self) -> bytes | str | None:
-        _data = getattr(self, '_data', None)
-        if isinstance(_data, str):
+        _data = self._data
+        if isinstance(_data, (str, bytes)):
             return _data
-        elif hasattr(_data, 'read'):
-            return _data.read()
+        elif _data is None:
+            return None
         else:
-            return _data
+            return _data.read()
 
     def set_data(self, value: bytes | str | IO[bytes] | None) -> None:
         self._data = value
@@ -142,7 +144,8 @@ class BaseFile:
         if p is None:
             filename_header = encode_header(self.filename)
             p = MIMEBase(*self.mime_type.split('/', 1), name=filename_header)
-            p.set_payload(to_bytes(self.data))
+            payload = to_bytes(self.data) or b''
+            p.set_payload(payload)
             encode_base64(p)
             if 'content-disposition' not in self._headers:
                 p.add_header('Content-Disposition', self.content_disposition, filename=filename_header)
@@ -186,7 +189,12 @@ class LazyHTTPFile(BaseFile):
 
     def get_data(self) -> bytes | str:
         self.fetch()
-        return self._data or ''
+        data = self._data
+        if data is None:
+            return ''
+        if isinstance(data, (str, bytes)):
+            return data
+        return data.read()
 
     def set_data(self, v: bytes | str | IO[bytes] | None) -> None:
         self._data = v
@@ -196,7 +204,7 @@ class LazyHTTPFile(BaseFile):
     @property
     def mime_type(self) -> str:
         self.fetch()
-        return super(LazyHTTPFile, self).mime_type
+        return self.get_mime_type()
 
     @property
     def headers(self) -> dict[str, str]:

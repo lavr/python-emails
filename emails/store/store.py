@@ -54,7 +54,7 @@ class MemoryFileStore(FileStore):
                 del self._filenames[filename]
             del self._files[uri]
 
-    def unique_filename(self, filename: str | None, uri: str | None = None) -> str:
+    def unique_filename(self, filename: str | None, uri: str | None = None) -> str | None:
 
         if filename in self._filenames:
             n = 1
@@ -66,7 +66,8 @@ class MemoryFileStore(FileStore):
                 if filename not in self._filenames:
                     break
 
-        self._filenames[filename] = uri
+        if filename is not None:
+            self._filenames[filename] = uri
 
         return filename
 
@@ -94,6 +95,7 @@ class MemoryFileStore(FileStore):
         uri = self._filenames.get(filename)
         if uri:
             return self.by_uri(uri)
+        return None
 
     def __getitem__(self, uri: str) -> BaseFile | None:
         return self.by_uri(uri) or self.by_filename(uri)
