@@ -106,13 +106,18 @@ class BaseFile:
         if not r:
             _data = self._data
             if isinstance(_data, bytes):
-                try:
-                    r = puremagic.from_string(_data, mime=True)
-                except puremagic.PureError:
-                    pass
+                header = _data
             elif isinstance(_data, str):
+                header = _data.encode()
+            elif hasattr(_data, 'read'):
+                pos = _data.tell()
+                header = _data.read(128)
+                _data.seek(pos)
+            else:
+                header = None
+            if header:
                 try:
-                    r = puremagic.from_string(_data.encode(), mime=True)
+                    r = puremagic.from_string(header, mime=True)
                 except puremagic.PureError:
                     pass
         if not r:

@@ -89,9 +89,9 @@ def test_mime_type_from_content():
     f = BaseFile(data=png_header, filename='image.gif')
     assert f.mime_type == 'image/gif'
 
-    # File-like data: mime detection skips streams, data not exhausted
+    # File-like data: mime detected without exhausting stream
     f = BaseFile(data=BytesIO(png_header), filename='no_ext')
-    assert f.mime_type == 'application/unknown'
+    assert f.mime_type == 'image/png'
     assert f.data == png_header  # stream not consumed by mime detection
 
 
