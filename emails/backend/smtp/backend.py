@@ -80,9 +80,9 @@ class SMTPBackend:
     def make_response(self, exception: Exception | None = None) -> SMTPResponse:
         return self.response_cls(backend=self, exception=exception)
 
-    def retry_on_disconnect(self, func: Callable[..., SMTPResponse]) -> Callable[..., SMTPResponse]:
+    def retry_on_disconnect(self, func: Callable[..., SMTPResponse | None]) -> Callable[..., SMTPResponse | None]:
         @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> SMTPResponse:
+        def wrapper(*args: Any, **kwargs: Any) -> SMTPResponse | None:
             try:
                 return func(*args, **kwargs)
             except smtplib.SMTPServerDisconnected:
@@ -92,7 +92,7 @@ class SMTPBackend:
                 return func(*args, **kwargs)
         return wrapper
 
-    def _send(self, **kwargs: Any) -> SMTPResponse:
+    def _send(self, **kwargs: Any) -> SMTPResponse | None:
 
         response = None
         try:
@@ -111,9 +111,7 @@ class SMTPBackend:
                 response.raise_if_needed()
             return response
         else:
-            result = client.sendmail(**kwargs)
-            assert result is not None  # to_addrs validated by caller
-            return result
+            return client.sendmail(**kwargs)
 
     def sendmail(self, from_addr: str, to_addrs: str | list[str],
                  msg: Any, mail_options: list[str] | None = None,
@@ -133,7 +131,7 @@ class SMTPBackend:
                         mail_options=mail_options or self.mail_options,
                         rcpt_options=rcpt_options)
 
-        if not self.fail_silently:
+        if response and not self.fail_silently:
             response.raise_if_needed()
 
         return response
