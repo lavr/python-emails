@@ -242,7 +242,7 @@ class BaseTransformer(HTMLParser):
         # Return local uri
         #
 
-        if uri.startswith('data:'):
+        if uri[:5].lower() == 'data:':
             return uri
 
         if callback is None:

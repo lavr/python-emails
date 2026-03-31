@@ -85,6 +85,12 @@ def test_data_uri_preserved():
     m = emails.loader.from_string(html=html)
     assert len(m.attachments.keys()) == 0
 
+    # mixed-case scheme should also be preserved
+    mixed = DATA_URI.replace('data:', 'Data:')
+    html = '<img src="%s"/>' % mixed
+    m = emails.loader.from_string(html=html)
+    assert len(m.attachments.keys()) == 0
+
 
 ROOT = os.path.dirname(__file__)
 
