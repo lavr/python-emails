@@ -87,7 +87,7 @@ class SMTPTestParams(object):
             message.mail_to = self.to_email
 
         # TODO: this code breaks template in subject; fix it
-        if not message.subject.startswith(self.subject_prefix) :
+        if not message.subject.startswith(self.subject_prefix):
             message.subject = " ".join([self.subject_prefix, message.subject,
                                         '// %s' % SUBJECT_SUFFIX])
 

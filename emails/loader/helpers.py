@@ -34,15 +34,16 @@ RULES_B = ReRules()
 
 def guess_text_charset(text, is_html=False):
     if is_html:
-        rules = isinstance(text, bytes) and RULES_B or RULES_U
+        is_bytes = isinstance(text, bytes)
+        rules = RULES_B if is_bytes else RULES_U
         for meta in rules.re_meta.findall(text):
             if rules.re_is_http_equiv.findall(meta):
                 for content in rules.re_parse_http_equiv.findall(meta):
                     for charset in rules.re_charset.findall(content):
-                        return charset.decode() if isinstance(charset, bytes) else charset
+                        return charset.decode() if is_bytes else charset
             else:
                 for charset in rules.re_charset.findall(meta):
-                    return charset.decode() if isinstance(charset, bytes) else charset
+                    return charset.decode() if is_bytes else charset
     # guess by chardet
     if isinstance(text, bytes):
         return chardet.detect(text)['encoding']

@@ -202,9 +202,6 @@ class ZipLoader(BaseLoader):
 
         self._unpack()
 
-        if isinstance(name, str):
-            name = name.decode('utf-8') if isinstance(name, bytes) else name
-
         if name not in self._original_filenames:
             name = self._decoded_filenames.get(name)
 
