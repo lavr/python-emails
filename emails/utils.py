@@ -34,25 +34,18 @@ def to_native(x: str | bytes | None, charset: str = sys.getdefaultencoding(),
 
 
 @overload
-def to_unicode(x: None, charset: str | None = ..., errors: str = ...,
-               allow_none_charset: bool = ...) -> None: ...
+def to_unicode(x: None, charset: str = ..., errors: str = ...) -> None: ...
 @overload
-def to_unicode(x: str | bytes, charset: str | None = ..., errors: str = ...,
-               allow_none_charset: bool = ...) -> str: ...
+def to_unicode(x: str | bytes, charset: str = ..., errors: str = ...) -> str: ...
 @overload
-def to_unicode(x: Any, charset: str | None = ..., errors: str = ...,
-               allow_none_charset: bool = ...) -> str | None: ...
+def to_unicode(x: Any, charset: str = ..., errors: str = ...) -> str | None: ...
 
-def to_unicode(x: Any, charset: str | None = sys.getdefaultencoding(),
-               errors: str = 'strict',
-               allow_none_charset: bool = False) -> str | None:
+def to_unicode(x: Any, charset: str = sys.getdefaultencoding(),
+               errors: str = 'strict') -> str | None:
     if x is None:
         return None
     if not isinstance(x, bytes):
         return str(x)
-    if charset is None and allow_none_charset:
-        return x  # type: ignore[return-value]  # bytes returned when allow_none_charset=True
-    assert charset is not None  # guaranteed when allow_none_charset is False (default)
     return x.decode(charset, errors)
 
 
