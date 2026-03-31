@@ -25,7 +25,7 @@ and more:
 * DKIM signature
 * Render body from template
 * Flask extension and Django integration
-* Message body transformation methods
+* HTML transformation with CSS inlining (``pip install emails[html]``)
 * Load message from url or from file
 
 |

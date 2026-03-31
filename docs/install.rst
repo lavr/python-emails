@@ -6,12 +6,12 @@ Install from pypi:
 
 .. code-block:: bash
 
-    $ [sudo] pip install emails
+    $ pip install emails
 
-Install on Ubuntu from PPA:
+This installs the lightweight core for building and sending email messages.
+
+To use HTML transformation features (CSS inlining, image embedding, loading from URL/file):
 
 .. code-block:: bash
 
-    $ [sudo] add-apt-repository ppa:lavrme/python-emails-ppa
-    $ [sudo] apt-get update
-    $ [sudo] apt-get install python-emails
+    $ pip install emails[html]
