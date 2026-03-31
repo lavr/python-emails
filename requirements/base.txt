@@ -5,3 +5,4 @@ python-dateutil
 requests
 premailer>=2.8.3
 puremagic
+dkimpy
