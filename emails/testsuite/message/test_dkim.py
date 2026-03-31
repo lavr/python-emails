@@ -140,6 +140,22 @@ def test_dkim_as_bytes():
     assert b'DKIM-Signature: ' in result
 
 
+def test_dkim_sign_after_error():
+    """After a sign error with ignore_sign_errors, normal signing still works."""
+    priv_key, pub_key = _generate_key(length=1024)
+
+    # First: sign with invalid include_headers (missing From), error ignored
+    m1 = Message(**common_email_data())
+    m1.dkim(key=priv_key, selector='_dkim', domain='somewhere.net',
+            ignore_sign_errors=True, include_headers=['To'])
+    m1.as_string()  # should not raise
+
+    # Second: normal sign with same key must still work
+    m2 = Message(**common_email_data())
+    m2.dkim(key=priv_key, selector='_dkim', domain='somewhere.net')
+    assert _check_dkim(m2, pub_key)
+
+
 def test_dkim_sign_twice():
 
     # Test #44:
