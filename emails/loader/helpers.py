@@ -12,7 +12,6 @@ try:
 except ImportError:
     import chardet
 
-from ..utils import to_native, to_unicode
 
 # HTML page charset stuff
 
@@ -29,7 +28,7 @@ class ReRules:
             if k.startswith('re_'):
                 setattr(self, k, re.compile(conv(getattr(self, k)), re.I + re.S + re.M))
 
-RULES_U = ReRules(conv=to_unicode)
+RULES_U = ReRules(conv=lambda x: x.decode())
 RULES_B = ReRules()
 
 
@@ -40,13 +39,13 @@ def guess_text_charset(text, is_html=False):
             if rules.re_is_http_equiv.findall(meta):
                 for content in rules.re_parse_http_equiv.findall(meta):
                     for charset in rules.re_charset.findall(content):
-                        return to_native(charset)
+                        return charset.decode() if isinstance(charset, bytes) else charset
             else:
                 for charset in rules.re_charset.findall(meta):
-                    return to_native(charset)
+                    return charset.decode() if isinstance(charset, bytes) else charset
     # guess by chardet
     if isinstance(text, bytes):
-        return to_native(chardet.detect(text)['encoding'])
+        return chardet.detect(text)['encoding']
 
 
 def guess_html_charset(html):
@@ -68,7 +67,7 @@ def guess_charset(headers, html):
     # guess by html content
     charset = guess_html_charset(html)
     if charset:
-        return to_unicode(charset)
+        return charset
 
 COMMON_CHARSETS = ('ascii', 'utf-8', 'utf-16', 'windows-1251', 'windows-1252', 'cp850')
 
@@ -100,7 +99,7 @@ def decode_text(text,
     _last_exc = None
     for enc in _charsets:
         try:
-            return to_unicode(text, charset=enc), enc
+            return text.decode(enc), enc
         except UnicodeDecodeError as exc:
             _last_exc = exc
 

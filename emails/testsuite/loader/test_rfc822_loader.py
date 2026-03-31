@@ -2,7 +2,6 @@ import glob
 import email
 import datetime
 import os.path
-from emails.utils import to_native
 import emails.loader
 from emails.loader.local_store import MsgLoader
 
@@ -79,7 +78,7 @@ def test_msgloader():
 def _try_decode(s, charsets=('utf-8', 'koi8-r', 'cp1251')):
     for charset in charsets:
         try:
-            return to_native(s, charset), charset
+            return s.decode(charset), charset
         except UnicodeDecodeError:
             pass
     return None, None

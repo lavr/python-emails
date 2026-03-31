@@ -8,7 +8,7 @@ import errno
 from zipfile import ZipFile
 import email
 
-from ..utils import to_unicode, to_native, formataddr, decode_header
+from ..utils import formataddr, decode_header
 from ..loader.helpers import decode_text
 from ..message import Message
 
@@ -183,7 +183,7 @@ class ZipLoader(BaseLoader):
     def _decode_filename(self, name):
         for enc in self.common_filename_charsets:
             try:
-                return to_unicode(name, enc)
+                return name.decode(enc) if isinstance(name, bytes) else name
             except UnicodeDecodeError:
                 pass
         return name
@@ -203,7 +203,7 @@ class ZipLoader(BaseLoader):
         self._unpack()
 
         if isinstance(name, str):
-            name = to_unicode(name, 'utf-8')
+            name = name.decode('utf-8') if isinstance(name, bytes) else name
 
         if name not in self._original_filenames:
             name = self._decoded_filenames.get(name)
@@ -229,7 +229,7 @@ class MsgLoader(BaseLoader):
         if isinstance(msg, str):
             self.msg = email.message_from_string(msg)
         elif isinstance(msg, bytes):
-            self.msg = email.message_from_string(to_native(msg))
+            self.msg = email.message_from_string(msg.decode())
         else:
             self.msg = msg
         self.base_path = base_path

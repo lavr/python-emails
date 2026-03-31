@@ -8,7 +8,6 @@ from emails import Message
 import emails.exc
 from io import StringIO
 
-from emails.utils import to_unicode
 from emails.utils import decode_header, MessageID
 from emails.backend.inmemory import InMemoryBackend
 
@@ -73,7 +72,7 @@ def test_after_build():
 
     s = m.as_string()
     print("type of message.as_string() is {0}".format(type(s)))
-    assert AFTER_BUILD_HEADER in to_unicode(s, 'utf-8')
+    assert AFTER_BUILD_HEADER in s
 
 
 def test_before_build():

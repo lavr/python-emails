@@ -3,7 +3,6 @@ import platform
 import datetime
 import random
 import time
-from emails.utils import to_unicode
 
 DEFAULT_FROM = os.environ.get('SMTP_TEST_FROM_EMAIL') or 'python-emails@lavr.me'
 SUBJECT_SUFFIX = os.environ.get('SMTP_TEST_SUBJECT_SUFFIX')
@@ -88,7 +87,7 @@ class SMTPTestParams(object):
             message.mail_to = self.to_email
 
         # TODO: this code breaks template in subject; fix it
-        if not to_unicode(message.subject).startswith(self.subject_prefix) :
+        if not message.subject.startswith(self.subject_prefix) :
             message.subject = " ".join([self.subject_prefix, message.subject,
                                         '// %s' % SUBJECT_SUFFIX])
 

@@ -9,7 +9,7 @@ from typing import Any, IO
 
 import urllib.parse as urlparse
 
-from ..utils import fetch_url, encode_header, to_bytes
+from ..utils import fetch_url, encode_header
 
 
 MIMETYPE_UNKNOWN = 'application/unknown'
@@ -143,7 +143,12 @@ class BaseFile:
         if p is None:
             filename_header = encode_header(self.filename)
             p = MIMEBase(*self.mime_type.split('/', 1), name=filename_header)
-            payload = to_bytes(self.data) or b''
+            if isinstance(self.data, str):
+                payload = self.data.encode()
+            elif self.data is not None:
+                payload = bytes(self.data)
+            else:
+                payload = b''
             p.set_payload(payload)
             encode_base64(p)
             if 'content-disposition' not in self._headers:
