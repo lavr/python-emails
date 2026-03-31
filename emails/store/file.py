@@ -143,10 +143,11 @@ class BaseFile:
         if p is None:
             filename_header = encode_header(self.filename)
             p = MIMEBase(*self.mime_type.split('/', 1), name=filename_header)
-            if isinstance(self.data, str):
-                payload = self.data.encode()
-            elif self.data is not None:
-                payload = bytes(self.data)
+            data = self.data
+            if isinstance(data, str):
+                payload = data.encode()
+            elif data is not None:
+                payload = bytes(data)
             else:
                 payload = b''
             p.set_payload(payload)
