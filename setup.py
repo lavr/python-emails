@@ -127,6 +127,7 @@ settings.update(
               'emails.packages.dkim'
              ],
     scripts=['scripts/make_rfc822.py'],
+    python_requires='>=3.10',
     install_requires=['python-dateutil'],
     extras_require={
         'html': ['cssutils', 'lxml', 'chardet', 'requests', 'premailer'],
@@ -139,7 +140,6 @@ settings.update(
         "Operating System :: OS Independent",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",

@@ -10,7 +10,7 @@ from random import randrange
 from functools import wraps
 from io import StringIO, BytesIO
 from collections.abc import Callable
-from typing import Any, Optional, TypeVar
+from typing import Any, TypeVar
 
 import email.charset
 from email import generator
@@ -156,7 +156,7 @@ class MessageID:
 
 
 # Type alias for address pairs used throughout the library
-AddressPair = tuple[Optional[str], Optional[str]]
+AddressPair = tuple[str | None, str | None]
 
 
 def parse_name_and_email_list(elements: str | tuple[str | None, str] | list[Any] | None,
