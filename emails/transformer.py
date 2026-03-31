@@ -1,5 +1,4 @@
 # encoding: utf-8
-from __future__ import unicode_literals
 
 import functools
 import logging
@@ -12,7 +11,9 @@ from lxml import etree
 from premailer import Premailer
 from premailer.premailer import ExternalNotFoundError
 
-from .compat import urlparse, to_unicode, is_callable
+import urllib.parse as urlparse
+
+from .utils import to_unicode
 from .loader.local_store import FileNotFound
 from .store import MemoryFileStore, LazyHTTPFile
 from .template.base import BaseTemplate
@@ -311,7 +312,7 @@ class BaseTransformer(HTMLParser):
         # 2. Load linked images and transform links
         # If load_images is a function, use if as callback
         if load_images:
-            if is_callable(load_images):
+            if callable(load_images):
                 func = functools.partial(self._load_attachment_func, callback=load_images)
             else:
                 func = self._load_attachment_func

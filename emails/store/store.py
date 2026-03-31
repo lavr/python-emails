@@ -1,8 +1,8 @@
 # encoding: utf-8
-from __future__ import unicode_literals
 from os.path import splitext
 
-from ..compat import OrderedDict, string_types
+from collections import OrderedDict
+
 from .file import BaseFile
 
 
@@ -23,7 +23,7 @@ class MemoryFileStore(FileStore):
     def __contains__(self, k):
         if isinstance(k, self.file_cls):
             return k.uri in self._files
-        elif isinstance(k, string_types):
+        elif isinstance(k, str):
             return k in self._files
         else:
             return False
@@ -42,7 +42,7 @@ class MemoryFileStore(FileStore):
         if isinstance(uri, self.file_cls):
             uri = uri.uri
 
-        assert isinstance(uri, string_types)
+        assert isinstance(uri, str)
 
         v = self[uri]
         if v:

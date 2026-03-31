@@ -5,13 +5,12 @@
 #  - use dkimpy v0.3 from http://hewgill.com/pydkim/
 #  - install hashlib (https://pypi.python.org/pypi/hashlib/20081119) and dnspython
 
-from __future__ import unicode_literals
 import logging
 
 from .packages import dkim
 from .packages.dkim import DKIMException, UnparsableKeyError
 from .packages.dkim.crypto import parse_pem_private_key
-from .compat import to_bytes, to_native
+from .utils import to_bytes, to_native
 
 
 class DKIMSigner:

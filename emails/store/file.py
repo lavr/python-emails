@@ -1,5 +1,4 @@
 # encoding: utf-8
-from __future__ import unicode_literals
 
 import uuid
 from mimetypes import guess_type
@@ -7,8 +6,9 @@ from email.mime.base import MIMEBase
 from email.encoders import encode_base64
 from os.path import basename
 
-from ..compat import urlparse, string_types, to_bytes
-from ..utils import fetch_url, encode_header
+import urllib.parse as urlparse
+
+from ..utils import fetch_url, encode_header, to_bytes
 
 
 MIMETYPE_UNKNOWN = 'application/unknown'
@@ -51,7 +51,7 @@ class BaseFile(object):
 
     def get_data(self):
         _data = getattr(self, '_data', None)
-        if isinstance(_data, string_types):
+        if isinstance(_data, str):
             return _data
         elif hasattr(_data, 'read'):
             return _data.read()

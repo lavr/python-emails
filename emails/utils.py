@@ -1,25 +1,66 @@
 # encoding: utf-8
-from __future__ import unicode_literals
+import sys
 import os
 import socket
 from time import mktime
 from datetime import datetime
 from random import randrange
 from functools import wraps
+from io import StringIO, BytesIO
 
 import email.charset
 from email import generator
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header, decode_header as decode_header_
-from email.utils import parseaddr, formatdate
-from emails.compat import formataddr
+from email.utils import parseaddr, formatdate, escapesre, specialsre
 
 import requests
 
 from . import USER_AGENT
-from .compat import string_types, to_unicode, NativeStringIO, is_py2, BytesIO, to_native
 from .exc import HTTPLoaderError
+
+
+def to_native(x, charset=sys.getdefaultencoding(), errors='strict'):
+    if x is None or isinstance(x, str):
+        return x
+    return x.decode(charset, errors)
+
+
+def to_unicode(x, charset=sys.getdefaultencoding(), errors='strict',
+               allow_none_charset=False):
+    if x is None:
+        return None
+    if not isinstance(x, bytes):
+        return str(x)
+    if charset is None and allow_none_charset:
+        return x
+    return x.decode(charset, errors)
+
+
+def to_bytes(x, charset=sys.getdefaultencoding(), errors='strict'):
+    if x is None:
+        return None
+    if isinstance(x, (bytes, bytearray, memoryview)):
+        return bytes(x)
+    if isinstance(x, str):
+        return x.encode(charset, errors)
+    raise TypeError('Expected bytes')
+
+
+def formataddr(pair):
+    """
+    Takes a 2-tuple of the form (realname, email_address) and returns RFC2822-like string.
+    Does not encode non-ascii realname (unlike stdlib email.utils.formataddr).
+    """
+    name, address = pair
+    if name:
+        quotes = ''
+        if specialsre.search(name):
+            quotes = '"'
+        name = escapesre.sub(r'\\\g<0>', name)
+        return '%s%s%s <%s>' % (quotes, name, quotes, address)
+    return address
 
 
 _charsets_loaded = False
@@ -120,7 +161,7 @@ def parse_name_and_email_list(elements, encoding='utf-8'):
     if not elements:
         return []
 
-    if isinstance(elements, string_types):
+    if isinstance(elements, str):
         return [parse_name_and_email(elements, encoding), ]
 
     if not isinstance(elements, (list, tuple)):
@@ -131,7 +172,7 @@ def parse_name_and_email_list(elements, encoding='utf-8'):
         # Let's do some guesses
         if isinstance(elements, tuple):
             n, e = elements
-            if isinstance(e, string_types) and (not n or isinstance(n, string_types)):
+            if isinstance(e, str) and (not n or isinstance(n, str)):
                 # It is probably a pair (name, email)
                 return [parse_name_and_email(elements, encoding), ]
 
@@ -147,7 +188,7 @@ def parse_name_and_email(obj, encoding='utf-8'):
             name, email = obj
         else:
             raise ValueError("Can not parse_name_and_email from %s" % obj)
-    elif isinstance(obj, string_types):
+    elif isinstance(obj, str):
         name, email = parseaddr(obj)
     else:
         raise ValueError("Can not parse_name_and_email from %s" % obj)
@@ -172,7 +213,7 @@ def sanitize_email(addr, encoding='ascii', parse=False):
 
 
 def sanitize_address(addr, encoding='ascii'):
-    if isinstance(addr, string_types):
+    if isinstance(addr, str):
         addr = parseaddr(to_unicode(addr))
     nm, addr = addr
     # This try-except clause is needed on Python 3 < 3.2.4
@@ -192,19 +233,13 @@ class MIMEMixin():
         This overrides the default as_string() implementation to not mangle
         lines that begin with 'From '. See bug #13433 for details.
         """
-        fp = NativeStringIO()
+        fp = StringIO()
         g = generator.Generator(fp, mangle_from_=False)
-        if is_py2:
-            g.flatten(self, unixfrom=unixfrom)
-        else:
-            g.flatten(self, unixfrom=unixfrom, linesep=linesep)
+        g.flatten(self, unixfrom=unixfrom, linesep=linesep)
 
         return fp.getvalue()
 
-    if is_py2:
-        as_bytes = as_string
-    else:
-        def as_bytes(self, unixfrom=False, linesep='\n'):
+    def as_bytes(self, unixfrom=False, linesep='\n'):
             """Return the entire formatted message as bytes.
             Optional `unixfrom' when True, means include the Unix From_ envelope
             header.
@@ -245,7 +280,7 @@ def fetch_url(url, valid_http_codes=(200, ), requests_args=None):
 
 
 def encode_header(value, charset='utf-8'):
-    if isinstance(value, string_types):
+    if isinstance(value, str):
         value = to_unicode(value, charset=charset).rstrip()
         _r = Header(value, charset)
         return str(_r)

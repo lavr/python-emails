@@ -8,7 +8,6 @@ import random
 import sys
 import platform
 
-from emails.compat import to_native, is_py3, to_unicode
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()

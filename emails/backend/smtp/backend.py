@@ -1,5 +1,4 @@
 # encoding: utf-8
-from __future__ import unicode_literals
 import smtplib
 import logging
 from functools import wraps

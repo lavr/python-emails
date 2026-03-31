@@ -1,5 +1,4 @@
 # encoding: utf-8
-from __future__ import unicode_literals, print_function
 import os
 from lxml.etree import XMLSyntaxError
 import pytest
@@ -10,7 +9,6 @@ import emails.loader
 import emails.transformer
 from emails.loader.local_store import (MsgLoader, FileSystemLoader, FileNotFound, ZipLoader,
                                        split_template_path, BaseLoader)
-from emails.compat import text_type, is_pypy
 from emails.loader.helpers import guess_charset
 from emails.exc import HTTPLoaderError
 
@@ -178,14 +176,7 @@ def test_external_urls():
             # Skip if external site does responds 500
             pass
         except SystemError:
-            if is_pypy and os.environ.get('TRAVIS'):
-                # pypy on travis-ci raises SystemError/StackOverflow
-                # in lxml xpath expression for [very complex] smashingmagazine.com html
-                # Think this is not critical.
-                # And I can't reproduce this locally, so just ignore it.
-                pass
-            else:
-                raise
+            raise
 
     assert success  # one of urls should work I hope
 
@@ -199,7 +190,7 @@ def _get_loaders():
 def test_local_store1():
     for loader in _get_loaders():
         print(loader)
-        assert isinstance(loader.content('index.html'), text_type)
+        assert isinstance(loader.content('index.html'), str)
         assert isinstance(loader['index.html'], bytes)
         assert '<table' in loader.content('index.html')
         with pytest.raises(FileNotFound):

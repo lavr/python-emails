@@ -1,5 +1,4 @@
 # encoding: utf-8
-from __future__ import unicode_literals
 __all__ = ['guess_charset', 'fix_content_type']
 from email.message import Message
 
@@ -14,7 +13,7 @@ try:
 except ImportError:
     import chardet
 
-from ..compat import to_native, to_unicode
+from ..utils import to_native, to_unicode
 
 # HTML page charset stuff
 
