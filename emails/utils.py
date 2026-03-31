@@ -139,13 +139,14 @@ DNS_NAME = CachedDnsName()
 
 def decode_header(value: str | bytes, default: str = "utf-8", errors: str = 'strict') -> str:
     """Decode the specified header value"""
-    native = to_native(value, charset=default, errors=errors)
-    assert native is not None  # to_native returns None only for None input
+    if isinstance(value, bytes):
+        value = value.decode(default, errors)
     parts: list[str] = []
-    for text, charset in decode_header_(native):
-        decoded = to_unicode(text, charset or default, errors)
-        assert decoded is not None
-        parts.append(decoded)
+    for text, charset in decode_header_(value):
+        if isinstance(text, bytes):
+            parts.append(text.decode(charset or default, errors))
+        else:
+            parts.append(text)
     return "".join(parts)
 
 
