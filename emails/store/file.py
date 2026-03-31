@@ -109,7 +109,7 @@ class BaseFile:
                 header = _data
             elif isinstance(_data, str):
                 header = _data.encode()
-            elif hasattr(_data, 'read'):
+            elif _data is not None:
                 pos = _data.tell()
                 header = _data.read(128)
                 _data.seek(pos)
