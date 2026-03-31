@@ -5,7 +5,6 @@ import emails
 from emails import Message
 from io import StringIO
 
-from emails.utils import to_bytes, to_native
 from emails.exc import DKIMException
 from emails.utils import load_email_charsets
 import emails.packages.dkim
@@ -40,7 +39,7 @@ def _generate_key(length=1024):
     try:
         from Crypto.PublicKey import RSA
         key = RSA.generate(length)
-        return to_bytes(key.exportKey()), to_bytes(key.publickey().exportKey())
+        return key.exportKey(), key.publickey().exportKey()
     except ImportError:
         return PRIV_KEY, PUB_KEY
 
@@ -49,7 +48,7 @@ def _check_dkim(message, pub_key=PUB_KEY):
     def _plain_public_key(s):
         return b"".join([l for l in s.split(b'\n') if not l.startswith(b'---')])
     message = message.as_string()
-    o = emails.packages.dkim.DKIM(message=to_bytes(message))
+    o = emails.packages.dkim.DKIM(message=message.encode())
     return o.verify(dnsfunc=lambda name: b"".join([b"v=DKIM1; p=", _plain_public_key(pub_key)]))
 
 
@@ -57,7 +56,7 @@ def test_dkim():
 
     priv_key, pub_key = _generate_key(length=1024)
 
-    DKIM_PARAMS = [dict(key=StringIO(to_native(priv_key)),
+    DKIM_PARAMS = [dict(key=StringIO(priv_key.decode()),
                         selector='_dkim',
                         domain='somewhere1.net'),
 
@@ -150,7 +149,7 @@ def test_dkim_sign_twice():
 
     priv_key, pub_key = _generate_key(length=1024)
     message = Message(**common_email_data())
-    message.dkim(key=StringIO(to_native(priv_key)), selector='_dkim', domain='somewhere.net')
+    message.dkim(key=StringIO(priv_key.decode()), selector='_dkim', domain='somewhere.net')
     for n in range(2):
         message.subject = 'Test %s' % n
         assert _check_dkim(message, pub_key)

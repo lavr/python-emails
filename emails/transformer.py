@@ -12,7 +12,6 @@ from premailer.premailer import ExternalNotFoundError
 
 import urllib.parse as urlparse
 
-from .utils import to_unicode
 from .loader.local_store import FileNotFound
 from .store import MemoryFileStore, LazyHTTPFile
 from .template.base import BaseTemplate
@@ -125,7 +124,8 @@ class HTMLParser(object):
                             dirty = True
                             value.uri = new_uri
             if dirty:
-                return to_unicode(parser.cssText, 'utf-8')
+                css_text = parser.cssText
+                return css_text.decode('utf-8') if isinstance(css_text, bytes) else css_text
             else:
                 return style_text
 

@@ -3,7 +3,6 @@ from email.utils import formataddr
 
 import urllib.parse as urlparse
 
-from ..utils import to_unicode, to_native
 from ..message import Message
 from ..utils import fetch_url
 from .local_store import (FileSystemLoader, ZipLoader, MsgLoader, FileNotFound)
@@ -77,7 +76,7 @@ def from_url(url, requests_params=None, **kwargs):
     # Load html page
     r = fetch_url(url, requests_args=requests_params)
     html = r.content
-    html = to_unicode(html, charset=guess_charset(r.headers, html))
+    html = html.decode(guess_charset(r.headers, html) or 'utf-8')
     html = html.replace('\r\n', '\n')  # Remove \r
 
     return from_html(html,

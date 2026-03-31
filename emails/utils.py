@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 import os
 import socket
 from time import mktime
@@ -9,7 +8,7 @@ from random import randrange
 from functools import wraps
 from io import StringIO, BytesIO
 from collections.abc import Callable
-from typing import Any, TypeVar, cast, overload
+from typing import Any, TypeVar, cast
 
 import email.charset
 from email import generator
@@ -23,41 +22,6 @@ from . import USER_AGENT
 from .exc import HTTPLoaderError
 
 F = TypeVar('F', bound=Callable[..., Any])
-
-
-def to_native(x: str | bytes | None, charset: str = sys.getdefaultencoding(),
-              errors: str = 'strict') -> str | None:
-    if x is None or isinstance(x, str):
-        return x
-    return x.decode(charset, errors)
-
-
-@overload
-def to_unicode(x: None, charset: str = ..., errors: str = ...) -> None: ...
-@overload
-def to_unicode(x: str | bytes, charset: str = ..., errors: str = ...) -> str: ...
-@overload
-def to_unicode(x: Any, charset: str = ..., errors: str = ...) -> str | None: ...
-
-def to_unicode(x: Any, charset: str = sys.getdefaultencoding(),
-               errors: str = 'strict') -> str | None:
-    if x is None:
-        return None
-    if not isinstance(x, bytes):
-        return str(x)
-    return x.decode(charset, errors)
-
-
-def to_bytes(x: str | bytes | bytearray | memoryview | None,
-             charset: str = sys.getdefaultencoding(),
-             errors: str = 'strict') -> bytes | None:
-    if x is None:
-        return None
-    if isinstance(x, (bytes, bytearray, memoryview)):
-        return bytes(x)
-    if isinstance(x, str):
-        return x.encode(charset, errors)
-    raise TypeError('Expected bytes')
 
 
 def formataddr(pair: tuple[str | None, str]) -> str:
