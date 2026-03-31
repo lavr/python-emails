@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 
 Simple utility that imports html from url ang print generated rfc822 message to console.

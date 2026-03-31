@@ -81,6 +81,6 @@ class FlaskyStyle(Style):
         Generic.Output:            "#888",           # class: 'go'
         Generic.Prompt:            "#745334",        # class: 'gp'
         Generic.Strong:            "bold #000000",   # class: 'gs'
-        Generic.Subheading:        "bold #800080",   # class: 'g'
+        Generic.Subheading:        "bold #800080",   # class: 'gu'
         Generic.Traceback:         "bold #a40000",   # class: 'gt'
     }
