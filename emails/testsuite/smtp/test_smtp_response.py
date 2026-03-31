@@ -15,16 +15,16 @@ def test_smtp_response_defaults():
 
 def test_smtp_response_set_status():
     r = SMTPResponse()
-    r.set_status('mail', 250, 'OK')
+    r.set_status('mail', 250, b'OK')
     assert r.status_code == 250
-    assert r.status_text == 'OK'
+    assert r.status_text == b'OK'
     assert r.last_command == 'mail'
     assert len(r.responses) == 1
 
 
 def test_smtp_response_success():
     r = SMTPResponse()
-    r.set_status('data', 250, 'OK')
+    r.set_status('data', 250, b'OK')
     assert not r.success  # _finished is False
     r._finished = True
     assert r.success
