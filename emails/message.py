@@ -356,7 +356,7 @@ class MessageBuildMixin:
         """
         r = self.build_message(message_cls=message_cls).as_bytes()
         if self._signer:
-            r = self.sign_string(r)
+            r = self.sign_bytes(r)
         return r
 
 

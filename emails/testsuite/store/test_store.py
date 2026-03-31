@@ -1,8 +1,10 @@
 # encoding: utf-8
+from io import BytesIO
+
 import pytest
 import emails
 import emails.store
-from emails.store.file import fix_content_type
+from emails.store.file import BaseFile, fix_content_type
 
 
 def test_fix_content_type():
@@ -45,6 +47,26 @@ def test_store_unique_name():
     assert f3.filename == 'c-3.gif'
     assert f1.content_id != f3.content_id
     assert f2.content_id != f3.content_id
+
+
+def test_get_data_str():
+    f = BaseFile(data='hello')
+    assert f.data == 'hello'
+
+
+def test_get_data_bytes():
+    f = BaseFile(data=b'hello')
+    assert f.data == b'hello'
+
+
+def test_get_data_filelike():
+    f = BaseFile(data=BytesIO(b'hello'))
+    assert f.data == b'hello'
+
+
+def test_get_data_none():
+    f = BaseFile()
+    assert f.data is None
 
 
 def test_store_commons2():
