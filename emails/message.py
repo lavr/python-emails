@@ -48,7 +48,8 @@ class BaseMessage:
                  attachments: list[dict[str, Any] | BaseFile] | None = None,
                  cc: _AddressList = None,
                  bcc: _AddressList = None,
-                 headers_encoding: str | None = None) -> None:
+                 headers_encoding: str | None = None,
+                 reply_to: _AddressList = None) -> None:
 
         self._attachments: MemoryFileStore | None = None
         self.charset: str = charset or 'utf-8'
@@ -60,6 +61,7 @@ class BaseMessage:
         self.set_mail_to(mail_to)
         self.set_cc(cc)
         self.set_bcc(bcc)
+        self.set_reply_to(reply_to)
         self.set_headers(headers)
         self.set_html(html=html)
         self.set_text(text=text)
@@ -102,6 +104,14 @@ class BaseMessage:
         return self._bcc
 
     bcc = property(get_bcc, set_bcc)
+
+    def set_reply_to(self, addr: _AddressList) -> None:
+        self._reply_to = parse_name_and_email_list(addr)
+
+    def get_reply_to(self) -> list[tuple[str | None, str | None]]:
+        return self._reply_to
+
+    reply_to = property(get_reply_to, set_reply_to)
 
     def get_recipients_emails(self) -> list[str | None]:
         """
@@ -270,6 +280,9 @@ class MessageBuildMixin:
 
         if self.cc:
             self.set_header(msg, 'Cc', ", ".join([self.encode_address_header(addr) for addr in self.cc]), encode=False)
+
+        if self.reply_to:
+            self.set_header(msg, 'Reply-To', ", ".join([self.encode_address_header(addr) for addr in self.reply_to]), encode=False)
 
         return msg
 

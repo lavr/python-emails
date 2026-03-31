@@ -194,6 +194,33 @@ def test_message_id():
     assert m.as_message()['Message-ID'] == 'XXX'
 
 
+def test_reply_to():
+
+    params = dict(html='...', mail_from='a@b.c', mail_to='to@x.z')
+
+    # Single address
+    m = Message(reply_to='reply@x.z', **params)
+    assert m.as_message()['Reply-To'] == 'reply@x.z'
+
+    # Tuple (name, email)
+    m = Message(reply_to=('Марья', 'maria@example.net'), **params)
+    assert 'maria@example.net' in m.as_message()['Reply-To']
+
+    # Multiple addresses
+    m = Message(reply_to=['a@x.z', 'b@x.z'], **params)
+    assert 'a@x.z' in m.as_message()['Reply-To']
+    assert 'b@x.z' in m.as_message()['Reply-To']
+
+    # No reply-to by default
+    m = Message(**params)
+    assert m.as_message()['Reply-To'] is None
+
+    # Setter
+    m = Message(**params)
+    m.reply_to = 'reply@x.z'
+    assert m.as_message()['Reply-To'] == 'reply@x.z'
+
+
 def test_several_recipients():
 
     # Test multiple recipients in "To" header
