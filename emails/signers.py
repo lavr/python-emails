@@ -28,8 +28,8 @@ class DKIMSigner:
         # Normalize to bytes
         privkey_bytes = privkey if isinstance(privkey, bytes) else str(privkey).encode()
 
-        # Validate key early; dkim.sign() re-parses on each call but
-        # the PEM parse cost is negligible vs the RSA operation (~0ms vs ~2.5ms).
+        # Validate key upfront; dkim.sign() re-parses PEM on each call
+        # but the cost is negligible vs the RSA operation (~0ms vs ~2.5ms).
         try:
             dkim.crypto.parse_pem_private_key(privkey_bytes)
         except UnparsableKeyError as exc:
