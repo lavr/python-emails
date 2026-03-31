@@ -161,18 +161,18 @@ def test_message_policy():
         import email.policy
         return email.policy.SMTP.clone(**kw)
 
-        # Generate without policy
-        m1 = emails.Message(**common_email_data())
-        m1.policy = None
-        # Just generate without policy
-        m1.as_string()
+    # Generate without policy
+    m1 = emails.Message(**common_email_data())
+    m1.policy = None
+    # Just generate without policy
+    m1.as_string()
 
-        # Generate with policy
-        m1 = emails.Message(**common_email_data())
-        m1.policy = gen_policy(max_line_length=60)
-        # WTF: This check fails.
-        # assert max([len(l) for l in m1.as_string().split(b'\n')]) <= 60
-        # TODO: another policy checks
+    # Generate with policy
+    m1 = emails.Message(**common_email_data())
+    m1.policy = gen_policy(max_line_length=60)
+    # WTF: This check fails.
+    # assert max([len(l) for l in m1.as_string().split(b'\n')]) <= 60
+    # TODO: another policy checks
 
 
 def test_message_id():
