@@ -127,7 +127,10 @@ settings.update(
               'emails.packages.dkim'
              ],
     scripts=['scripts/make_rfc822.py'],
-    install_requires=['cssutils', 'lxml', 'chardet', 'python-dateutil', 'requests', 'premailer'],
+    install_requires=['python-dateutil'],
+    extras_require={
+        'html': ['cssutils', 'lxml', 'chardet', 'requests', 'premailer'],
+    },
     zip_safe=False,
     classifiers=(
         'Development Status :: 4 - Beta',

@@ -15,8 +15,6 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header, decode_header as decode_header_
 from email.utils import parseaddr, formatdate, escapesre, specialsre
 
-import requests
-
 from . import USER_AGENT
 from .exc import HTTPLoaderError
 
@@ -270,6 +268,7 @@ DEFAULT_REQUESTS_PARAMS = dict(allow_redirects=True,
 
 
 def fetch_url(url, valid_http_codes=(200, ), requests_args=None):
+    import requests
     args = {}
     args.update(DEFAULT_REQUESTS_PARAMS)
     args.update(requests_args or {})
