@@ -190,8 +190,10 @@ class LazyHTTPFile(BaseFile):
     def get_data(self) -> bytes | str:
         self.fetch()
         data = self._data
-        if data is None or isinstance(data, (str, bytes)):
-            return data or ''
+        if data is None:
+            return ''
+        if isinstance(data, (str, bytes)):
+            return data
         return data.read()
 
     def set_data(self, v: bytes | str | IO[bytes] | None) -> None:
