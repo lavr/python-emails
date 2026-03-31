@@ -35,10 +35,10 @@ class BaseFile:
         if no filename set, filename extracted from uri.
         if no uri, but filename set, then uri==filename
         """
-        self.uri: str | None = kwargs.get('uri', None)  # type: ignore[no-redef]
+        self.uri = kwargs.get('uri', None)
         self.absolute_url: str | None = kwargs.get('absolute_url', None) or self.uri
-        self.filename: str | None = kwargs.get('filename', None)  # type: ignore[no-redef]
-        self.data: bytes | str | IO[bytes] | None = kwargs.get('data', None)  # type: ignore[no-redef]
+        self.filename = kwargs.get('filename', None)
+        self.data = kwargs.get('data', None)
         self._mime_type: str | None = kwargs.get('mime_type')
         self._headers: dict[str, str] = kwargs.get('headers', {})
         self._content_id: str | None = kwargs.get('content_id')
