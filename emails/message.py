@@ -1,13 +1,17 @@
 # coding: utf-8
+from __future__ import annotations
 
+from collections.abc import Callable
+from datetime import datetime
 from email.utils import getaddresses
+from typing import Any, IO
 
 from .utils import (formataddr, to_unicode, to_native,
                     SafeMIMEText, SafeMIMEMultipart, sanitize_address,
                     parse_name_and_email, load_email_charsets,
                     encode_header as encode_header_,
                     renderable, format_date_header, parse_name_and_email_list,
-                    cached_property)
+                    cached_property, MessageID)
 from .exc import BadHeaderError
 from .backend import ObjectFactory, SMTPBackend
 from .store import MemoryFileStore, BaseFile
@@ -17,7 +21,12 @@ from .signers import DKIMSigner
 load_email_charsets()  # sic!
 
 
-class BaseMessage(object):
+# Type alias for email addresses accepted by the public API
+_Address = str | tuple[str | None, str] | None
+_AddressList = str | tuple[str | None, str] | list[str | tuple[str | None, str]] | None
+
+
+class BaseMessage:
 
     """
     Base email message with html part, text part and attachments.
@@ -28,23 +37,23 @@ class BaseMessage(object):
     policy = None
 
     def __init__(self,
-                 charset=None,
-                 message_id=None,
-                 date=None,
-                 subject=None,
-                 mail_from=None,
-                 mail_to=None,
-                 headers=None,
-                 html=None,
-                 text=None,
-                 attachments=None,
-                 cc=None,
-                 bcc=None,
-                 headers_encoding=None):
+                 charset: str | None = None,
+                 message_id: str | MessageID | bool | None = None,
+                 date: str | datetime | float | bool | Callable[[], str] | None = None,
+                 subject: str | None = None,
+                 mail_from: _Address = None,
+                 mail_to: _AddressList = None,
+                 headers: dict[str, str] | None = None,
+                 html: str | IO[str] | None = None,
+                 text: str | IO[str] | None = None,
+                 attachments: list[dict[str, Any] | BaseFile] | None = None,
+                 cc: _AddressList = None,
+                 bcc: _AddressList = None,
+                 headers_encoding: str | None = None) -> None:
 
-        self._attachments = None
-        self.charset = charset or 'utf-8'
-        self.headers_encoding = headers_encoding or 'ascii'
+        self._attachments: MemoryFileStore | None = None
+        self.charset: str = charset or 'utf-8'
+        self.headers_encoding: str = headers_encoding or 'ascii'
         self._message_id = message_id
         self.set_subject(subject)
         self.set_date(date)
@@ -55,104 +64,104 @@ class BaseMessage(object):
         self.set_headers(headers)
         self.set_html(html=html)
         self.set_text(text=text)
-        self.render_data = {}
+        self.render_data: dict[str, Any] = {}
 
         if attachments:
             for a in attachments:
                 self.attachments.add(a)
 
-    def set_mail_from(self, mail_from):
+    def set_mail_from(self, mail_from: _Address) -> None:
         # In: ('Alice', '<alice@me.com>' )
         self._mail_from = mail_from and parse_name_and_email(mail_from) or None
 
-    def get_mail_from(self):
+    def get_mail_from(self) -> tuple[str | None, str | None] | None:
         # Out: ('Alice', '<alice@me.com>') or None
         return self._mail_from
 
     mail_from = property(get_mail_from, set_mail_from)
 
-    def set_mail_to(self, mail_to):
+    def set_mail_to(self, mail_to: _AddressList) -> None:
         self._mail_to = parse_name_and_email_list(mail_to)
 
-    def get_mail_to(self):
+    def get_mail_to(self) -> list[tuple[str | None, str | None]]:
         return self._mail_to
 
     mail_to = property(get_mail_to, set_mail_to)
 
-    def set_cc(self, addr):
+    def set_cc(self, addr: _AddressList) -> None:
         self._cc = parse_name_and_email_list(addr)
 
-    def get_cc(self):
+    def get_cc(self) -> list[tuple[str | None, str | None]]:
         return self._cc
 
     cc = property(get_cc, set_cc)
 
-    def set_bcc(self, addr):
+    def set_bcc(self, addr: _AddressList) -> None:
         self._bcc = parse_name_and_email_list(addr)
 
-    def get_bcc(self):
+    def get_bcc(self) -> list[tuple[str | None, str | None]]:
         return self._bcc
 
     bcc = property(get_bcc, set_bcc)
 
-    def get_recipients_emails(self):
+    def get_recipients_emails(self) -> list[str | None]:
         """
         Returns message recipient's emails for actual sending.
         :return: list of emails
         """
         return list(set([a[1] for a in self._mail_to] + [a[1] for a in self.cc] + [a[1] for a in self.bcc]))
 
-    def set_headers(self, headers):
+    def set_headers(self, headers: dict[str, str] | None) -> None:
         self._headers = headers or {}
 
-    def set_html(self, html, url=None):
+    def set_html(self, html: str | IO[str] | None, url: str | None = None) -> None:
         if hasattr(html, 'read'):
             html = html.read()
         self._html = html
         self._html_url = url
 
-    def get_html(self):
+    def get_html(self) -> str | None:
         return self._html
 
     html = property(get_html, set_html)
 
-    def set_text(self, text, url=None):
+    def set_text(self, text: str | IO[str] | None, url: str | None = None) -> None:
         if hasattr(text, 'read'):
             text = text.read()
         self._text = text
         self._text_url = url
 
-    def get_text(self):
+    def get_text(self) -> str | None:
         return self._text
 
     text = property(get_text, set_text)
 
     @property
     @renderable
-    def html_body(self):
+    def html_body(self) -> str | None:
         return self._html
 
     @property
     @renderable
-    def text_body(self):
+    def text_body(self) -> str | None:
         return self._text
 
-    def set_subject(self, value):
+    def set_subject(self, value: str | None) -> None:
         self._subject = value
 
     @renderable
-    def get_subject(self):
+    def get_subject(self) -> str | None:
         return self._subject
 
     subject = property(get_subject, set_subject)
 
-    def render(self, **kwargs):
+    def render(self, **kwargs: Any) -> None:
         self.render_data = kwargs
 
-    def set_date(self, value):
+    def set_date(self, value: str | datetime | float | bool | Callable[[], str] | None) -> None:
         self._date = value
 
-    def get_date(self):
+    def get_date(self) -> str | None:
         v = self._date
         if v is False:
             return None
@@ -166,29 +175,29 @@ class BaseMessage(object):
     message_date = date
 
     @property
-    def message_id(self):
+    def message_id(self) -> str | None:
         mid = self._message_id
         if mid is False:
             return None
         return callable(mid) and mid() or mid
 
     @message_id.setter
-    def message_id(self, value):
+    def message_id(self, value: str | MessageID | bool | None) -> None:
         self._message_id = value
 
     @property
-    def attachments(self):
+    def attachments(self) -> MemoryFileStore:
         if self._attachments is None:
             self._attachments = self.filestore_cls(self.attachment_cls)
         return self._attachments
 
-    def attach(self, **kwargs):
+    def attach(self, **kwargs: Any) -> None:
         if 'content_disposition' not in kwargs:
             kwargs['content_disposition'] = 'attachment'
         self.attachments.add(kwargs)
 
 
-class MessageBuildMixin(object):
+class MessageBuildMixin:
 
     ROOT_PREAMBLE = 'This is a multi-part message in MIME format.\n'
 
@@ -197,16 +206,16 @@ class MessageBuildMixin(object):
                            'resent-from', 'resent-sender', 'resent-to',
                            'resent-cc', 'resent-bcc'])
 
-    before_build = None
-    after_build = None
+    before_build: Callable[..., Any] | None = None
+    after_build: Callable[..., Any] | None = None
 
-    def encode_header(self, value):
+    def encode_header(self, value: str | None) -> str | None:
         if value:
             return encode_header_(value, self.charset)
         else:
             return value
 
-    def encode_address_header(self, pair):
+    def encode_address_header(self, pair: tuple[str | None, str | None] | None) -> str | None:
         if not pair:
             return None
         name, email = pair
@@ -214,7 +223,8 @@ class MessageBuildMixin(object):
 
     encode_name_header = encode_address_header  # legacy name
 
-    def set_header(self, msg, key, value, encode=True):
+    def set_header(self, msg: SafeMIMEMultipart, key: str,
+                   value: str | None, encode: bool = True) -> None:
 
         if value is None:
             # TODO: may be remove header here ?
@@ -233,7 +243,8 @@ class MessageBuildMixin(object):
 
         msg[key] = encode and self.encode_header(value) or value
 
-    def _build_root_message(self, message_cls=None, **kw):
+    def _build_root_message(self, message_cls: type | None = None,
+                            **kw: Any) -> SafeMIMEMultipart:
 
         msg = (message_cls or SafeMIMEMultipart)(**kw)
 
@@ -263,21 +274,21 @@ class MessageBuildMixin(object):
 
         return msg
 
-    def _build_html_part(self):
+    def _build_html_part(self) -> SafeMIMEText | None:
         text = self.html_body
         if text:
             p = SafeMIMEText(text, 'html', charset=self.charset)
             p.set_charset(self.charset)
             return p
 
-    def _build_text_part(self):
+    def _build_text_part(self) -> SafeMIMEText | None:
         text = self.text_body
         if text:
             p = SafeMIMEText(text, 'plain', charset=self.charset)
             p.set_charset(self.charset)
             return p
 
-    def build_message(self, message_cls=None):
+    def build_message(self, message_cls: type | None = None) -> SafeMIMEMultipart:
 
         if self.before_build:
             self.before_build(self)
@@ -317,7 +328,7 @@ class MessageBuildMixin(object):
 
     _build_message = build_message
 
-    def as_message(self, message_cls=None):
+    def as_message(self, message_cls: type | None = None) -> SafeMIMEMultipart:
         msg = self.build_message(message_cls=message_cls)
         if self._signer:
             msg = self.sign_message(msg)
@@ -325,7 +336,7 @@ class MessageBuildMixin(object):
 
     message = as_message
 
-    def as_string(self, message_cls=None):
+    def as_string(self, message_cls: type | None = None) -> str:
         """
         Returns message as string.
 
@@ -337,7 +348,7 @@ class MessageBuildMixin(object):
             r = self.sign_string(r)
         return r
 
-    def as_bytes(self, message_cls=None):
+    def as_bytes(self, message_cls: type | None = None) -> bytes:
         """
         Returns message as bytes.
         """
@@ -347,24 +358,24 @@ class MessageBuildMixin(object):
         return r
 
 
-class MessageSendMixin(object):
+class MessageSendMixin:
 
     smtp_pool_factory = ObjectFactory
     smtp_cls = SMTPBackend
 
     @cached_property
-    def smtp_pool(self):
+    def smtp_pool(self) -> ObjectFactory:
         return self.smtp_pool_factory(cls=self.smtp_cls)
 
     def send(self,
-             to=None,
-             set_mail_to=True,
-             mail_from=None,
-             set_mail_from=False,
-             render=None,
-             smtp_mail_options=None,
-             smtp_rcpt_options=None,
-             smtp=None):
+             to: _AddressList = None,
+             set_mail_to: bool = True,
+             mail_from: _Address = None,
+             set_mail_from: bool = False,
+             render: dict[str, Any] | None = None,
+             smtp_mail_options: list[str] | None = None,
+             smtp_rcpt_options: list[str] | None = None,
+             smtp: dict[str, Any] | SMTPBackend | None = None) -> Any:
 
         if render is not None:
             self.render(**render)
@@ -411,12 +422,12 @@ class MessageSendMixin(object):
         return smtp.sendmail(**params)
 
 
-class MessageTransformerMixin(object):
+class MessageTransformerMixin:
 
-    transformer_cls = None
-    _transformer = None
+    transformer_cls: type | None = None
+    _transformer: Any = None
 
-    def create_transformer(self, transformer_cls=None, **kw):
+    def create_transformer(self, transformer_cls: type | None = None, **kw: Any) -> Any:
         cls = transformer_cls or self.transformer_cls
         if cls is None:
             from .transformer import MessageTransformer  # avoid cyclic import
@@ -424,49 +435,49 @@ class MessageTransformerMixin(object):
         self._transformer = cls(message=self, **kw)
         return self._transformer
 
-    def destroy_transformer(self):
+    def destroy_transformer(self) -> None:
         self._transformer = None
 
     @property
-    def transformer(self):
+    def transformer(self) -> Any:
         if self._transformer is None:
             self.create_transformer()
         return self._transformer
 
-    def transform(self, **kwargs):
+    def transform(self, **kwargs: Any) -> None:
         self.transformer.load_and_transform(**kwargs)
         self.transformer.save()
 
-    def set_html(self, **kw):
+    def set_html(self, **kw: Any) -> None:
         # When html set, remove old transformer
         self.destroy_transformer()
         BaseMessage.set_html(self, **kw)
 
 
-class MessageSignMixin(object):
+class MessageSignMixin:
 
     signer_cls = DKIMSigner
-    _signer = None
+    _signer: DKIMSigner | None = None
 
-    def sign(self, **kwargs):
+    def sign(self, **kwargs: Any) -> Message:
         self._signer = self.signer_cls(**kwargs)
         return self
 
     dkim = sign
 
-    def sign_message(self, msg):
+    def sign_message(self, msg: SafeMIMEMultipart) -> SafeMIMEMultipart:
         """
         Add sign header to email.Message
         """
         return self._signer.sign_message(msg)
 
-    def sign_string(self, message_string):
+    def sign_string(self, message_string: str) -> str:
         """
         Add sign header to message-as-a-string
         """
         return self._signer.sign_message_string(message_string)
 
-    def sign_bytes(self, message_bytes):
+    def sign_bytes(self, message_bytes: bytes) -> bytes:
         """
         Add sign header to message-as-a-string
         """
@@ -483,11 +494,11 @@ class Message(MessageSendMixin, MessageTransformerMixin, MessageSignMixin, Messa
     pass
 
 
-def html(**kwargs):
+def html(**kwargs: Any) -> Message:
     return Message(**kwargs)
 
 
-class DjangoMessageProxy(object):
+class DjangoMessageProxy:
 
     """
     Class obsoletes with emails.django_.DjangoMessage
@@ -503,17 +514,18 @@ class DjangoMessageProxy(object):
         connection.send_messages([DjangoMessageProxy(message), ])
     """
 
-    def __init__(self, message, recipients=None, context=None):
+    def __init__(self, message: Message, recipients: list[str] | None = None,
+                 context: dict[str, Any] | None = None) -> None:
         self._message = message
         self._recipients = recipients
         self._context = context and context.copy() or {}
 
-        self.from_email = message.mail_from[1]
-        self.encoding = message.charset
+        self.from_email: str | None = message.mail_from[1]
+        self.encoding: str = message.charset
 
-    def recipients(self):
+    def recipients(self) -> list[str | None]:
         return self._recipients or [r[1] for r in self._message.mail_to]
 
-    def message(self):
+    def message(self) -> SafeMIMEMultipart:
         self._message.render(**self._context)
         return self._message.message()

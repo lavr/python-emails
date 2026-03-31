@@ -1,58 +1,61 @@
 # encoding: utf-8
+from __future__ import annotations
+
+from typing import Any
 
 
-class Response(object):
+class Response:
 
-    def __init__(self, exception=None, backend=None):
+    def __init__(self, exception: Exception | None = None, backend: Any = None) -> None:
         self.backend = backend
         self.set_exception(exception)
-        self.from_addr = None
-        self.to_addrs = None
-        self._finished = False
+        self.from_addr: str | None = None
+        self.to_addrs: list[str] | None = None
+        self._finished: bool = False
 
-    def set_exception(self, exc):
+    def set_exception(self, exc: Exception | None) -> None:
         self._exc = exc
 
-    def raise_if_needed(self):
+    def raise_if_needed(self) -> None:
         if self._exc:
             raise self._exc
 
     @property
-    def error(self):
+    def error(self) -> Exception | None:
         return self._exc
 
     @property
-    def success(self):
+    def success(self) -> bool:
         return self._finished
 
 
 class SMTPResponse(Response):
 
-    def __init__(self, exception=None, backend=None):
+    def __init__(self, exception: Exception | None = None, backend: Any = None) -> None:
 
         super(SMTPResponse, self).__init__(exception=exception, backend=backend)
 
-        self.responses = []
+        self.responses: list[list] = []
 
-        self.esmtp_opts = None
-        self.rcpt_options = None
+        self.esmtp_opts: str | None = None
+        self.rcpt_options: str | None = None
 
-        self.status_code = None
-        self.status_text = None
-        self.last_command = None
-        self.refused_recipient = {}
+        self.status_code: int | None = None
+        self.status_text: str | None = None
+        self.last_command: str | None = None
+        self.refused_recipient: dict[str, tuple[int, str]] = {}
 
-    def set_status(self, command, code, text, **kwargs):
+    def set_status(self, command: str, code: int, text: str, **kwargs: Any) -> None:
         self.responses.append([command, code, text, kwargs])
         self.status_code = code
         self.status_text = text
         self.last_command = command
 
     @property
-    def success(self):
-        return self._finished and self.status_code and self.status_code == 250
+    def success(self) -> bool:
+        return self._finished and self.status_code is not None and self.status_code == 250
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<emails.backend.SMTPResponse status_code=%s status_text=%s>" % (self.status_code.__repr__(),
                                                                                 self.status_text.__repr__())
 

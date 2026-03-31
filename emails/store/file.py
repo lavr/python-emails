@@ -1,10 +1,12 @@
 # encoding: utf-8
+from __future__ import annotations
 
 import uuid
 from mimetypes import guess_type
 from email.mime.base import MIMEBase
 from email.encoders import encode_base64
 from os.path import basename
+from typing import Any, IO
 
 import urllib.parse as urlparse
 
@@ -14,42 +16,42 @@ from ..utils import fetch_url, encode_header, to_bytes
 MIMETYPE_UNKNOWN = 'application/unknown'
 
 
-def fix_content_type(content_type, t='image'):
+def fix_content_type(content_type: str | None, t: str = 'image') -> str:
     if not content_type:
         return "%s/unknown" % t
     else:
         return content_type
 
 
-class BaseFile(object):
+class BaseFile:
 
     """
     Store base "attachment-file" information.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         uri and filename are connected properties.
         if no filename set, filename extracted from uri.
         if no uri, but filename set, then uri==filename
         """
-        self.uri = kwargs.get('uri', None)
-        self.absolute_url = kwargs.get('absolute_url', None) or self.uri
-        self.filename = kwargs.get('filename', None)
-        self.data = kwargs.get('data', None)
-        self._mime_type = kwargs.get('mime_type')
-        self._headers = kwargs.get('headers', {})
-        self._content_id = kwargs.get('content_id')
-        self._content_disposition = kwargs.get('content_disposition', 'attachment')
-        self.subtype = kwargs.get('subtype')
+        self.uri: str | None = kwargs.get('uri', None)
+        self.absolute_url: str | None = kwargs.get('absolute_url', None) or self.uri
+        self.filename: str | None = kwargs.get('filename', None)
+        self.data: bytes | str | IO[bytes] | None = kwargs.get('data', None)
+        self._mime_type: str | None = kwargs.get('mime_type')
+        self._headers: dict[str, str] = kwargs.get('headers', {})
+        self._content_id: str | None = kwargs.get('content_id')
+        self._content_disposition: str | None = kwargs.get('content_disposition', 'attachment')
+        self.subtype: str | None = kwargs.get('subtype')
         self.local_loader = kwargs.get('local_loader')
 
-    def as_dict(self, fields=None):
+    def as_dict(self, fields: tuple[str, ...] | None = None) -> dict[str, Any]:
         fields = fields or ('uri', 'absolute_url', 'filename', 'data',
                             'mime_type', 'content_disposition', 'subtype')
         return dict([(k, getattr(self, k)) for k in fields])
 
-    def get_data(self):
+    def get_data(self) -> bytes | str | None:
         _data = getattr(self, '_data', None)
         if isinstance(_data, str):
             return _data
@@ -58,12 +60,12 @@ class BaseFile(object):
         else:
             return _data
 
-    def set_data(self, value):
+    def set_data(self, value: bytes | str | IO[bytes] | None) -> None:
         self._data = value
 
     data = property(get_data, set_data)
 
-    def get_uri(self):
+    def get_uri(self) -> str | None:
         _uri = getattr(self, '_uri', None)
         if _uri is None:
             _filename = getattr(self, '_filename', None)
@@ -71,12 +73,12 @@ class BaseFile(object):
                 _uri = self._uri = _filename
         return _uri
 
-    def set_uri(self, value):
+    def set_uri(self, value: str | None) -> None:
         self._uri = value
 
     uri = property(get_uri, set_uri)
 
-    def get_filename(self):
+    def get_filename(self) -> str | None:
         _filename = getattr(self, '_filename', None)
         if _filename is None:
             _uri = getattr(self, '_uri', None)
@@ -88,12 +90,12 @@ class BaseFile(object):
                 self._filename = _filename
         return _filename
 
-    def set_filename(self, value):
+    def set_filename(self, value: str | None) -> None:
         self._filename = value
 
     filename = property(get_filename, set_filename)
 
-    def get_mime_type(self):
+    def get_mime_type(self) -> str:
         r = getattr(self, '_mime_type', None)
         if r is None:
             filename = self.filename
@@ -106,10 +108,10 @@ class BaseFile(object):
 
     mime_type = property(get_mime_type)
 
-    def get_content_disposition(self):
+    def get_content_disposition(self) -> str | None:
         return getattr(self, '_content_disposition', None)
 
-    def set_content_disposition(self, value):
+    def set_content_disposition(self, value: str | None) -> None:
         self._content_disposition = value
 
     content_disposition = property(get_content_disposition, set_content_disposition)
@@ -126,13 +128,13 @@ class BaseFile(object):
             self.content_disposition = 'attachment'
 
     @property
-    def content_id(self):
+    def content_id(self) -> str | None:
         if self._content_id is None:
             self._content_id = self.filename
         return self._content_id
 
     @property
-    def mime(self):
+    def mime(self) -> MIMEBase | None:
         content_disposition = self.content_disposition
         if content_disposition is None:
             return None
@@ -151,21 +153,21 @@ class BaseFile(object):
             self._cached_part = p
         return p
 
-    def reset_mime(self):
+    def reset_mime(self) -> None:
         self._mime = None
 
-    def fetch(self):
+    def fetch(self) -> None:
         pass
 
 
 class LazyHTTPFile(BaseFile):
 
-    def __init__(self, requests_args=None, **kwargs):
+    def __init__(self, requests_args: dict[str, Any] | None = None, **kwargs: Any) -> None:
         BaseFile.__init__(self, **kwargs)
         self.requests_args = requests_args
         self._fetched = False
 
-    def fetch(self):
+    def fetch(self) -> None:
         if (not self._fetched) and self.uri:
             if self.local_loader:
                 data = self.local_loader[self.uri]
@@ -182,21 +184,21 @@ class LazyHTTPFile(BaseFile):
                 self._mime_type = fix_content_type(r.headers.get('content-type'), t='unknown')
                 self._fetched = True
 
-    def get_data(self):
+    def get_data(self) -> bytes | str:
         self.fetch()
         return self._data or ''
 
-    def set_data(self, v):
+    def set_data(self, v: bytes | str | IO[bytes] | None) -> None:
         self._data = v
 
     data = property(get_data, set_data)
 
     @property
-    def mime_type(self):
+    def mime_type(self) -> str:
         self.fetch()
         return super(LazyHTTPFile, self).mime_type
 
     @property
-    def headers(self):
+    def headers(self) -> dict[str, str]:
         self.fetch()
         return self._headers

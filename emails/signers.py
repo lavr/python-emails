@@ -1,11 +1,10 @@
 # encoding: utf-8
 # This module use pydkim for DKIM signature
-
-# For python2.4:
-#  - use dkimpy v0.3 from http://hewgill.com/pydkim/
-#  - install hashlib (https://pypi.python.org/pypi/hashlib/20081119) and dnspython
+from __future__ import annotations
 
 import logging
+from email.mime.multipart import MIMEMultipart
+from typing import IO
 
 from .packages import dkim
 from .packages.dkim import DKIMException, UnparsableKeyError
@@ -15,7 +14,8 @@ from .utils import to_bytes, to_native
 
 class DKIMSigner:
 
-    def __init__(self, selector, domain, key=None, ignore_sign_errors=False, **kwargs):
+    def __init__(self, selector: str, domain: str, key: str | bytes | IO[bytes] | None = None,
+                 ignore_sign_errors: bool = False, **kwargs: object) -> None:
 
         self.ignore_sign_errors = ignore_sign_errors
         self._sign_params = kwargs
@@ -38,7 +38,7 @@ class DKIMSigner:
                                   'domain': to_bytes(domain),
                                   'selector': to_bytes(selector)})
 
-    def get_sign_string(self, message):
+    def get_sign_string(self, message: bytes) -> bytes | None:
         try:
             # pydkim module parses message and privkey on each signing
             # this is not optimal for mass operations
@@ -50,10 +50,10 @@ class DKIMSigner:
             else:
                 raise
 
-    def get_sign_bytes(self, message):
+    def get_sign_bytes(self, message: bytes) -> bytes | None:
         return self.get_sign_string(message)
 
-    def get_sign_header(self, message):
+    def get_sign_header(self, message: bytes) -> tuple[str, str] | None:
         # pydkim returns string, so we should split
         s = self.get_sign_string(message)
         if s:
@@ -62,7 +62,7 @@ class DKIMSigner:
                 value = value[:-2]
             return header, value
 
-    def sign_message(self, msg):
+    def sign_message(self, msg: MIMEMultipart) -> MIMEMultipart:
         """
         Add DKIM header to email.message
         """
@@ -76,7 +76,7 @@ class DKIMSigner:
             msg._headers.insert(0, dkim_header)
         return msg
 
-    def sign_message_string(self, message_string):
+    def sign_message_string(self, message_string: str) -> str:
         """
         Insert DKIM header to message string
         """
@@ -88,7 +88,7 @@ class DKIMSigner:
         s = self.get_sign_string(to_bytes(message_string))
         return s and to_native(s) + message_string or message_string
 
-    def sign_message_bytes(self, message_bytes):
+    def sign_message_bytes(self, message_bytes: bytes) -> bytes:
         """
         Insert DKIM header to message bytes
         """
