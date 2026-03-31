@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .packages.dkim import DKIMException
+from dkim import DKIMException
 
 
 class HTTPLoaderError(Exception):

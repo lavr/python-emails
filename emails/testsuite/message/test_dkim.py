@@ -7,7 +7,7 @@ from io import StringIO
 
 from emails.exc import DKIMException
 from emails.utils import load_email_charsets
-import emails.packages.dkim
+import dkim
 from .helpers import common_email_data
 
 
@@ -48,8 +48,8 @@ def _check_dkim(message, pub_key=PUB_KEY):
     def _plain_public_key(s):
         return b"".join([l for l in s.split(b'\n') if not l.startswith(b'---')])
     message = message.as_string()
-    o = emails.packages.dkim.DKIM(message=message.encode())
-    return o.verify(dnsfunc=lambda name: b"".join([b"v=DKIM1; p=", _plain_public_key(pub_key)]))
+    o = dkim.DKIM(message=message.encode())
+    return o.verify(dnsfunc=lambda name, **kw: b"".join([b"v=DKIM1; p=", _plain_public_key(pub_key)]))
 
 
 def test_dkim():

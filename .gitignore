@@ -39,3 +39,6 @@ nosetests.xml
 
 venv/
 .env
+
+docs/plans/
+.claude/*local*
