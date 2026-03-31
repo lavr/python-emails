@@ -128,8 +128,9 @@ DNS_NAME = CachedDnsName()
 
 def decode_header(value: str | bytes, default: str = "utf-8", errors: str = 'strict') -> str:
     """Decode the specified header value"""
-    value = to_native(value, charset=default, errors=errors)  # type: ignore[assignment]
-    return "".join([to_unicode(text, charset or default, errors) for text, charset in decode_header_(value)])  # type: ignore[misc, arg-type]
+    native = to_native(value, charset=default, errors=errors)
+    assert native is not None  # to_native returns None only for None input
+    return "".join([to_unicode(text, charset or default, errors) for text, charset in decode_header_(native)])  # type: ignore[misc]
 
 
 class MessageID:
@@ -213,7 +214,7 @@ def parse_name_and_email(obj: str | tuple[str | None, str] | list[str],
 
 def sanitize_email(addr: str, encoding: str = 'ascii', parse: bool = False) -> str:
     if parse:
-        _, addr = parseaddr(to_unicode(addr))  # type: ignore[arg-type]
+        _, addr = parseaddr(addr)
     try:
         addr.encode('ascii')
     except UnicodeEncodeError:  # IDN
@@ -229,7 +230,7 @@ def sanitize_email(addr: str, encoding: str = 'ascii', parse: bool = False) -> s
 
 def sanitize_address(addr: str | tuple[str, str], encoding: str = 'ascii') -> str:
     if isinstance(addr, str):
-        addr = parseaddr(to_unicode(addr))  # type: ignore[arg-type]
+        addr = parseaddr(addr)
     nm, addr = addr
     # This try-except clause is needed on Python 3 < 3.2.4
     # http://bugs.python.org/issue14291
@@ -300,7 +301,7 @@ def fetch_url(url: str, valid_http_codes: tuple[int, ...] = (200, ),
 
 def encode_header(value: str | Any, charset: str = 'utf-8') -> str | Any:
     if isinstance(value, str):
-        value = to_unicode(value, charset=charset).rstrip()  # type: ignore[union-attr]
+        value = value.rstrip()
         _r = Header(value, charset)
         return str(_r)
     else:

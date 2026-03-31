@@ -58,7 +58,9 @@ class DKIMSigner:
         # pydkim returns string, so we should split
         s = self.get_sign_string(message)
         if s:
-            (header, value) = to_native(s).split(': ', 1)  # type: ignore[union-attr]
+            native = to_native(s)
+            assert native is not None  # s is bytes, to_native always returns str
+            (header, value) = native.split(': ', 1)
             if value.endswith("\r\n"):
                 value = value[:-2]
             return header, value
@@ -73,7 +75,9 @@ class DKIMSigner:
         # but py3 smtplib requires str to send DATA command (#
         # so we have to convert msg.as_string
 
-        dkim_header = self.get_sign_header(to_bytes(msg.as_string()))  # type: ignore[arg-type]
+        msg_bytes = to_bytes(msg.as_string())
+        assert msg_bytes is not None
+        dkim_header = self.get_sign_header(msg_bytes)
         if dkim_header:
             msg._headers.insert(0, dkim_header)  # type: ignore[attr-defined]
         return msg
@@ -87,12 +91,20 @@ class DKIMSigner:
         # but py3 smtplib requires str to send DATA command
         # so we have to convert message_string
 
-        s = self.get_sign_string(to_bytes(message_string))  # type: ignore[arg-type]
-        return s and to_native(s) + message_string or message_string  # type: ignore[operator]
+        msg_bytes = to_bytes(message_string)
+        assert msg_bytes is not None
+        s = self.get_sign_string(msg_bytes)
+        if s:
+            header = to_native(s)
+            assert header is not None
+            return header + message_string
+        return message_string
 
     def sign_message_bytes(self, message_bytes: bytes) -> bytes:
         """
         Insert DKIM header to message bytes
         """
         s = self.get_sign_bytes(message_bytes)
-        return s and to_bytes(s) + message_bytes or message_bytes  # type: ignore[operator]
+        if s:
+            return s + message_bytes
+        return message_bytes

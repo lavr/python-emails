@@ -50,7 +50,7 @@ class SMTPBackend:
         self.smtp_cls_kwargs = kwargs
 
         self.host: str | None = kwargs.get('host')
-        self.port: int = kwargs.get('port')  # type: ignore[assignment]
+        self.port: int = kwargs['port']  # always set as int two lines above
         self.fail_silently = fail_silently
         self.mail_options = mail_options or []
 
