@@ -11,7 +11,7 @@ fi
 VERSION_FILE="emails/__init__.py"
 CHANGELOG="CHANGELOG.md"
 
-current=$(grep -oP "^__version__ = '\K[^']+" "$VERSION_FILE")
+current=$(sed -n "s/^__version__ = '\([^']*\)'/\1/p" "$VERSION_FILE")
 if [[ -z "$current" ]]; then
     echo "Error: could not read version from $VERSION_FILE"
     exit 1
@@ -45,15 +45,13 @@ echo "Releasing $current -> $new_version"
 echo ""
 
 # --- Update version in emails/__init__.py ---
-sed -i.bak "s/^__version__ = '${current}'/__version__ = '${new_version}'/" "$VERSION_FILE"
-rm -f "${VERSION_FILE}.bak"
+sed -i '' "s/^__version__ = '${current}'/__version__ = '${new_version}'/" "$VERSION_FILE"
 
 # --- Update CHANGELOG: add date to the release heading ---
 today=$(date +%Y-%m-%d)
-sed -i.bak "s/^## ${new_version}$/## ${new_version} — ${today}/" "$CHANGELOG"
+sed -i '' "s/^## ${new_version}$/## ${new_version} — ${today}/" "$CHANGELOG"
 # Also handle case where heading doesn't have the version yet (uses Unreleased)
-sed -i.bak "s/^## Unreleased$/## ${new_version} — ${today}/" "$CHANGELOG"
-rm -f "${CHANGELOG}.bak"
+sed -i '' "s/^## Unreleased$/## ${new_version} — ${today}/" "$CHANGELOG"
 
 # --- Commit and tag ---
 git add "$VERSION_FILE" "$CHANGELOG"
