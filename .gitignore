@@ -42,3 +42,7 @@ venv/
 
 docs/plans/
 .claude/*local*
+
+# CodeQL
+.codeql-db
+codeql-results.sarif
