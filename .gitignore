@@ -42,6 +42,7 @@ venv/
 
 docs/plans/
 .claude/*local*
+.claude/worktrees/
 
 # CodeQL
 .codeql-db
