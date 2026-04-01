@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.2
+
+### Added
+
+- Documentation build check in CI (#208)
+- ReadTheDocs configuration (`.readthedocs.yaml`)
+
+### Fixed
+
+- Jinja2 is now an optional dependency — install with `pip install emails[jinja2]` (#207, #161)
+
 ## 1.0
 
 ### Breaking changes
