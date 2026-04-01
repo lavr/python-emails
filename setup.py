@@ -128,6 +128,7 @@ settings.update(
     install_requires=['python-dateutil', 'puremagic', 'dkimpy'],
     extras_require={
         'html': ['cssutils', 'lxml', 'chardet', 'requests', 'premailer'],
+        'jinja': ['jinja2'],
     },
     zip_safe=False,
     classifiers=(

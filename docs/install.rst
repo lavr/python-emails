@@ -15,3 +15,9 @@ To use HTML transformation features (CSS inlining, image embedding, loading from
 .. code-block:: bash
 
     $ pip install emails[html]
+
+To use Jinja2 templates (the ``T()`` shortcut):
+
+.. code-block:: bash
+
+    $ pip install emails[jinja]

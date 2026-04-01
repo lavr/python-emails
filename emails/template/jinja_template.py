@@ -16,7 +16,13 @@ class JinjaTemplate(BaseTemplate):
             self.environment = environment
         else:
             if 'jinja2' not in globals():
-                globals()['jinja2'] = __import__('jinja2')
+                try:
+                    globals()['jinja2'] = __import__('jinja2')
+                except ImportError:
+                    raise ImportError(
+                        "jinja2 is required for template support. "
+                        "Install it with: pip install emails[jinja]"
+                    )
             self.environment = jinja2.Environment(**self.DEFAULT_JINJA_ENVIRONMENT)
 
     def compile_template(self):
