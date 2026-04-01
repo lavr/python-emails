@@ -117,7 +117,6 @@ html_sidebars = {
 html_theme_options = {
     'github_user': 'lavr',
     'github_repo': 'python-emails',
-    'travis_button': True
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -279,4 +278,4 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
