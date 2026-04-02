@@ -9,7 +9,7 @@ python-emails
    :target: https://pypi.org/project/emails/
    :alt: Python versions
 
-.. |tests| image:: https://github.com/lavr/python-emails/workflows/Tests/badge.svg?branch=master
+.. |tests| image:: https://github.com/lavr/python-emails/actions/workflows/tests.yaml/badge.svg?branch=master
    :target: https://github.com/lavr/python-emails/actions?query=workflow%3ATests
    :alt: Test status
 
