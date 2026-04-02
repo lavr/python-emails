@@ -47,3 +47,6 @@ docs/plans/
 # CodeQL
 .codeql-db
 codeql-results.sarif
+
+# ralphex progress logs
+.ralphex/progress/
