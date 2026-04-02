@@ -1,1 +1,2 @@
-alabaster
+furo
+sphinx-togglebutton

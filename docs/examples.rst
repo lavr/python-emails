@@ -32,7 +32,7 @@ Attach files or inline images:
     message.attach(data=open('image.png', 'rb'), filename='image.png',
                    content_disposition='inline')
 
-Use templates (requires ``pip install emails[jinja]``):
+Use templates (requires ``pip install "emails[jinja]"``):
 
 .. code-block:: python
 
