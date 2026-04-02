@@ -81,6 +81,7 @@ settings.update(
     description='Modern python library for emails.',
     long_description=read_file('README.rst'),
     long_description_content_type='text/x-rst',
+    license='Apache License 2.0',
     author='Sergey Lavrinenko',
     author_email='s@lavr.me',
     url='https://github.com/lavr/python-emails',
@@ -103,9 +104,10 @@ settings.update(
         'async': ['aiosmtplib'],
     },
     zip_safe=False,
-    classifiers=(
+    classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
+        'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         "Operating System :: OS Independent",
         "Programming Language :: Python",
@@ -119,7 +121,7 @@ settings.update(
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Other/Nonlisted Topic",
         "Topic :: Software Development :: Libraries :: Python Modules",
-    ),
+    ],
     cmdclass={'audit': run_audit}
 )
 
