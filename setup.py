@@ -129,6 +129,7 @@ settings.update(
     extras_require={
         'html': ['cssutils', 'lxml', 'chardet', 'requests', 'premailer'],
         'jinja': ['jinja2'],
+        'async': ['aiosmtplib'],
     },
     zip_safe=False,
     classifiers=(

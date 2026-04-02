@@ -45,5 +45,6 @@ USER_AGENT: str = 'python-emails/%s' % __version__
 
 from .message import Message, html
 from .utils import MessageID
+from .exc import HTTPLoaderError, BadHeaderError, IncompleteMessage
 
 

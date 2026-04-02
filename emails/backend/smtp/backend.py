@@ -69,7 +69,7 @@ class SMTPBackend:
         if self._client:
             try:
                 self._client.quit()
-            except:
+            except Exception:
                     if self.fail_silently:
                         return
                     raise
@@ -86,7 +86,7 @@ class SMTPBackend:
                 return func(*args, **kwargs)
             except smtplib.SMTPServerDisconnected:
                 # If server disconected, clear old client
-                logging.debug('SMTPServerDisconnected, retry once')
+                logger.debug('SMTPServerDisconnected, retry once')
                 self.close()
                 return func(*args, **kwargs)
         return wrapper
@@ -106,8 +106,6 @@ class SMTPBackend:
                 raise
 
         if response:
-            if not self.fail_silently:
-                response.raise_if_needed()
             return response
         else:
             return client.sendmail(**kwargs)

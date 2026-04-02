@@ -381,28 +381,17 @@ class MessageSendMixin:
     def smtp_pool(self) -> ObjectFactory:
         return self.smtp_pool_factory(cls=self.smtp_cls)
 
-    def send(self,
-             to: _AddressList = None,
-             set_mail_to: bool = True,
-             mail_from: _Address = None,
-             set_mail_from: bool = False,
-             render: dict[str, Any] | None = None,
-             smtp_mail_options: list[str] | None = None,
-             smtp_rcpt_options: list[str] | None = None,
-             smtp: dict[str, Any] | SMTPBackend | None = None) -> Any:
+    def _prepare_send_params(self,
+                             to: _AddressList = None,
+                             set_mail_to: bool = True,
+                             mail_from: _Address = None,
+                             set_mail_from: bool = False,
+                             render: dict[str, Any] | None = None,
+                             smtp_mail_options: list[str] | None = None,
+                             smtp_rcpt_options: list[str] | None = None) -> dict[str, Any]:
 
         if render is not None:
             self.render(**render)
-
-        if smtp is None:
-            smtp = {'host': 'localhost', 'port': 25, 'timeout': 5}
-
-        if isinstance(smtp, dict):
-            smtp = self.smtp_pool[smtp]
-
-        if not hasattr(smtp, 'sendmail'):
-            raise ValueError(
-                "smtp must be a dict or an object with method 'sendmail'. got %s" % type(smtp))
 
         to_addrs = None
 
@@ -430,10 +419,75 @@ class MessageSendMixin:
         if not from_addr:
             raise ValueError('No "from" addr')
 
-        params = dict(from_addr=from_addr, to_addrs=to_addrs, msg=self,
-                      mail_options=smtp_mail_options, rcpt_options=smtp_rcpt_options)
+        return dict(from_addr=from_addr, to_addrs=to_addrs, msg=self,
+                    mail_options=smtp_mail_options, rcpt_options=smtp_rcpt_options)
+
+    def send(self,
+             to: _AddressList = None,
+             set_mail_to: bool = True,
+             mail_from: _Address = None,
+             set_mail_from: bool = False,
+             render: dict[str, Any] | None = None,
+             smtp_mail_options: list[str] | None = None,
+             smtp_rcpt_options: list[str] | None = None,
+             smtp: dict[str, Any] | SMTPBackend | None = None) -> Any:
+
+        if smtp is None:
+            smtp = {'host': 'localhost', 'port': 25, 'timeout': 5}
+
+        if isinstance(smtp, dict):
+            smtp = self.smtp_pool[smtp]
+
+        if not hasattr(smtp, 'sendmail'):
+            raise ValueError(
+                "smtp must be a dict or an object with method 'sendmail'. got %s" % type(smtp))
+
+        params = self._prepare_send_params(
+            to=to, set_mail_to=set_mail_to, mail_from=mail_from,
+            set_mail_from=set_mail_from, render=render,
+            smtp_mail_options=smtp_mail_options, smtp_rcpt_options=smtp_rcpt_options)
 
         return smtp.sendmail(**params)
+
+    async def send_async(self,
+                         to: _AddressList = None,
+                         set_mail_to: bool = True,
+                         mail_from: _Address = None,
+                         set_mail_from: bool = False,
+                         render: dict[str, Any] | None = None,
+                         smtp_mail_options: list[str] | None = None,
+                         smtp_rcpt_options: list[str] | None = None,
+                         smtp: dict[str, Any] | Any | None = None) -> Any:
+
+        try:
+            from .backend.smtp.aio_backend import AsyncSMTPBackend
+        except ImportError:
+            raise ImportError(
+                "send_async() requires aiosmtplib. "
+                'Install it with: pip install "emails[async]"') from None
+
+        if smtp is None:
+            smtp = {'host': 'localhost', 'port': 25, 'timeout': 5}
+
+        own_backend = False
+        if isinstance(smtp, dict):
+            smtp = AsyncSMTPBackend(**smtp)
+            own_backend = True
+
+        if not hasattr(smtp, 'sendmail'):
+            raise ValueError(
+                "smtp must be a dict or an AsyncSMTPBackend. got %s" % type(smtp))
+
+        params = self._prepare_send_params(
+            to=to, set_mail_to=set_mail_to, mail_from=mail_from,
+            set_mail_from=set_mail_from, render=render,
+            smtp_mail_options=smtp_mail_options, smtp_rcpt_options=smtp_rcpt_options)
+
+        try:
+            return await smtp.sendmail(**params)
+        finally:
+            if own_backend:
+                await smtp.close()
 
 
 class MessageTransformerMixin:

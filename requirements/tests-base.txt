@@ -3,4 +3,6 @@ mako
 speaklater
 pytest
 pytest-cov
+pytest-asyncio
 html5lib
+aiosmtplib
