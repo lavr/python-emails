@@ -20,12 +20,3 @@ jobs:
         run: python -m build
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger ReadTheDocs build
-        run: |
-          curl -s -X POST \
-            -H "Authorization: Token ${{ secrets.RTD_API_TOKEN }}" \
-            "https://readthedocs.org/api/v3/projects/python-emails/versions/latest/builds/"

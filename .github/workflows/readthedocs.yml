@@ -1,0 +1,139 @@
+name: Publish Read the Docs
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      RTD_API_TOKEN: ${{ secrets.RTD_API_TOKEN }}
+      RTD_PROJECT_SLUG: python-emails
+    steps:
+      - name: Trigger Read the Docs build
+        run: |
+          set -euo pipefail
+
+          : "${RTD_API_TOKEN:?RTD_API_TOKEN secret is required}"
+
+          api_base="https://app.readthedocs.org/api/v3/projects/${RTD_PROJECT_SLUG}"
+          auth_header="Authorization: Token ${RTD_API_TOKEN}"
+
+          get_version_details() {
+            local version_slug="$1"
+            local response_file="${2:-version.json}"
+
+            curl \
+              --silent \
+              --show-error \
+              --output "${response_file}" \
+              --write-out '%{http_code}' \
+              --header "${auth_header}" \
+              "${api_base}/versions/${version_slug}/"
+          }
+
+          wait_for_version_slug() {
+            local version_name="$1"
+
+            for attempt in {1..12}; do
+              local status_code
+              local version_slug
+              status_code="$(
+                curl \
+                  --silent \
+                  --show-error \
+                  --output versions.json \
+                  --write-out '%{http_code}' \
+                  --get \
+                  --header "${auth_header}" \
+                  --data-urlencode "type=tag" \
+                  --data-urlencode "verbose_name=${version_name}" \
+                  "${api_base}/versions/"
+              )"
+
+              if [[ "${status_code}" == "200" ]]; then
+                version_slug="$(
+                  jq \
+                    --raw-output \
+                    --arg version_name "${version_name}" \
+                    '.results[] | select(.verbose_name == $version_name) | .slug' \
+                    versions.json | head -n 1
+                )"
+
+                if [[ -n "${version_slug}" && "${version_slug}" != "null" ]]; then
+                  printf '%s\n' "${version_slug}"
+                  return 0
+                fi
+              fi
+
+              sleep 5
+            done
+
+            echo "Read the Docs version '${version_name}' was not found after sync."
+            if [[ -f versions.json ]]; then
+              cat versions.json
+            fi
+            return 1
+          }
+
+          trigger_build() {
+            local version_slug="$1"
+
+            curl \
+              --fail-with-body \
+              --silent \
+              --show-error \
+              --request POST \
+              --header "${auth_header}" \
+              "${api_base}/versions/${version_slug}/builds/"
+          }
+
+          if [[ "${GITHUB_REF_TYPE}" == "branch" ]]; then
+            trigger_build latest
+            exit 0
+          fi
+
+          version_name="${GITHUB_REF_NAME}"
+
+          curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --request POST \
+            --header "${auth_header}" \
+            "${api_base}/sync-versions/"
+
+          version_slug="$(wait_for_version_slug "${version_name}")"
+          status_code="$(get_version_details "${version_slug}")"
+
+          if [[ "${status_code}" != "200" ]]; then
+            echo "Failed to fetch Read the Docs version details for '${version_slug}'."
+            cat version.json
+            exit 1
+          fi
+
+          active="$(jq -r '.active' version.json)"
+          hidden="$(jq -r '.hidden' version.json)"
+
+          if [[ "${active}" == "true" && "${hidden}" == "false" ]]; then
+            trigger_build "${version_slug}"
+            exit 0
+          fi
+
+          curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --request PATCH \
+            --header "${auth_header}" \
+            --header "Content-Type: application/json" \
+            --data '{"active": true, "hidden": false}' \
+            "${api_base}/versions/${version_slug}/"
+
+          if [[ "${active}" == "true" ]]; then
+            trigger_build "${version_slug}"
+          fi
