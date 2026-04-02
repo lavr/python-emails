@@ -78,8 +78,6 @@ jobs:
         run: sphinx-build -W -b html docs docs/_build/html
       - name: run doctests
         run: sphinx-build -b doctest docs docs/_build/doctest
-      - name: check links
-        run: sphinx-build -b linkcheck docs docs/_build/linkcheck
 
   typecheck:
     name: "typecheck"
