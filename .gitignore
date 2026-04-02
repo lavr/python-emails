@@ -41,6 +41,7 @@ venv/
 .env
 
 docs/plans/
+docs/_build/
 .claude/*local*
 .claude/worktrees/
 
