@@ -1,6 +1,5 @@
-
 Install
--------
+=======
 
 Install from pypi:
 
@@ -14,10 +13,16 @@ To use HTML transformation features (CSS inlining, image embedding, loading from
 
 .. code-block:: bash
 
-    $ pip install emails[html]
+    $ pip install "emails[html]"
 
 To use Jinja2 templates (the ``T()`` shortcut):
 
 .. code-block:: bash
 
-    $ pip install emails[jinja]
+    $ pip install "emails[jinja]"
+
+To use async sending (``send_async()``):
+
+.. code-block:: bash
+
+    $ pip install "emails[async]"
