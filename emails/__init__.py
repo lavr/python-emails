@@ -36,7 +36,7 @@ Links
 
 
 __title__ = 'emails'
-__version__ = '1.1.0'
+__version__ = '1.1.1'
 __author__ = 'Sergey Lavrinenko'
 __license__ = 'Apache 2.0'
 __copyright__ = 'Copyright 2013-2026 Sergey Lavrinenko'
