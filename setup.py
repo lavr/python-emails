@@ -1,39 +1,4 @@
-"""
-
-python-emails
-~~~~~~~~~~~~~
-
-Modern python library for email.
-
-Build message:
-
-   >>> import emails
-   >>> message = emails.html(html="<p>Hi!<br>Here is your receipt...",
-                          subject="Your receipt No. 567098123",
-                          mail_from=('Some Store', 'store@somestore.com'))
-   >>> message.attach(data=open('bill.pdf'), filename='bill.pdf')
-
-send message and get response from smtp server:
-
-   >>> r = message.send(to='s@lavr.me', smtp={'host': 'aspmx.l.google.com', 'timeout': 5})
-   >>> assert r.status_code == 250
-
-and more:
-
- * DKIM signature
- * Render body from template
- * Flask extension and Django integration
- * Message body transformation methods
- * Load message from url or from file
-
-
-Links
-`````
-
-* `documentation <https://python-emails.readthedocs.io/>`_
-* `source code <https://github.com/lavr/python-emails>`_
-
-"""
+"""Setup configuration for python-emails."""
 
 import codecs
 import os
@@ -104,11 +69,17 @@ def find_version(*file_paths):
     raise RuntimeError("Unable to find version string.")
 
 
+def read_file(filename):
+    file_path = os.path.join(os.path.dirname(__file__), filename)
+    with codecs.open(file_path, encoding='utf-8') as fh:
+        return fh.read()
+
+
 settings.update(
     name='emails',
     version=find_version('emails/__init__.py'),
     description='Modern python library for emails.',
-    long_description=__doc__,
+    long_description=read_file('README.rst'),
     long_description_content_type='text/x-rst',
     author='Sergey Lavrinenko',
     author_email='s@lavr.me',
