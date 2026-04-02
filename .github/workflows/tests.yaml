@@ -219,6 +219,7 @@ jobs:
           trigger_build() {
             local version_slug="$1"
 
+            echo "Triggering Read the Docs build for version slug '${version_slug}'."
             curl \
               --fail-with-body \
               --silent \
@@ -254,12 +255,14 @@ jobs:
 
           active="$(jq -r '.active' version.json)"
           hidden="$(jq -r '.hidden' version.json)"
+          echo "Read the Docs version '${version_slug}' status: active=${active}, hidden=${hidden}."
 
           if [[ "${active}" == "true" && "${hidden}" == "false" ]]; then
             trigger_build "${version_slug}"
             exit 0
           fi
 
+          echo "Activating and unhiding Read the Docs version '${version_slug}'."
           curl \
             --fail-with-body \
             --silent \
@@ -270,6 +273,23 @@ jobs:
             --data '{"active": true, "hidden": false}' \
             "${api_base}/versions/${version_slug}/"
 
-          if [[ "${active}" == "true" ]]; then
-            trigger_build "${version_slug}"
+          status_code="$(get_version_details "${version_slug}")"
+
+          if [[ "${status_code}" != "200" ]]; then
+            echo "Failed to re-fetch Read the Docs version details for '${version_slug}' after PATCH."
+            cat version.json
+            exit 1
           fi
+
+          active="$(jq -r '.active' version.json)"
+          hidden="$(jq -r '.hidden' version.json)"
+          echo "Read the Docs version '${version_slug}' updated status: active=${active}, hidden=${hidden}."
+
+          if [[ "${active}" == "true" && "${hidden}" == "false" ]]; then
+            trigger_build "${version_slug}"
+            exit 0
+          fi
+
+          echo "Read the Docs version '${version_slug}' is still not buildable after PATCH."
+          cat version.json
+          exit 1
