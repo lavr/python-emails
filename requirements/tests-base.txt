@@ -6,3 +6,4 @@ pytest-cov
 pytest-asyncio
 html5lib
 aiosmtplib
+cryptography
