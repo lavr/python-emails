@@ -114,6 +114,8 @@ def test_dkim_as_bytes(dkim_keys):
     result = message.as_bytes()
     assert isinstance(result, bytes)
     assert b'DKIM-Signature: ' in result
+    assert b'\r\n' in result
+    assert b'\n' not in result.replace(b'\r\n', b'')
 
 
 def test_dkim_sign_after_error(dkim_keys):

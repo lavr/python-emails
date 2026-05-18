@@ -40,6 +40,9 @@ async def test_send_async_with_dict(mock_smtp):
     response = await msg.send_async(smtp={'host': 'localhost', 'port': 2525})
     assert response is not None
     assert response.success
+    sent_message = mock_smtp.data.await_args.args[0]
+    assert b'\r\n' in sent_message
+    assert b'\n' not in sent_message.replace(b'\r\n', b'')
     # Backend should have been closed (quit called)
     mock_smtp.quit.assert_awaited_once()
 
