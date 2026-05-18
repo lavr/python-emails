@@ -10,6 +10,7 @@
 ### Fixed
 
 - Jinja2 is now an optional dependency — install with `pip install emails[jinja2]` (#207, #161)
+- `Message.as_bytes()` now serializes messages with CRLF line endings for RFC 5321-compliant SMTP delivery (#213)
 
 ## 1.0
 

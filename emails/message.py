@@ -19,6 +19,8 @@ from .signers import DKIMSigner
 
 load_email_charsets()  # sic!
 
+RFC5321_LINESEP = '\r\n'
+
 
 # Type alias for email addresses accepted by the public API
 _Address = str | tuple[str | None, str] | None
@@ -366,7 +368,7 @@ class MessageBuildMixin:
         """
         Returns message as bytes.
         """
-        r = self.build_message(message_cls=message_cls).as_bytes()
+        r = self.build_message(message_cls=message_cls).as_bytes(linesep=RFC5321_LINESEP)
         if self._signer:
             r = self.sign_bytes(r)
         return r

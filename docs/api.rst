@@ -156,7 +156,8 @@ Message Methods
 
 .. method:: Message.as_bytes(message_cls=None)
 
-   Return the message as bytes, including DKIM signature if configured.
+   Return the message as bytes with CRLF line endings, including DKIM
+   signature if configured.
 
    :param message_cls: Optional custom MIME message class.
    :returns: Message as bytes.
