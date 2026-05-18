@@ -11,6 +11,11 @@ fi
 VERSION_FILE="emails/__init__.py"
 CHANGELOG="CHANGELOG.md"
 
+if ! command -v gh >/dev/null 2>&1; then
+    echo "Error: GitHub CLI (gh) is required to create a GitHub Release."
+    exit 1
+fi
+
 current=$(sed -n "s/^__version__ = '\([^']*\)'/\1/p" "$VERSION_FILE")
 if [[ -z "$current" ]]; then
     echo "Error: could not read version from $VERSION_FILE"
@@ -58,6 +63,13 @@ git add "$VERSION_FILE" "$CHANGELOG"
 git commit -m "Release v${new_version}"
 git tag "v${new_version}"
 
+# --- Publish and create GitHub Release ---
+git push
+git push origin "v${new_version}"
+gh release create "v${new_version}" \
+    --title "v${new_version}" \
+    --generate-notes \
+    --verify-tag
+
 echo ""
-echo "Done. Created commit and tag v${new_version}."
-echo "Run 'git push && git push --tags' to publish."
+echo "Done. Created commit, tag, and GitHub Release v${new_version}."
