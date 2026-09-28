@@ -11,8 +11,8 @@ def test_fix_content_type():
     assert fix_content_type('') == 'image/unknown'
 
 
-def test_lazy_http():
-    IMG_URL = 'http://lavr.github.io/python-emails/tests/python-logo.gif'
+def test_lazy_http(http_fixtures):
+    IMG_URL = http_fixtures + 'data/http/python-logo.gif'
     f = emails.store.LazyHTTPFile(uri=IMG_URL)
     assert f.filename == 'python-logo.gif'
     assert f.content_disposition == 'attachment'
