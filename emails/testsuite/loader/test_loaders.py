@@ -13,9 +13,7 @@ from emails.exc import HTTPLoaderError
 
 ROOT = os.path.dirname(__file__)
 
-BASE_URL = 'http://lavr.github.io/python-emails/tests/'
-
-OLDORNAMENT_URLS = dict(from_url='campaignmonitor-samples/oldornament/index.html',
+OLDORNAMENT_URLS = dict(from_url='loader/data/html_import/oldornament/oldornament/index.html',
                         from_file='data/html_import/oldornament/oldornament/index.html',
                         from_zip='data/html_import/oldornament/oldornament.zip')
 
@@ -29,11 +27,12 @@ def test__from_html():
     # TODO: more tests for from_html func
 
 
-def load_messages(from_url=None, from_file=None, from_zip=None, from_directory=None, skip_text=False, **kw):
+def load_messages(base_url, from_url=None, from_file=None, from_zip=None, from_directory=None, skip_text=False,
+                  **kw):
     # Ususally all loaders loads same data
     if from_url:
-        print("emails.loader.from_url", BASE_URL + from_url, kw)
-        yield emails.loader.from_url(BASE_URL + from_url, **kw)
+        print("emails.loader.from_url", base_url + from_url, kw)
+        yield emails.loader.from_url(base_url + from_url, **kw)
     if from_file:
         print("emails.loader.from_file", os.path.join(ROOT, from_file), kw)
         yield emails.loader.from_file(os.path.join(ROOT, from_file), skip_text=skip_text, **kw)
@@ -45,14 +44,14 @@ def load_messages(from_url=None, from_file=None, from_zip=None, from_directory=N
         yield emails.loader.from_zip(open(os.path.join(ROOT, from_zip), 'rb'), skip_text=skip_text, **kw)
 
 
-def test_loaders():
+def test_loaders(http_fixtures):
 
     def _all_equals(seq):
         iseq = iter(seq)
         first = next(iseq)
         return all(x == first for x in iseq)
 
-    _base_url = os.path.dirname(BASE_URL + OLDORNAMENT_URLS['from_url']) + '/'
+    _base_url = os.path.dirname(http_fixtures + OLDORNAMENT_URLS['from_url']) + '/'
     def _remove_base_url(src, **kw):
         if src.startswith(_base_url):
             return src[len(_base_url):]
@@ -63,7 +62,7 @@ def test_loaders():
 
     htmls = []
 
-    for message in load_messages(message_params=message_params, **OLDORNAMENT_URLS):
+    for message in load_messages(http_fixtures, message_params=message_params, **OLDORNAMENT_URLS):
         # Check loaded images
         assert len(message.attachments.keys()) == 13
 
@@ -98,7 +97,7 @@ def test_noindex_loaders():
         emails.loader.from_zip(open(os.path.join(ROOT, 'data/html_import/no-index/no-index.zip'), 'rb'))
 
 
-def test_loaders_with_params():
+def test_loaders_with_params(http_fixtures):
 
     transform_params = [ dict(css_inline=True,
                             remove_unsafe_tags=True,
@@ -119,7 +118,8 @@ def test_loaders_with_params():
         args = {}
         args.update(tp)
         args.update(OLDORNAMENT_URLS)
-        for m in load_messages(requests_params={'timeout': 10},
+        for m in load_messages(http_fixtures,
+                               requests_params={'timeout': 10},
                                message_params=message_params,
                                **args):
             assert m.subject == message_params['subject']
@@ -128,7 +128,7 @@ def test_loaders_with_params():
                 assert a.is_inline is True
 
 
-def test_loader_image_callback():
+def test_loader_image_callback(http_fixtures):
 
     checked_images = []
 
@@ -141,12 +141,12 @@ def test_loader_image_callback():
             assert 0, "el should be lxml.etree._Element or cssutils.css.value.URIValue"
         return False
 
-    for message in load_messages(load_images=check_image_callback, **OLDORNAMENT_URLS):
+    for message in load_messages(http_fixtures, load_images=check_image_callback, **OLDORNAMENT_URLS):
         # Check images not loaded
         assert len(message.attachments.keys()) == 0
 
     total_images = 0
-    for message in load_messages(**OLDORNAMENT_URLS):
+    for message in load_messages(http_fixtures, **OLDORNAMENT_URLS):
         # Check loaded images
         assert len(message.attachments.keys()) == 13
         total_images += len(message.attachments.keys())
@@ -154,6 +154,7 @@ def test_loader_image_callback():
     assert len(checked_images) >= total_images
 
 
+@pytest.mark.network
 def test_external_urls():
 
     # Load some real sites with complicated html and css.

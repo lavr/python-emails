@@ -43,10 +43,10 @@ def test_sanitize_email():
     assert sanitize_email('a@♤.d') == 'a@xn--f6h.d'
 
 
-def test_fetch_url():
-    fetch_url('http://google.com')
+def test_fetch_url(http_fixtures):
+    fetch_url(http_fixtures + 'data/http/python-logo.gif')
     with pytest.raises(HTTPLoaderError):
-        fetch_url('http://google.com/nonexistent-no-page')
+        fetch_url(http_fixtures + 'data/http/nonexistent-no-page')
 
 
 def test_message_id():
@@ -68,9 +68,9 @@ def test_message_id():
             _ids.add(_id)
 
 
-def test_url_fix():
+def test_url_fix(http_fixtures):
     # Check url with unicode and spaces
-    r = fetch_url('http://lavr.github.io/python-emails/tests/url-fix/Пушкин А.С.jpg')
+    r = fetch_url(http_fixtures + 'data/http/url-fix/Пушкин А.С.jpg')
     assert len(r.content) == 12910
 
 

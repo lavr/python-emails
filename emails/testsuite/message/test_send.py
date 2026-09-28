@@ -9,10 +9,10 @@ from .helpers import common_email_data
 from emails.testsuite.smtp_servers import get_servers
 
 
-def get_letters():
+def get_letters(base_url):
 
     # Test email with attachment
-    URL = 'http://lavr.github.io/python-emails/tests/campaignmonitor-samples/sample-template/images/gallery.png'
+    URL = base_url + 'data/http/sample-template/images/gallery.png'
     data = common_email_data(subject='Single attachment', attachments=[emails.store.LazyHTTPFile(uri=URL), ])
     yield emails.html(**data), None
 
@@ -20,7 +20,7 @@ def get_letters():
     yield emails.html(**common_email_data(subject='Render with name=John')), {'name': 'John'}
 
     # Email with several inline images
-    url = 'http://lavr.github.io/python-emails/tests/campaignmonitor-samples/sample-template/template-widgets.html'
+    url = base_url + 'data/http/sample-template/template-widgets.html'
     data = common_email_data(subject='Sample html with inline images')
     del data['html']
     yield emails.loader.from_url(url=url, message_params=data, images_inline=True), None
@@ -29,9 +29,9 @@ def get_letters():
     yield emails.Message(**common_email_data(mail_to="anaïs@lavr.me", subject="UTF-8 To")), None
 
 
-def test_send_letters():
+def test_send_letters(http_fixtures):
 
-    for m, render in get_letters():
+    for m, render in get_letters(http_fixtures):
         for tag, server in get_servers():
             server.patch_message(m)
             print(tag, server.params)
